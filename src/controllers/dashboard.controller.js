@@ -2,68 +2,51 @@ import db from '../config/db.js';
 
 export const getDashboardSummary = async (req, res) => {
     try {
-        // dashboard summary
-        const [clientsResult] = await db.query(
+        // 1️⃣ Client counts
+        const [[{ totalClients }]] = await db.query(
             'SELECT COUNT(*) AS totalClients FROM clients'
         );
 
-        const totalClients = clientsResult[0].totalClients;
-
-
-        const [activeClientsResult] = await db.query(
+        const [[{ activeClients }]] = await db.query(
             "SELECT COUNT(*) AS activeClients FROM clients WHERE status = 'ACTIVE'"
         );
 
-        const activeClients = activeClientsResult[0].activeClients;
-
-
-        const [capitalResult] = await db.query(
-            `SELECT total_capital
-   FROM capital_summary
-   ORDER BY updated_at DESC
-   LIMIT 1`
+        // 2️⃣ Capital from capital_summary table (single source of truth)
+        const [[capitalData]] = await db.query(
+            `SELECT total_capital, total_pnl, deployed_capital
+             FROM capital_summary
+             WHERE capital_id = 1`
         );
 
-        const capitalManaged = capitalResult.length
-            ? capitalResult[0].total_capital
-            : 0;
+        const capitalManaged = capitalData?.total_capital || 0;
+        const totalPnl = capitalData?.total_pnl || 0;
+        const deployedCapital = capitalData?.deployed_capital || 0;
 
-        //end
-
-        // total trades
-        const [totalTradesResult] = await db.query(
+        // 3️⃣ Trades stats
+        const [[{ totalTrades }]] = await db.query(
             'SELECT COUNT(*) AS totalTrades FROM trades'
         );
 
-        const totalTrades = totalTradesResult[0].totalTrades;
-
-        // winning trades
-        const [winningTradesResult] = await db.query(
+        const [[{ winningTrades }]] = await db.query(
             'SELECT COUNT(*) AS winningTrades FROM trades WHERE total_pnl > 0'
         );
 
-        const winningTrades = winningTradesResult[0].winningTrades;
-
-        // win rate calculation
-        const winRate = totalTrades > 0
-            ? Number(((winningTrades / totalTrades) * 100).toFixed(2))
-            : 0;
-
-        //
-
-
-
+        const winRate =
+            totalTrades > 0
+                ? Number(((winningTrades / totalTrades) * 100).toFixed(2))
+                : 0;
 
         res.json({
             totalClients,
             activeClients,
             capitalManaged,
+            deployedCapital,
+            totalPnl,
             totalTrades,
             winningTrades,
             winRate
-
         });
-        res.json({ message: 'Controller reached successfully' });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -72,6 +55,7 @@ export const getDashboardSummary = async (req, res) => {
         });
     }
 };
+
 
 
 export const getMonthlyPerformance = async (req, res) => {

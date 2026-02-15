@@ -4,29 +4,23 @@ import morgan from 'morgan';
 
 import authRoutes from './routes/auth.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import clientRoutes from './routes/clients.routes.js';
+import tradeRoutes from './routes/trades.routes.js';
 
-const app = express(); // ✅ FIRST create app
+const app = express(); // ✅ MUST be before app.use
 
-// Middleware
+// middleware
 app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to AJ Consultancy API' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date() });
-});
-
-// Auth routes
+// routes
 app.use('/api/auth', authRoutes);
-
-// Dashboard routes
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/trades', tradeRoutes);
 
+// test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API working' });
 });
