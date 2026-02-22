@@ -7,19 +7,18 @@ import {
     getRecentTrades
 } from '../controllers/dashboard.controller.js';
 
-const router = express.Router(); // ✅ router created FIRST
+const router = express.Router();
 
-// dashboard summary
+// 🔹 Dashboard Summary
 router.get('/summary', verifyToken, getDashboardSummary);
 
-// monthly performance
+// 🔹 Monthly Performance Chart
 router.get('/monthly-performance', verifyToken, getMonthlyPerformance);
 
-// win-loss distribution
+// 🔹 Win/Loss Distribution
 router.get('/win-loss-distribution', verifyToken, getWinLossDistribution);
 
-// recent trades
+// 🔹 Recent Trades
 router.get('/recent-trades', verifyToken, getRecentTrades);
-
 
 export default router;

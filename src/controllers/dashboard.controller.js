@@ -2,48 +2,59 @@ import db from '../config/db.js';
 
 export const getDashboardSummary = async (req, res) => {
     try {
-        // 1️⃣ Client counts
+
+        // CLIENT COUNTS
         const [[{ totalClients }]] = await db.query(
-            'SELECT COUNT(*) AS totalClients FROM clients'
+            `SELECT COUNT(*) AS totalClients 
+             FROM clients 
+             WHERE is_deleted = FALSE`
         );
 
         const [[{ activeClients }]] = await db.query(
-            "SELECT COUNT(*) AS activeClients FROM clients WHERE status = 'ACTIVE'"
+            `SELECT COUNT(*) AS activeClients 
+             FROM clients 
+             WHERE status = 'ACTIVE'
+             AND is_deleted = FALSE`
         );
 
-        // 2️⃣ Capital from capital_summary table (single source of truth)
-        const [[capitalData]] = await db.query(
-            `SELECT total_capital, total_pnl, deployed_capital
-             FROM capital_summary
-             WHERE capital_id = 1`
+        // TOTAL CLIENT CAPITAL (THIS IS WHAT YOU WANT)
+        const [[{ totalCapital }]] = await db.query(
+            `SELECT COALESCE(SUM(capital_invested), 0) AS totalCapital
+             FROM clients
+             WHERE status = 'ACTIVE'
+             AND is_deleted = FALSE`
         );
 
-        const capitalManaged = capitalData?.total_capital || 0;
-        const totalPnl = capitalData?.total_pnl || 0;
-        const deployedCapital = capitalData?.deployed_capital || 0;
-
-        // 3️⃣ Trades stats
-        const [[{ totalTrades }]] = await db.query(
-            'SELECT COUNT(*) AS totalTrades FROM trades'
+        // TRADE STATS (ONLY CLOSED)
+        const [[stats]] = await db.query(
+            `SELECT 
+                COUNT(*) AS totalTrades,
+                COALESCE(SUM(total_pnl), 0) AS totalPnl,
+                SUM(CASE WHEN total_pnl > 0 THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN total_pnl < 0 THEN 1 ELSE 0 END) AS losses
+             FROM trades
+             WHERE status = 'CLOSED'
+             AND is_deleted = FALSE`
         );
 
-        const [[{ winningTrades }]] = await db.query(
-            'SELECT COUNT(*) AS winningTrades FROM trades WHERE total_pnl > 0'
-        );
+        const totalTrades = stats.totalTrades || 0;
+        const totalPnl = stats.totalPnl || 0;
+        const wins = stats.wins || 0;
+        const losses = stats.losses || 0;
 
         const winRate =
             totalTrades > 0
-                ? Number(((winningTrades / totalTrades) * 100).toFixed(2))
+                ? Number(((wins / totalTrades) * 100).toFixed(2))
                 : 0;
 
         res.json({
             totalClients,
             activeClients,
-            capitalManaged,
-            deployedCapital,
-            totalPnl,
+            totalCapital,   // 👈 This replaces capitalManaged
             totalTrades,
-            winningTrades,
+            totalPnl,
+            wins,
+            losses,
             winRate
         });
 
@@ -56,27 +67,33 @@ export const getDashboardSummary = async (req, res) => {
     }
 };
 
-
-
 export const getMonthlyPerformance = async (req, res) => {
     try {
-        const [rows] = await db.query(`
-      SELECT
-        DATE_FORMAT(month_key, '%b') AS month,
-        profit,
-        loss
-      FROM (
-        SELECT
-          DATE_FORMAT(trade_date, '%Y-%m-01') AS month_key,
-          SUM(CASE WHEN total_pnl > 0 THEN total_pnl ELSE 0 END) AS profit,
-          SUM(CASE WHEN total_pnl < 0 THEN total_pnl ELSE 0 END) AS loss
-        FROM trades
-        GROUP BY month_key
-      ) monthly
-      ORDER BY month_key
-    `);
 
-        res.json(rows);
+        const [rows] = await db.query(`
+            SELECT
+                DATE_FORMAT(closed_at, '%Y-%m') AS month_key,
+                DATE_FORMAT(closed_at, '%b') AS month,
+                SUM(CASE WHEN total_pnl > 0 THEN total_pnl ELSE 0 END) AS profit,
+                SUM(CASE WHEN total_pnl < 0 THEN total_pnl ELSE 0 END) AS loss
+            FROM trades
+            WHERE status = 'CLOSED'
+              AND is_deleted = FALSE
+              AND closed_at IS NOT NULL
+            GROUP BY DATE_FORMAT(closed_at, '%Y-%m'),
+                     DATE_FORMAT(closed_at, '%b')
+            ORDER BY month_key
+        `);
+
+        // remove month_key before sending to frontend
+        const formatted = rows.map(r => ({
+            month: r.month,
+            profit: r.profit,
+            loss: r.loss
+        }));
+
+        res.json(formatted);
+
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -88,15 +105,18 @@ export const getMonthlyPerformance = async (req, res) => {
 
 export const getWinLossDistribution = async (req, res) => {
     try {
-        const [rows] = await db.query(`
-      SELECT
-        SUM(outcome = 'WIN') AS wins,
-        SUM(outcome = 'LOSS') AS losses,
-        SUM(outcome = 'BREAKEVEN') AS breakeven
-      FROM trades
-    `);
+        const [[stats]] = await db.query(`
+            SELECT
+                SUM(CASE WHEN total_pnl > 0 THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN total_pnl < 0 THEN 1 ELSE 0 END) AS losses,
+                SUM(CASE WHEN total_pnl = 0 THEN 1 ELSE 0 END) AS breakeven
+            FROM trades
+            WHERE status = 'CLOSED'
+            AND is_deleted = FALSE
+        `);
 
-        res.json(rows[0]);
+        res.json(stats);
+
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -109,20 +129,21 @@ export const getWinLossDistribution = async (req, res) => {
 export const getRecentTrades = async (req, res) => {
     try {
         const [rows] = await db.query(`
-      SELECT
-        trade_id,
-        symbol,
-        company_name,
-        trade_type,
-        total_pnl,
-        outcome,
-        trade_date
-      FROM trades
-      ORDER BY created_at DESC
-      LIMIT 5
-    `);
+            SELECT
+                trade_id,
+                stock_name,
+                trade_type,
+                total_pnl,
+                status,
+                created_at
+            FROM trades
+            WHERE is_deleted = FALSE
+            ORDER BY created_at DESC
+            LIMIT 5
+        `);
 
         res.json(rows);
+
     } catch (error) {
         console.error(error);
         res.status(500).json({

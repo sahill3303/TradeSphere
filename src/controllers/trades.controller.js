@@ -210,3 +210,262 @@ export const exitTrade = async (req, res) => {
         });
     }
 };
+
+// 🔹 GET ALL TRADES
+export const getAllTrades = async (req, res) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            status,
+            sort = "created_at",
+            order = "DESC"
+        } = req.query;
+
+        const offset = (page - 1) * limit;
+
+        let where = "WHERE is_deleted = FALSE";
+        let values = [];
+
+        if (status) {
+            where += " AND status = ?";
+            values.push(status);
+        }
+
+        const [rows] = await db.query(
+            `SELECT 
+                trade_id,
+                stock_name,
+                trade_type,
+                mode,
+                entry_price,
+                quantity,
+                total_pnl,
+                status,
+                created_at,
+                closed_at
+             FROM trades
+             ${where}
+             ORDER BY ${sort} ${order}
+             LIMIT ? OFFSET ?`,
+            [...values, Number(limit), Number(offset)]
+        );
+
+        const [[{ total }]] = await db.query(
+            `SELECT COUNT(*) as total
+             FROM trades
+             ${where}`,
+            values
+        );
+
+        res.json({
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            trades: rows
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Get trades error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 GET TRADE BY ID (WITH NOTES)
+export const getTradeById = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+
+        const [[trade]] = await db.query(
+            `SELECT * FROM trades
+             WHERE trade_id = ? AND is_deleted = FALSE`,
+            [trade_id]
+        );
+
+        if (!trade) {
+            return res.status(404).json({
+                message: "Trade not found"
+            });
+        }
+
+        const [notes] = await db.query(
+            `SELECT note_id, note_text, created_at
+             FROM trade_notes
+             WHERE trade_id = ?
+             ORDER BY created_at ASC`,
+            [trade_id]
+        );
+
+        res.json({
+            trade,
+            notes
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Get trade error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 UPDATE TRADE (ONLY IF OPEN)
+export const updateTrade = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+        const updates = req.body;
+
+        // Check trade exists
+        const [[trade]] = await db.query(
+            `SELECT status FROM trades
+             WHERE trade_id = ? AND is_deleted = FALSE`,
+            [trade_id]
+        );
+
+        if (!trade) {
+            return res.status(404).json({ message: "Trade not found" });
+        }
+
+        if (trade.status !== 'OPEN') {
+            return res.status(400).json({
+                message: "Cannot edit a closed trade"
+            });
+        }
+
+        const allowedFields = [
+            "stock_name",
+            "trade_type",
+            "mode",
+            "leverage",
+            "entry_price",
+            "quantity",
+            "target",
+            "stop_loss",
+            "strategy",
+            "conviction_level",
+            "entry_nifty_mood",
+            "entry_notes"
+        ];
+
+        const fields = [];
+        const values = [];
+
+        for (let key of allowedFields) {
+            if (updates[key] !== undefined) {
+                fields.push(`${key} = ?`);
+                values.push(updates[key]);
+            }
+        }
+
+        if (fields.length === 0) {
+            return res.status(400).json({
+                message: "No valid fields provided"
+            });
+        }
+
+        await db.query(
+            `UPDATE trades
+             SET ${fields.join(", ")}
+             WHERE trade_id = ?`,
+            [...values, trade_id]
+        );
+
+        res.json({ message: "Trade updated successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Update trade error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 DELETE TRADE (SOFT)
+export const deleteTrade = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+
+        const [result] = await db.query(
+            `UPDATE trades
+             SET is_deleted = TRUE,
+                 deleted_at = NOW()
+             WHERE trade_id = ? AND is_deleted = FALSE`,
+            [trade_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "Trade not found"
+            });
+        }
+
+        res.json({ message: "Trade deleted successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Delete trade error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 GET DELETED TRADES
+export const getDeletedTrades = async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            `SELECT trade_id,
+                    stock_name,
+                    status,
+                    total_pnl,
+                    deleted_at
+             FROM trades
+             WHERE is_deleted = TRUE
+             ORDER BY deleted_at DESC`
+        );
+
+        res.json(rows);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Fetch deleted trades error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 RESTORE TRADE
+export const restoreTrade = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+
+        const [result] = await db.query(
+            `UPDATE trades
+             SET is_deleted = FALSE,
+                 deleted_at = NULL
+             WHERE trade_id = ? AND is_deleted = TRUE`,
+            [trade_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "Deleted trade not found"
+            });
+        }
+
+        res.json({ message: "Trade restored successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Restore trade error",
+            error: error.message
+        });
+    }
+};

@@ -83,17 +83,21 @@ export const loginAdmin = async (req, res) => {
 
 export const getMe = async (req, res) => {
     try {
-        const admin = req.admin;
+        // req.admin = JWT payload which only has { id, role }
+        // Fetch full admin row from DB to get name, email, etc.
+        const [rows] = await db.query(
+            'SELECT id, name, email, role FROM admins WHERE id = ?',
+            [req.admin.id]
+        );
 
-        res.json({
-            id: admin.id,
-            name: admin.name,
-            email: admin.email,
-            role: admin.role
-        });
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+
+        res.json(rows[0]);
     } catch (error) {
         res.status(500).json({
-            message: "Failed to fetch admin",
+            message: 'Failed to fetch admin',
             error: error.message
         });
     }
