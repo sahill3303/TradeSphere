@@ -16,7 +16,7 @@ export const recalculateCapital = async () => {
         `);
 
         // 3️⃣ Deployed capital (optional logic – simple version)
-        const deployedCapital = totalCapital + totalPnl;
+        const deployedCapital = Number(totalCapital) + Number(totalPnl);
 
         // 4️⃣ Update capital_summary
         await db.query(`

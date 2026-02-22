@@ -246,3 +246,69 @@ export const getClientSummary = async (req, res) => {
     }
 };
 
+
+/**
+ * DELETE CLIENT
+ */
+export const deleteClient = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [result] = await db.query(
+            `UPDATE clients
+             SET is_deleted = TRUE,
+                 deleted_at = NOW()
+             WHERE client_id = ? AND is_deleted = FALSE`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "Client not found or already deleted"
+            });
+        }
+
+        await recalculateCapital();
+
+        res.json({
+            message: "Client deleted successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Delete client error",
+            error: error.message
+        });
+    }
+};
+
+/**
+ * GET DELETED CLIENTS
+ */
+export const getDeletedClients = async (req, res) => {
+    const [rows] = await db.query(
+        `SELECT * FROM clients
+         WHERE is_deleted=TRUE
+         ORDER BY deleted_at DESC`
+    );
+
+    res.json(rows);
+};
+
+
+/**
+ * RESTORE CLIENT
+ */
+export const restoreClient = async (req, res) => {
+    const { client_id } = req.params;
+
+    await db.query(
+        `UPDATE clients
+         SET is_deleted=FALSE, deleted_at=NULL
+         WHERE client_id=?`,
+        [client_id]
+    );
+
+    res.json({ message: "Client restored successfully" });
+};

@@ -1,37 +1,43 @@
 import express from 'express';
 import {
-    createTrade,
-    createFullJournal,
-    closeTrade,
-    getAllTrades,
-    getTradeById,
-    getTradeAnalytics,
-    getRiskMetrics
+    openTrade,
+    addTradeNote,
+    exitTrade
+    // getAllTrades,
+    // getTradeById,
+    // updateTrade,
+    // deleteTrade,
+    // getDeletedTrades,
+    // restoreTrade
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
 
-// Basic trade
-router.post('/', createTrade);
+// 🔹 OPEN TRADE
+router.post('/', openTrade);
 
-// ✅ FULL JOURNAL ROUTE
-router.post('/createFullJournal', createFullJournal);
+// 🔹 ADD NOTE TO TRADE
+router.post('/:trade_id/notes', addTradeNote);
 
-// ✅ CLOSE TRADE ROUTE
-router.patch('/:trade_id/close', closeTrade);
+// 🔹 EXIT TRADE
+router.patch('/:trade_id/exit', exitTrade);
 
-// ✅ GET ALL TRADES ROUTE
-router.get('/', getAllTrades);
+// // 🔹 GET ALL TRADES
+// router.get('/', getAllTrades);
 
-// ✅ GET TRADE BY ID ROUTE
-router.get('/:trade_id', getTradeById);
+// // 🔹 GET DELETED TRADES
+// router.get('/deleted', getDeletedTrades);
 
-// ✅ GET TRADE ANALYTICS ROUTE
-router.get('/analytics/performance', getTradeAnalytics);
+// // 🔹 GET TRADE BY ID
+// router.get('/:trade_id', getTradeById);
 
-// ✅ GET TRADE RISK METRICS ROUTE
-router.get('/analytics/risk', getRiskMetrics);
+// // 🔹 UPDATE TRADE (ONLY IF OPEN)
+// router.patch('/:trade_id', updateTrade);
 
+// // 🔹 DELETE TRADE
+// router.delete('/:trade_id', deleteTrade);
 
+// // 🔹 RESTORE TRADE
+// router.patch('/:trade_id/restore', restoreTrade);
 
 export default router;
