@@ -1,13 +1,37 @@
+import { useState, useEffect } from 'react';
+import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 
-const SUMMARY_CARDS = [
-    { label: 'Total Clients', value: '—', icon: '👥' },
-    { label: 'Open Trades', value: '—', icon: '📈' },
-    { label: 'Capital Deployed', value: '—', icon: '💰' },
-    { label: 'Realised P&L', value: '—', icon: '📊' },
-];
-
 export default function Dashboard() {
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const [recentTrades, setRecentTrades] = useState([]);
+    const [tradesLoading, setTradesLoading] = useState(true);
+    const [tradesError, setTradesError] = useState(null);
+
+    useEffect(() => {
+        // Fetch Summary
+        api.get('/api/dashboard/summary')
+            .then(res => setSummary(res.data))
+            .catch(err => setError('Failed to load dashboard summary.'))
+            .finally(() => setLoading(false));
+
+        // Fetch Recent Trades
+        api.get('/api/dashboard/recent-trades')
+            .then(res => setRecentTrades(res.data))
+            .catch(err => setTradesError('Failed to load recent trades.'))
+            .finally(() => setTradesLoading(false));
+    }, []);
+
+    const SUMMARY_CARDS = [
+        { label: 'Total Clients', value: summary ? summary.totalClients : '—', icon: '👥' },
+        { label: 'Total Trades', value: summary ? summary.totalTrades : '—', icon: '📈' },
+        { label: 'Total Capital', value: summary ? `₹${summary.totalCapital.toLocaleString()}` : '—', icon: '💰' },
+        { label: 'Realised P&L', value: summary ? `₹${summary.totalPnl.toLocaleString()}` : '—', icon: '📊' },
+    ];
+
     return (
         <div className="page">
             <div className="page__header">
@@ -15,25 +39,75 @@ export default function Dashboard() {
                 <p className="page__subtitle">Overview of your portfolio</p>
             </div>
 
+            {loading && <p className="status-text">Loading summary…</p>}
+            {error && <div className="alert alert--error">{error}</div>}
+
             {/* Summary cards */}
-            <div className="stats-grid">
-                {SUMMARY_CARDS.map(({ label, value, icon }) => (
-                    <Card key={label} className="stat-card">
-                        <div className="stat-card__icon">{icon}</div>
-                        <div className="stat-card__body">
-                            <span className="stat-card__value">{value}</span>
-                            <span className="stat-card__label">{label}</span>
-                        </div>
-                    </Card>
-                ))}
-            </div>
+            {!loading && !error && (
+                <div className="stats-grid">
+                    {SUMMARY_CARDS.map(({ label, value, icon }) => (
+                        <Card key={label} className="stat-card">
+                            <div className="stat-card__icon">{icon}</div>
+                            <div className="stat-card__body">
+                                <span className="stat-card__value">{value}</span>
+                                <span className="stat-card__label">{label}</span>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
 
             {/* Placeholder for charts / recent trades */}
             <div className="dashboard-sections">
-                <Card className="section-placeholder">
-                    <h3>Recent Trades</h3>
-                    <p className="placeholder-text">Data will appear here once connected to the API.</p>
+                <Card className="section-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Recent Trades</h3>
+                    </div>
+
+                    {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading recent trades…</p>}
+                    {tradesError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{tradesError}</p>}
+
+                    {!tradesLoading && !tradesError && recentTrades.length === 0 && (
+                        <p className="placeholder-text" style={{ padding: 'var(--space-lg)' }}>No recent trades found.</p>
+                    )}
+
+                    {!tradesLoading && !tradesError && recentTrades.length > 0 && (
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Stock Name</th>
+                                    <th>Trade Type</th>
+                                    <th>PnL</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentTrades.map((trade) => (
+                                    <tr key={trade.trade_id}>
+                                        <td>{trade.stock_name}</td>
+                                        <td style={{ textTransform: 'capitalize' }}>{trade.trade_type}</td>
+                                        <td style={{
+                                            color: trade.total_pnl > 0 ? 'var(--color-success)' :
+                                                trade.total_pnl < 0 ? 'var(--color-danger)' : 'inherit',
+                                            fontWeight: '500'
+                                        }}>
+                                            {trade.total_pnl > 0 ? '+' : ''}{trade.total_pnl}
+                                        </td>
+                                        <td>
+                                            <span className={`badge badge--${trade.status === 'CLOSED' ? (trade.total_pnl >= 0 ? 'green' : 'red') : 'yellow'
+                                                }`}>
+                                                {trade.status}
+                                            </span>
+                                        </td>
+                                        <td>{new Date(trade.created_at).toLocaleDateString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </Card>
+
                 <Card className="section-placeholder">
                     <h3>Client Activity</h3>
                     <p className="placeholder-text">Live data coming soon.</p>
