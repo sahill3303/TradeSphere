@@ -27,9 +27,3 @@ app.get('/api/test', (req, res) => {
 
 export default app;
 
-
-
-// comments
-// comments
-// comments
-// comments
