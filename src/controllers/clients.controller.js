@@ -155,58 +155,58 @@ export const updateClientStatus = async (req, res) => {
  * UPDATE CLIENT DETAILS
  */
 export const updateClientDetails = async (req, res) => {
-
-
     try {
         const { id } = req.params;
-        const { name, broker, capital_invested } = req.body;
+        const { name, broker, capital_invested, join_date } = req.body;
 
-        if (!name && !broker && !capital_invested) {
-            return res.status(400).json({
-                message: "Nothing to update"
-            });
+        if (!name && !broker && capital_invested === undefined && !join_date) {
+            return res.status(400).json({ message: 'Nothing to update' });
         }
 
         const fields = [];
         const values = [];
 
         if (name) {
-            fields.push("name = ?");
+            fields.push('name = ?');
             values.push(name);
         }
 
-        if (broker) {
-            fields.push("broker = ?");
+        if (broker !== undefined) {
+            fields.push('broker = ?');
             values.push(broker);
         }
 
-        if (capital_invested !== undefined) {
-            fields.push("capital_invested = ?");
+        // Track whether capital changed so we can recalculate after
+        const capitalChanged = capital_invested !== undefined;
+        if (capitalChanged) {
+            fields.push('capital_invested = ?');
             values.push(capital_invested);
+        }
+
+        if (join_date) {
+            fields.push('join_date = ?');
+            values.push(join_date);
         }
 
         values.push(id);
 
         const [result] = await db.query(
-            `UPDATE clients SET ${fields.join(", ")} WHERE client_id = ?`,
+            `UPDATE clients SET ${fields.join(', ')} WHERE client_id = ?`,
             values
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Client not found" });
+            return res.status(404).json({ message: 'Client not found' });
         }
 
-        // 🔥 Only recalc if capital changed
         if (capitalChanged) {
             await recalculateCapital();
         }
 
-        res.json({
-            message: "Client details updated successfully"
-        });
+        res.json({ message: 'Client details updated successfully' });
     } catch (error) {
         res.status(500).json({
-            message: "Update client error",
+            message: 'Update client error',
             error: error.message
         });
     }
