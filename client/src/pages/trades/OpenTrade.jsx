@@ -124,3 +124,6 @@ export default function OpenTrade() {
         </div>
     );
 }
+
+
+// open trade page frontend done
