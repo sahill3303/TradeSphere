@@ -81,3 +81,6 @@ export default function ClientDetails() {
         </div>
     );
 }
+
+
+// client edit - edit capital invested & date change not working
