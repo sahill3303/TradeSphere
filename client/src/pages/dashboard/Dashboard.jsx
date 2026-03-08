@@ -11,18 +11,28 @@ export default function Dashboard() {
     const [tradesLoading, setTradesLoading] = useState(true);
     const [tradesError, setTradesError] = useState(null);
 
+    const [clientActivity, setClientActivity] = useState([]);
+    const [activityLoading, setActivityLoading] = useState(true);
+    const [activityError, setActivityError] = useState(null);
+
     useEffect(() => {
         // Fetch Summary
         api.get('/api/dashboard/summary')
             .then(res => setSummary(res.data))
-            .catch(err => setError('Failed to load dashboard summary.'))
+            .catch(() => setError('Failed to load dashboard summary.'))
             .finally(() => setLoading(false));
 
         // Fetch Recent Trades
         api.get('/api/dashboard/recent-trades')
             .then(res => setRecentTrades(res.data))
-            .catch(err => setTradesError('Failed to load recent trades.'))
+            .catch(() => setTradesError('Failed to load recent trades.'))
             .finally(() => setTradesLoading(false));
+
+        // Fetch Client Activity
+        api.get('/api/clients/client-activity')
+            .then(res => setClientActivity(res.data))
+            .catch(() => setActivityError('Failed to load client activity.'))
+            .finally(() => setActivityLoading(false));
     }, []);
 
     const SUMMARY_CARDS = [
@@ -108,9 +118,45 @@ export default function Dashboard() {
                     )}
                 </Card>
 
-                <Card className="section-placeholder">
-                    <h3>Client Activity</h3>
-                    <p className="placeholder-text">Live data coming soon.</p>
+                <Card className="section-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Client Activity</h3>
+                    </div>
+
+                    {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading activity…</p>}
+                    {activityError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{activityError}</p>}
+
+                    {!activityLoading && !activityError && clientActivity.length === 0 && (
+                        <p className="placeholder-text" style={{ padding: 'var(--space-lg)' }}>No recent client activity.</p>
+                    )}
+
+                    {!activityLoading && !activityError && clientActivity.length > 0 && (
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th>Status</th>
+                                    <th>Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {clientActivity.map((c) => (
+                                    <tr key={c.client_id}>
+                                        <td style={{ fontWeight: 500 }}>{c.name}</td>
+                                        <td>
+                                            <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
+                                                c.status === 'INACTIVE' ? 'badge--red' :
+                                                    'badge--yellow'
+                                                }`}>
+                                                {c.status}
+                                            </span>
+                                        </td>
+                                        <td>{c.join_date ? new Date(c.join_date).toLocaleDateString() : '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </Card>
             </div>
         </div>

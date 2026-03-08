@@ -41,6 +41,7 @@ export const getAllClients = async (req, res) => {
         status,
         created_at
       FROM clients
+      WHERE is_deleted = FALSE
       ORDER BY created_at DESC
     `);
 
@@ -301,14 +302,71 @@ export const getDeletedClients = async (req, res) => {
  * RESTORE CLIENT
  */
 export const restoreClient = async (req, res) => {
-    const { client_id } = req.params;
+    try {
+        const { id } = req.params; // route is /:id/restore
 
-    await db.query(
-        `UPDATE clients
-         SET is_deleted=FALSE, deleted_at=NULL
-         WHERE client_id=?`,
-        [client_id]
-    );
+        const [result] = await db.query(
+            `UPDATE clients
+             SET is_deleted = FALSE, deleted_at = NULL
+             WHERE client_id = ?`,
+            [id]
+        );
 
-    res.json({ message: "Client restored successfully" });
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Client not found or already active' });
+        }
+
+        await recalculateCapital();
+
+        res.json({ message: 'Client restored successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Restore client error', error: error.message });
+    }
+};
+
+// get client activity
+export const getClientActivity = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+      SELECT
+        client_id,
+        name,
+        status,
+        join_date
+      FROM clients
+      WHERE is_deleted = FALSE
+      ORDER BY client_id DESC
+      LIMIT 5
+    `);
+
+        res.json(rows);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Client activity error",
+            error: error.message
+        });
+    }
+};
+
+// 🔹 HARD DELETE CLIENT (permanent — only soft-deleted clients)
+export const hardDeleteClient = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [result] = await db.query(
+            `DELETE FROM clients WHERE client_id = ? AND is_deleted = TRUE`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Deleted client not found" });
+        }
+
+        res.json({ message: "Client permanently deleted" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Hard delete client error", error: error.message });
+    }
 };

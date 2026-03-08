@@ -15,7 +15,8 @@ export const openTrade = async (req, res) => {
             strategy,
             conviction_level,
             entry_nifty_mood,
-            entry_notes
+            entry_notes,
+            trade_date
         } = req.body;
 
         // Basic validation
@@ -41,9 +42,10 @@ export const openTrade = async (req, res) => {
                 conviction_level,
                 entry_nifty_mood,
                 entry_notes,
+                trade_date,
                 status
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
             [
                 stock_name,
                 trade_type,
@@ -56,7 +58,8 @@ export const openTrade = async (req, res) => {
                 strategy,
                 conviction_level,
                 entry_nifty_mood,
-                entry_notes
+                entry_notes,
+                trade_date || null
             ]
         );
 
@@ -134,7 +137,8 @@ export const exitTrade = async (req, res) => {
             exit_nifty_mood,
             exit_reason,
             exit_emotion,
-            conclusion
+            conclusion,
+            exit_date
         } = req.body;
 
         if (!exit_price) {
@@ -183,6 +187,7 @@ export const exitTrade = async (req, res) => {
                  exit_emotion = ?,
                  conclusion = ?,
                  total_pnl = ?,
+                 exit_date = ?,
                  status = 'CLOSED',
                  closed_at = NOW()
              WHERE trade_id = ?`,
@@ -193,6 +198,7 @@ export const exitTrade = async (req, res) => {
                 exit_emotion,
                 conclusion,
                 pnl,
+                exit_date || null,
                 trade_id
             ]
         );
@@ -440,7 +446,6 @@ export const getDeletedTrades = async (req, res) => {
     }
 };
 
-// 🔹 RESTORE TRADE
 export const restoreTrade = async (req, res) => {
     try {
         const { trade_id } = req.params;
@@ -467,5 +472,34 @@ export const restoreTrade = async (req, res) => {
             message: "Restore trade error",
             error: error.message
         });
+    }
+};
+
+// 🔹 HARD DELETE TRADE (permanent — only soft-deleted trades)
+export const hardDeleteTrade = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+
+        // Verify trade exists and is soft-deleted before proceeding
+        const [[trade]] = await db.query(
+            `SELECT trade_id FROM trades WHERE trade_id = ? AND is_deleted = TRUE`,
+            [trade_id]
+        );
+
+        if (!trade) {
+            return res.status(404).json({ message: "Deleted trade not found" });
+        }
+
+        // Delete child rows first (FK constraints)
+        await db.query(`DELETE FROM trade_notes WHERE trade_id = ?`, [trade_id]);
+
+        // Now permanently delete the trade
+        await db.query(`DELETE FROM trades WHERE trade_id = ?`, [trade_id]);
+
+        res.json({ message: "Trade permanently deleted" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Hard delete trade error", error: error.message });
     }
 };

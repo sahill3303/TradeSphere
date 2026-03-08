@@ -8,7 +8,8 @@ import {
     updateTrade,
     deleteTrade,
     getDeletedTrades,
-    restoreTrade
+    restoreTrade,
+    hardDeleteTrade
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
@@ -39,5 +40,8 @@ router.delete('/:trade_id', deleteTrade);
 
 // 🔹 RESTORE TRADE
 router.patch('/:trade_id/restore', restoreTrade);
+
+// 🔹 HARD DELETE TRADE (permanent)
+router.delete('/:trade_id/permanent', hardDeleteTrade);
 
 export default router;
