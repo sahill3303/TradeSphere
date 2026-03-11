@@ -1,25 +1,23 @@
 /**
- * Button — reusable button component.
- * Props:
- *   variant: 'primary' | 'secondary' | 'danger'  (default: 'primary')
- *   size:    'sm' | 'md' | 'lg'                  (default: 'md')
- *   disabled, onClick, type, children
+ * Button — gold primary, dark secondary, danger red
+ * Props: variant ('primary'|'secondary'|'danger'|'ghost'), type, disabled, onClick, style, children
  */
 export default function Button({
     children,
-    variant = 'primary',
-    size = 'md',
+    variant = 'secondary',
+    type = 'button',
     disabled = false,
     onClick,
-    type = 'button',
+    style,
     className = '',
 }) {
     return (
         <button
             type={type}
-            onClick={onClick}
             disabled={disabled}
-            className={`btn btn--${variant} btn--${size} ${className}`}
+            onClick={onClick}
+            className={`btn btn--${variant} ${className}`}
+            style={style}
         >
             {children}
         </button>

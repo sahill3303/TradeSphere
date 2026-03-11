@@ -4,15 +4,18 @@ const PAGE_TITLES = {
     '/dashboard': 'Dashboard',
     '/clients': 'Clients',
     '/trades': 'Trades',
+    '/trades/open': 'Open Trade',
 };
 
-export default function Navbar({ onMenuToggle, theme, onThemeToggle }) {
+export default function Navbar({ onMenuToggle }) {
     const { pathname } = useLocation();
-    const title = PAGE_TITLES[pathname] ?? 'AJ Consulting';
+    // Match longest prefix
+    const title = Object.entries(PAGE_TITLES)
+        .find(([path]) => pathname === path || pathname.startsWith(path + '/') || pathname === path)?.[1]
+        ?? 'AJ Consulting';
 
     return (
         <header className="navbar">
-            {/* Mobile hamburger */}
             <button
                 className="navbar__menu-btn"
                 onClick={onMenuToggle}
@@ -21,20 +24,21 @@ export default function Navbar({ onMenuToggle, theme, onThemeToggle }) {
                 ☰
             </button>
 
-            {/* Page title */}
             <h1 className="navbar__title">{title}</h1>
 
-            {/* Right-side controls */}
             <div className="navbar__actions">
-                {/* Dark / Light mode toggle */}
-                <button
-                    className="navbar__theme-toggle"
-                    onClick={onThemeToggle}
-                    aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                    title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                >
-                    {theme === 'dark' ? '☀️' : '🌙'}
-                </button>
+                <span style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--color-text-dim)',
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.3rem 0.7rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.03em',
+                }}>
+                    {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
             </div>
         </header>
     );

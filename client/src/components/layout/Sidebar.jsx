@@ -2,9 +2,9 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { to: '/clients', label: 'Clients', icon: '👥' },
-    { to: '/trades', label: 'Trades', icon: '📈' },
+    { to: '/dashboard', label: 'Dashboard', icon: '⊞' },
+    { to: '/clients', label: 'Clients', icon: '◎' },
+    { to: '/trades', label: 'Trades', icon: '◈' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -12,7 +12,6 @@ export default function Sidebar({ isOpen, onClose }) {
 
     return (
         <>
-            {/* Overlay for mobile */}
             {isOpen && (
                 <div className="sidebar-overlay" onClick={onClose} aria-hidden="true" />
             )}
@@ -20,7 +19,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
                 {/* Brand */}
                 <div className="sidebar__brand">
-                    <span className="sidebar__brand-icon">⚡</span>
+                    <div className="sidebar__logo">AJ</div>
                     <span className="sidebar__brand-name">AJ Consulting</span>
                 </div>
 
@@ -44,7 +43,7 @@ export default function Sidebar({ isOpen, onClose }) {
                     </ul>
                 </nav>
 
-                {/* User section at bottom */}
+                {/* User + Logout */}
                 <div className="sidebar__footer">
                     <div className="sidebar__user">
                         <div className="sidebar__avatar">
@@ -56,7 +55,7 @@ export default function Sidebar({ isOpen, onClose }) {
                         </div>
                     </div>
                     <button className="sidebar__logout" onClick={logout} aria-label="Logout">
-                        🚪 Logout
+                        ⭳ Logout
                     </button>
                 </div>
             </aside>

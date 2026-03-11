@@ -4,20 +4,13 @@ import Navbar from './Navbar';
 
 export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'light';
-    });
 
-    // Apply theme class to <html> element whenever it changes
+    // Force dark theme always (Black+Gold design)
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }, []);
 
-    const toggleTheme = () =>
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-
-    const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+    const toggleSidebar = () => setSidebarOpen(prev => !prev);
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
@@ -25,11 +18,7 @@ export default function Layout({ children }) {
             <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
             <div className="layout__main">
-                <Navbar
-                    onMenuToggle={toggleSidebar}
-                    theme={theme}
-                    onThemeToggle={toggleTheme}
-                />
+                <Navbar onMenuToggle={toggleSidebar} />
                 <main className="layout__content" id="main-content">
                     {children}
                 </main>

@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
 
 export default function Login() {
     const { login } = useAuth();
@@ -14,35 +13,28 @@ export default function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Force dark theme on auth pages too
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }, []);
+
     const handleChange = (e) =>
-        setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+        setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
-        if (!form.email || !form.password) {
-            setError('Email and password are required.');
-            return;
-        }
-
+        if (!form.email || !form.password) { setError('Email and password are required.'); return; }
         setLoading(true);
         try {
-            // Backend returns: { message, token, admin: { id, name, email, role } }
             const { data } = await api.post('/api/auth/login', {
                 email: form.email.trim(),
                 password: form.password,
             });
-
-            // Store token + save admin into AuthContext
             login(data.token, data.admin);
-
-            // Redirect to dashboard
             navigate('/dashboard', { replace: true });
-
         } catch (err) {
-            const msg = err.response?.data?.message;
-            setError(msg || 'Login failed. Please check your credentials.');
+            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
@@ -50,16 +42,19 @@ export default function Login() {
 
     return (
         <div className="auth-page">
-            <Card className="auth-card">
-                <div className="auth-header">
-                    <span className="auth-logo">⚡</span>
-                    <h2 className="auth-title">AJ Consulting</h2>
-                    <p className="auth-subtitle">Sign in to your account</p>
+            <div className="auth-card">
+                {/* Logo */}
+                <div className="auth-card__logo">
+                    <div className="auth-card__logo-mark">AJ</div>
+                    <span className="auth-card__logo-text">AJ Consulting</span>
                 </div>
 
-                {error && <div className="alert alert--error">{error}</div>}
+                <h2 className="auth-card__title">Welcome back</h2>
+                <p className="auth-card__subtitle">Sign in to your trading dashboard</p>
 
-                <form onSubmit={handleSubmit} noValidate>
+                {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
+
+                <form className="auth-form" onSubmit={handleSubmit} noValidate>
                     <Input
                         id="email"
                         label="Email"
@@ -81,19 +76,18 @@ export default function Login() {
                     <Button
                         type="submit"
                         variant="primary"
-                        size="lg"
                         disabled={loading}
-                        className="auth-btn"
+                        style={{ width: '100%', padding: '0.7rem', fontSize: '0.9rem', marginTop: '0.5rem' }}
                     >
-                        {loading ? 'Signing in…' : 'Sign In'}
+                        {loading ? 'Signing in…' : 'Sign In →'}
                     </Button>
                 </form>
 
-                <p className="auth-footer">
+                <p className="auth-link">
                     Don&apos;t have an account?{' '}
-                    <Link to="/register" className="auth-link">Register</Link>
+                    <Link to="/register">Register</Link>
                 </p>
-            </Card>
+            </div>
         </div>
     );
 }

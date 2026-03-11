@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
 
 export default function Register() {
     const navigate = useNavigate();
@@ -13,13 +12,16 @@ export default function Register() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }, []);
+
     const handleChange = (e) =>
-        setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+        setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
+        setError(''); setSuccess('');
         setLoading(true);
         try {
             await api.post('/api/auth/register', form);
@@ -34,24 +36,26 @@ export default function Register() {
 
     return (
         <div className="auth-page">
-            <Card className="auth-card">
-                <div className="auth-header">
-                    <span className="auth-logo">⚡</span>
-                    <h2 className="auth-title">AJ Consulting</h2>
-                    <p className="auth-subtitle">Create your account</p>
+            <div className="auth-card">
+                <div className="auth-card__logo">
+                    <div className="auth-card__logo-mark">AJ</div>
+                    <span className="auth-card__logo-text">AJ Consulting</span>
                 </div>
 
-                {error && <div className="alert alert--error">{error}</div>}
-                {success && <div className="alert alert--success">{success}</div>}
+                <h2 className="auth-card__title">Create account</h2>
+                <p className="auth-card__subtitle">Start managing your trading portfolio</p>
 
-                <form onSubmit={handleSubmit} noValidate>
+                {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
+                {success && <div className="alert alert--success" style={{ marginBottom: 'var(--space-md)' }}>{success}</div>}
+
+                <form className="auth-form" onSubmit={handleSubmit} noValidate>
                     <Input
                         id="name"
                         label="Full Name"
                         type="text"
                         value={form.name}
                         onChange={handleChange}
-                        placeholder="John Doe"
+                        placeholder="Rahul Sharma"
                         required
                     />
                     <Input
@@ -72,16 +76,21 @@ export default function Register() {
                         placeholder="Min. 8 characters"
                         required
                     />
-                    <Button type="submit" variant="primary" size="lg" disabled={loading} className="auth-btn">
-                        {loading ? 'Creating account…' : 'Register'}
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        disabled={loading}
+                        style={{ width: '100%', padding: '0.7rem', fontSize: '0.9rem', marginTop: '0.5rem' }}
+                    >
+                        {loading ? 'Creating account…' : 'Register →'}
                     </Button>
                 </form>
 
-                <p className="auth-footer">
+                <p className="auth-link">
                     Already have an account?{' '}
-                    <Link to="/login" className="auth-link">Sign In</Link>
+                    <Link to="/login">Sign In</Link>
                 </p>
-            </Card>
+            </div>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 /**
- * Input — controlled input with label and error support.
- * Props: id, label, error, type, value, onChange, placeholder, required
+ * Input — dark-themed input with label and error support.
+ * Props: id, label, error, type, value, onChange, placeholder, required, style, className
  */
 export default function Input({
     id,
@@ -11,10 +11,11 @@ export default function Input({
     onChange,
     placeholder = '',
     required = false,
+    style,
     className = '',
 }) {
     return (
-        <div className={`form-group ${className}`}>
+        <div className={`form-group ${className}`} style={style}>
             {label && (
                 <label htmlFor={id} className="form-label">
                     {label}
@@ -28,7 +29,7 @@ export default function Input({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className={`form-input ${error ? 'form-input--error' : ''}`}
+                className={`form-input${error ? ' form-input--error' : ''}`}
             />
             {error && <p className="form-error">{error}</p>}
         </div>

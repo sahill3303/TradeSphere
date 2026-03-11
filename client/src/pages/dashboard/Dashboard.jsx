@@ -1,6 +1,28 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import Card from '../../components/ui/Card';
+
+// Safe date formatter (DD/MM/YYYY, no timezone issues)
+function fmtDate(val) {
+    if (!val) return '—';
+    const s = val instanceof Date ? val.toISOString() : String(val);
+    const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+}
+
+// Icon components (inline SVG-like characters for stat cards)
+const STAT_ICONS = {
+    'Total Clients': '👥',
+    'Total Trades': '📈',
+    'Total Capital': '💰',
+    'Realised P&L': '📊',
+};
+
+const STAT_COLORS = {
+    'Total Clients': 'var(--color-gold)',
+    'Total Trades': '#60A5FA',
+    'Total Capital': 'var(--color-success)',
+    'Realised P&L': 'var(--color-warning)',
+};
 
 export default function Dashboard() {
     const [summary, setSummary] = useState(null);
@@ -16,148 +38,213 @@ export default function Dashboard() {
     const [activityError, setActivityError] = useState(null);
 
     useEffect(() => {
-        // Fetch Summary
         api.get('/api/dashboard/summary')
             .then(res => setSummary(res.data))
-            .catch(() => setError('Failed to load dashboard summary.'))
+            .catch(() => setError('Failed to load summary.'))
             .finally(() => setLoading(false));
 
-        // Fetch Recent Trades
         api.get('/api/dashboard/recent-trades')
             .then(res => setRecentTrades(res.data))
             .catch(() => setTradesError('Failed to load recent trades.'))
             .finally(() => setTradesLoading(false));
 
-        // Fetch Client Activity
         api.get('/api/clients/client-activity')
             .then(res => setClientActivity(res.data))
-            .catch(() => setActivityError('Failed to load client activity.'))
+            .catch(() => setActivityError('Failed to load activity.'))
             .finally(() => setActivityLoading(false));
     }, []);
 
-    const SUMMARY_CARDS = [
-        { label: 'Total Clients', value: summary ? summary.totalClients : '—', icon: '👥' },
-        { label: 'Total Trades', value: summary ? summary.totalTrades : '—', icon: '📈' },
-        { label: 'Total Capital', value: summary ? `₹${summary.totalCapital.toLocaleString()}` : '—', icon: '💰' },
-        { label: 'Realised P&L', value: summary ? `₹${summary.totalPnl.toLocaleString()}` : '—', icon: '📊' },
-    ];
+    const SUMMARY_CARDS = summary ? [
+        { label: 'Total Clients', value: summary.totalClients },
+        { label: 'Total Trades', value: summary.totalTrades },
+        { label: 'Total Capital', value: `₹${Number(summary.totalCapital).toLocaleString('en-IN')}` },
+        {
+            label: 'Realised P&L',
+            value: `${summary.totalPnl >= 0 ? '+' : ''}₹${Number(summary.totalPnl).toLocaleString('en-IN')}`,
+            pnl: summary.totalPnl,
+        },
+    ] : [];
 
     return (
         <div className="page">
+            {/* Header */}
             <div className="page__header">
-                <h2 className="page__title">Dashboard</h2>
-                <p className="page__subtitle">Overview of your portfolio</p>
+                <div>
+                    <h2 className="page__title">Dashboard</h2>
+                    <p className="page__subtitle">Your portfolio at a glance</p>
+                </div>
             </div>
 
-            {loading && <p className="status-text">Loading summary…</p>}
+            {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
 
-            {/* Summary cards */}
+            {/* ── Stat Cards ── */}
             {!loading && !error && (
                 <div className="stats-grid">
-                    {SUMMARY_CARDS.map(({ label, value, icon }) => (
-                        <Card key={label} className="stat-card">
-                            <div className="stat-card__icon">{icon}</div>
-                            <div className="stat-card__body">
-                                <span className="stat-card__value">{value}</span>
-                                <span className="stat-card__label">{label}</span>
+                    {SUMMARY_CARDS.map(({ label, value, pnl }) => {
+                        const accentColor = pnl !== undefined
+                            ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                            : STAT_COLORS[label];
+                        return (
+                            <div key={label} className="stat-card" style={{ '--card-accent': accentColor }}>
+                                <div className="stat-card__icon" style={{
+                                    background: `${accentColor}18`,
+                                    border: `1px solid ${accentColor}30`,
+                                }}>
+                                    {STAT_ICONS[label]}
+                                </div>
+                                <div className="stat-card__body">
+                                    <span className="stat-card__value" style={{
+                                        color: pnl !== undefined
+                                            ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                                            : 'var(--color-text)',
+                                    }}>{value}</span>
+                                    <span className="stat-card__label">{label}</span>
+                                </div>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0, left: 0, right: 0,
+                                    height: 2,
+                                    background: `linear-gradient(90deg, ${accentColor}, transparent)`,
+                                    borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
+                                }} />
                             </div>
-                        </Card>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Skeleton for loading */}
+            {loading && (
+                <div className="stats-grid">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="stat-card">
+                            <div className="skeleton" style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', flexShrink: 0 }} />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div className="skeleton" style={{ height: 28, width: '60%', borderRadius: 4 }} />
+                                <div className="skeleton" style={{ height: 14, width: '80%', borderRadius: 4 }} />
+                            </div>
+                        </div>
                     ))}
                 </div>
             )}
 
-            {/* Placeholder for charts / recent trades */}
+            {/* ── Sections Grid ── */}
             <div className="dashboard-sections">
-                <Card className="section-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Recent Trades</h3>
+                {/* Recent Trades */}
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                            Recent Trades
+                        </h3>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                            Last 5
+                        </span>
                     </div>
 
-                    {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading recent trades…</p>}
+                    {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
                     {tradesError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{tradesError}</p>}
-
                     {!tradesLoading && !tradesError && recentTrades.length === 0 && (
-                        <p className="placeholder-text" style={{ padding: 'var(--space-lg)' }}>No recent trades found.</p>
+                        <p className="placeholder-text">No recent trades.</p>
                     )}
 
                     {!tradesLoading && !tradesError && recentTrades.length > 0 && (
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Stock Name</th>
-                                    <th>Trade Type</th>
-                                    <th>PnL</th>
+                                    <th>Symbol</th>
+                                    <th>Direction</th>
+                                    <th>P&L</th>
                                     <th>Status</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {recentTrades.map((trade) => (
-                                    <tr key={trade.trade_id}>
-                                        <td>{trade.stock_name}</td>
-                                        <td style={{ textTransform: 'capitalize' }}>{trade.trade_type}</td>
-                                        <td style={{
-                                            color: trade.total_pnl > 0 ? 'var(--color-success)' :
-                                                trade.total_pnl < 0 ? 'var(--color-danger)' : 'inherit',
-                                            fontWeight: '500'
-                                        }}>
-                                            {trade.total_pnl > 0 ? '+' : ''}{trade.total_pnl}
-                                        </td>
-                                        <td>
-                                            <span className={`badge badge--${trade.status === 'CLOSED' ? (trade.total_pnl >= 0 ? 'green' : 'red') : 'yellow'
-                                                }`}>
-                                                {trade.status}
-                                            </span>
-                                        </td>
-                                        <td>{new Date(trade.created_at).toLocaleDateString()}</td>
-                                    </tr>
-                                ))}
+                                {recentTrades.map(t => {
+                                    const pnlPos = t.total_pnl > 0;
+                                    const pnlNeg = t.total_pnl < 0;
+                                    return (
+                                        <tr key={t.trade_id}>
+                                            <td style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.stock_name}</td>
+                                            <td>
+                                                <span style={{
+                                                    color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
+                                                    fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                                                }}>
+                                                    {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
+                                                </span>
+                                            </td>
+                                            <td style={{
+                                                fontWeight: 600,
+                                                color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'var(--color-text-muted)',
+                                            }}>
+                                                {t.status === 'OPEN' ? '—' : `${pnlPos ? '+' : ''}₹${Number(t.total_pnl).toLocaleString('en-IN')}`}
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
+                                                    {t.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}
-                </Card>
+                </div>
 
-                <Card className="section-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Client Activity</h3>
+                {/* Client Activity */}
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                            Client Activity
+                        </h3>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                            Last 5
+                        </span>
                     </div>
 
-                    {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading activity…</p>}
+                    {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
                     {activityError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{activityError}</p>}
-
                     {!activityLoading && !activityError && clientActivity.length === 0 && (
-                        <p className="placeholder-text" style={{ padding: 'var(--space-lg)' }}>No recent client activity.</p>
+                        <p className="placeholder-text">No recent client activity.</p>
                     )}
 
                     {!activityLoading && !activityError && clientActivity.length > 0 && (
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Client Name</th>
+                                    <th>Client</th>
                                     <th>Status</th>
-                                    <th>Last Updated</th>
+                                    <th>Joined</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {clientActivity.map((c) => (
+                                {clientActivity.map(c => (
                                     <tr key={c.client_id}>
-                                        <td style={{ fontWeight: 500 }}>{c.name}</td>
+                                        <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{c.name}</td>
                                         <td>
                                             <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
-                                                c.status === 'INACTIVE' ? 'badge--red' :
-                                                    'badge--yellow'
-                                                }`}>
-                                                {c.status}
-                                            </span>
+                                                    c.status === 'INACTIVE' ? 'badge--red' :
+                                                        'badge--yellow'
+                                                }`}>{c.status}</span>
                                         </td>
-                                        <td>{c.join_date ? new Date(c.join_date).toLocaleDateString() : '—'}</td>
+                                        <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(c.join_date)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     )}
-                </Card>
+                </div>
             </div>
         </div>
     );
