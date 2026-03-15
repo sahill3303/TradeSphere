@@ -156,7 +156,7 @@ svg {
 .sidebar__logo {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+  background: linear-gradient(white);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -166,7 +166,7 @@ svg {
   font-size: 0.9rem;
   color: #0B0B0D;
   flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0px 4px rgba(212, 175, 55, 0.35);
   letter-spacing: 0.02em;
 }
 
@@ -1012,7 +1012,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .auth-card__logo-mark {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+  background: linear-gradient(white);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -1021,7 +1021,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-weight: 800;
   font-size: 1rem;
   color: #0B0B0D;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0px 5px rgba(212, 175, 55, 0.35);
 }
 
 .auth-card__logo-text {
@@ -1201,4 +1201,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 1px;
   background: linear-gradient(90deg, var(--color-gold), transparent);
   margin: var(--space-md) 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

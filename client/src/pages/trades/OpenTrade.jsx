@@ -29,11 +29,20 @@ const BLANK = {
 
 function validate(f) {
     const e = {};
-    if (!f.stock_name.trim()) e.stock_name = 'Stock symbol is required.';
+    if (!f.stock_name.trim()) e.stock_name = 'Symbol is required.';
     if (!f.entry_price) e.entry_price = 'Entry price is required.';
-    else if (isNaN(f.entry_price) || +f.entry_price <= 0) e.entry_price = 'Enter a valid price.';
+    else if (isNaN(f.entry_price) || +f.entry_price <= 0) e.entry_price = 'Invalid price.';
+    
     if (!f.quantity) e.quantity = 'Quantity is required.';
-    else if (isNaN(f.quantity) || +f.quantity <= 0) e.quantity = 'Enter a valid quantity.';
+    else if (isNaN(f.quantity) || +f.quantity <= 0) e.quantity = 'Invalid quantity.';
+
+    if (!f.target) e.target = 'Target is required.';
+    if (!f.stop_loss) e.stop_loss = 'Stop loss is required.';
+    if (!f.trade_date) e.trade_date = 'Date is required.';
+    if (!f.strategy) e.strategy = 'Select a strategy.';
+    if (!f.entry_notes.trim()) e.entry_notes = 'Entry notes are required.';
+    if (!f.leverage) e.leverage = 'Leverage is required.';
+    
     return e;
 }
 
@@ -172,7 +181,7 @@ export default function OpenTrade() {
                                     </div>
                                 </div>
                                 <Input id="leverage" label="Leverage" type="number" value={form.leverage}
-                                    onChange={handleChange} placeholder="1" />
+                                    onChange={handleChange} placeholder="1" required error={errors.leverage} />
                             </div>
                         </Card>
 
@@ -189,11 +198,11 @@ export default function OpenTrade() {
                                     value={form.quantity} onChange={handleChange}
                                     placeholder="0" error={errors.quantity} required />
                                 <Input id="target" label="Target ₹" type="number"
-                                    value={form.target} onChange={handleChange} placeholder="0.00" />
+                                    value={form.target} onChange={handleChange} placeholder="0.00" required error={errors.target} />
                                 <Input id="stop_loss" label="Stop Loss ₹" type="number"
-                                    value={form.stop_loss} onChange={handleChange} placeholder="0.00" />
+                                    value={form.stop_loss} onChange={handleChange} placeholder="0.00" required error={errors.stop_loss} />
                                 <Input id="trade_date" label="Entry Date" type="date"
-                                    value={form.trade_date} onChange={handleChange} />
+                                    value={form.trade_date} onChange={handleChange} required error={errors.trade_date} />
                             </div>
                         </Card>
 
@@ -204,15 +213,20 @@ export default function OpenTrade() {
                             </h3>
 
                             <div className="form-group">
-                                <label htmlFor="strategy" className="form-label">Strategy</label>
+                                <label htmlFor="strategy" className="form-label">
+                                    Strategy <span className="required-mark">*</span>
+                                </label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
                                     {STRATEGIES.map(s => (
                                         <button key={s} type="button"
-                                            onClick={() => setForm(prev => ({ ...prev, strategy: s }))}
+                                            onClick={() => {
+                                                setForm(prev => ({ ...prev, strategy: s }));
+                                                if (errors.strategy) setErrors(prev => ({ ...prev, strategy: '' }));
+                                            }}
                                             style={{
                                                 padding: '0.3rem 0.75rem',
                                                 borderRadius: 'var(--radius-sm)',
-                                                border: `1.5px solid ${form.strategy === s ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                                border: `1.5px solid ${form.strategy === s ? 'var(--color-primary)' : (errors.strategy ? 'var(--color-danger)' : 'var(--color-border)')}`,
                                                 background: form.strategy === s ? 'var(--color-primary-soft)' : 'transparent',
                                                 color: form.strategy === s ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                                 fontWeight: 500, fontSize: 'var(--font-size-sm)',
@@ -220,6 +234,7 @@ export default function OpenTrade() {
                                             }}>{s}</button>
                                     ))}
                                 </div>
+                                {errors.strategy && <span className="form-error">{errors.strategy}</span>}
                             </div>
 
                             {/* Conviction slider */}

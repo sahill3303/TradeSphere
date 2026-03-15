@@ -19,7 +19,10 @@ export default function Sidebar({ isOpen, onClose }) {
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
                 {/* Brand */}
                 <div className="sidebar__brand">
-                    <div className="sidebar__logo">AJ</div>
+                    <div className="sidebar__logo">
+                        <img src="src\assets\AJC_Logo.png" alt="" />
+
+                    </div>
                     <span className="sidebar__brand-name">AJ Consulting</span>
                 </div>
 
@@ -47,14 +50,16 @@ export default function Sidebar({ isOpen, onClose }) {
                 <div className="sidebar__footer">
                     <div className="sidebar__user">
                         <div className="sidebar__avatar">
-                            {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                            {user?.name?.[0]?.toUpperCase() ?? 'U'} /// for profile img
                         </div>
                         <div className="sidebar__user-info">
                             <span className="sidebar__user-name">{user?.name ?? 'User'}</span>
                             <span className="sidebar__user-email">{user?.email ?? ''}</span>
                         </div>
                     </div>
-                    <button className="sidebar__logout" onClick={logout} aria-label="Logout">
+                    <button className="sidebar__logout" onClick={() => {
+                        if (window.confirm('Are you sure you want to log out?')) logout();
+                    }} aria-label="Logout">
                         ⭳ Logout
                     </button>
                 </div>

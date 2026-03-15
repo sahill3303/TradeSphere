@@ -38,7 +38,9 @@ export default function Register() {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-card__logo">
-                    <div className="auth-card__logo-mark">AJ</div>
+                    <div className="auth-card__logo-mark">
+                        <img src="src\assets\AJC_Logo.png" alt="" />
+                    </div>
                     <span className="auth-card__logo-text">AJ Consulting</span>
                 </div>
 

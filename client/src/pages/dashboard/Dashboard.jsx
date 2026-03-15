@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import MarketChart from '../../components/ui/MarketChart';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -128,6 +129,23 @@ export default function Dashboard() {
                     ))}
                 </div>
             )}
+
+            {/* ── Market Overview (Lightweight Charts via backend proxy) ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}
+                 className="market-overview-grid">
+                <MarketChart
+                    symbol="%5ENSEI"
+                    label="NIFTY 50"
+                    accentColor="#D4AF37"
+                    height={260}
+                />
+                <MarketChart
+                    symbol="%5ENSEBANK"
+                    label="BANK NIFTY"
+                    accentColor="#60A5FA"
+                    height={260}
+                />
+            </div>
 
             {/* ── Sections Grid ── */}
             <div className="dashboard-sections">
