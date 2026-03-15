@@ -113,6 +113,8 @@ export default function TradesList() {
         finally { setRestoringId(null); }
     }
 
+    //sample test comment
+
     // ── Hard delete ───────────────────────────────────────────────────────────
     async function handleHardDelete(tradeId, stockName) {
         if (!window.confirm(`⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`)) return;
