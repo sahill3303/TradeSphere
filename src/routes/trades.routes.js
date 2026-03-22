@@ -45,3 +45,6 @@ router.patch('/:trade_id/restore', restoreTrade);
 router.delete('/:trade_id/permanent', hardDeleteTrade);
 
 export default router;
+
+
+// review all trade routes overall
