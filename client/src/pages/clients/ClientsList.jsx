@@ -12,6 +12,7 @@ const STATUS_BADGE = {
     PENDING: 'badge--yellow',
 };
 
+// New Comment
 const BLANK_FORM = {
     name: '',
     broker: '',
