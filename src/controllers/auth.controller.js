@@ -104,6 +104,7 @@ export const getMe = async (req, res) => {
 };
 
 
+// controller auth review
 
 
 console.log("AUTH CONTROLLER LOADED");
