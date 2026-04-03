@@ -50,7 +50,8 @@ export default function Sidebar({ isOpen, onClose }) {
                 <div className="sidebar__footer">
                     <div className="sidebar__user">
                         <div className="sidebar__avatar">
-                            {user?.name?.[0]?.toUpperCase() ?? 'U'} /// for profile img
+                            {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                            {/* for profile img */}
                         </div>
                         <div className="sidebar__user-info">
                             <span className="sidebar__user-name">{user?.name ?? 'User'}</span>

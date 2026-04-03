@@ -80,16 +80,31 @@ export default function TradeDetails() {
 
     async function handleExit(e) {
         e.preventDefault();
-        if (!exitForm.exit_price) { setExitError('Exit price is required.'); return; }
-        setExitSubmitting(true); setExitError('');
+        setExitError('');
+        
+        // Comprehensive validation
+        const errs = [];
+        if (!exitForm.exit_price) errs.push('Exit price');
+        if (!exitForm.exit_date) errs.push('Exit date');
+        if (!exitForm.exit_reason) errs.push('Exit reason');
+        if (!exitForm.exit_emotion) errs.push('Exit emotion');
+        if (!exitForm.exit_nifty_mood) errs.push('Nifty mood');
+        if (!exitForm.conclusion.trim()) errs.push('Conclusion/Lesson');
+
+        if (errs.length > 0) {
+            setExitError(`Required fields missing: ${errs.join(', ')}`);
+            return;
+        }
+
+        setExitSubmitting(true);
         try {
             const { data } = await api.patch(`/api/trades/${id}/exit`, {
                 exit_price: Number(exitForm.exit_price),
-                exit_nifty_mood: exitForm.exit_nifty_mood || null,
-                exit_reason: exitForm.exit_reason || null,
-                exit_emotion: exitForm.exit_emotion || null,
-                conclusion: exitForm.conclusion.trim() || null,
-                exit_date: exitForm.exit_date || null,
+                exit_nifty_mood: exitForm.exit_nifty_mood,
+                exit_reason: exitForm.exit_reason,
+                exit_emotion: exitForm.exit_emotion,
+                conclusion: exitForm.conclusion.trim(),
+                exit_date: exitForm.exit_date,
             });
             // Refresh trade data
             setTrade(prev => ({ ...prev, status: 'CLOSED', total_pnl: data.total_pnl, ...exitForm, exit_price: Number(exitForm.exit_price) }));
@@ -127,30 +142,30 @@ export default function TradeDetails() {
                                 value={exitForm.exit_price} onChange={handleExitChange}
                                 placeholder="0.00" required />
                             <Input id="exit_date" label="Exit Date" type="date"
-                                value={exitForm.exit_date} onChange={handleExitChange} />
+                                value={exitForm.exit_date} onChange={handleExitChange} required />
                             <div className="form-group">
-                                <label className="form-label">Exit Reason</label>
+                                <label className="form-label">Exit Reason <span className="required-mark">*</span></label>
                                 <select id="exit_reason" className="form-input" value={exitForm.exit_reason} onChange={handleExitChange}>
                                     <option value="">Select…</option>
                                     {EXIT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Emotion at Exit</label>
+                                <label className="form-label">Emotion at Exit <span className="required-mark">*</span></label>
                                 <select id="exit_emotion" className="form-input" value={exitForm.exit_emotion} onChange={handleExitChange}>
                                     <option value="">Select…</option>
                                     {EMOTIONS.map(m => <option key={m} value={m}>{m}</option>)}
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Nifty Mood at Exit</label>
+                                <label className="form-label">Nifty Mood at Exit <span className="required-mark">*</span></label>
                                 <select id="exit_nifty_mood" className="form-input" value={exitForm.exit_nifty_mood} onChange={handleExitChange}>
                                     {NIFTY_MOODS.map(m => <option key={m} value={m}>{m}</option>)}
                                 </select>
                             </div>
                         </div>
                         <div className="form-group" style={{ marginTop: 'var(--space-sm)' }}>
-                            <label htmlFor="conclusion" className="form-label">Conclusion / Lesson</label>
+                            <label htmlFor="conclusion" className="form-label">Conclusion / Lesson <span className="required-mark">*</span></label>
                             <textarea id="conclusion" className="form-input"
                                 value={exitForm.conclusion} onChange={handleExitChange}
                                 placeholder="What did you learn from this trade?" rows={2} />

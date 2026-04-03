@@ -171,7 +171,8 @@ export default function Dashboard() {
                     )}
 
                     {!tradesLoading && !tradesError && recentTrades.length > 0 && (
-                        <table className="data-table">
+                        <div className="table-container">
+                            <table className="data-table">
                             <thead>
                                 <tr>
                                     <th>Symbol</th>
@@ -213,7 +214,8 @@ export default function Dashboard() {
                                 })}
                             </tbody>
                         </table>
-                    )}
+                    </div>
+                )}
                 </div>
 
                 {/* Client Activity */}
@@ -238,29 +240,31 @@ export default function Dashboard() {
                     )}
 
                     {!activityLoading && !activityError && clientActivity.length > 0 && (
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Client</th>
-                                    <th>Status</th>
-                                    <th>Joined</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {clientActivity.map(c => (
-                                    <tr key={c.client_id}>
-                                        <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{c.name}</td>
-                                        <td>
-                                            <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
-                                                    c.status === 'INACTIVE' ? 'badge--red' :
-                                                        'badge--yellow'
-                                                }`}>{c.status}</span>
-                                        </td>
-                                        <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(c.join_date)}</td>
+                        <div className="table-container">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {clientActivity.map(c => (
+                                        <tr key={c.client_id}>
+                                            <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{c.name}</td>
+                                            <td>
+                                                <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
+                                                        c.status === 'INACTIVE' ? 'badge--red' :
+                                                            'badge--yellow'
+                                                    }`}>{c.status}</span>
+                                            </td>
+                                            <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(c.join_date)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>

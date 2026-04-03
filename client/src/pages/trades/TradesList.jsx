@@ -115,6 +115,7 @@ export default function TradesList() {
 
     //sample test comment
 
+
     // ── Hard delete ───────────────────────────────────────────────────────────
     async function handleHardDelete(tradeId, stockName) {
         if (!window.confirm(`⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`)) return;
@@ -168,56 +169,57 @@ export default function TradesList() {
 
                     {!loading && !error && trades.length > 0 && (
                         <Card style={{ padding: 0, overflow: 'hidden' }}>
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Direction</th>
-                                        <th>Mode</th>
-                                        <th>Entry ₹</th>
-                                        <th>Qty</th>
-                                        <th>P&L</th>
-                                        <th>Status</th>
-                                        <th>Open Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {trades.map(t => (
-                                        <tr key={t.trade_id}>
-                                            <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
-                                            <td>
-                                                <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                                                    {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
-                                                </span>
-                                            </td>
-                                            <td><span className="badge badge--yellow" style={{ fontSize: '0.7rem' }}>{t.mode}</span></td>
-                                            <td>₹{Number(t.entry_price).toLocaleString()}</td>
-                                            <td>{t.quantity}</td>
-                                            <td style={{
-                                                fontWeight: 600,
-                                                color: t.total_pnl > 0 ? 'var(--color-success)'
-                                                    : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
-                                            }}>
-                                                {t.status === 'OPEN' ? '—' : fmt(t.total_pnl)}
-                                            </td>
-                                            <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
-                                            {/* Show user-entered trade_date; fallback to created_at */}
-                                            <td>{fmtDate(t.trade_date) ?? fmtDate(t.created_at) ?? '—'}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                    <Link to={`/trades/${t.trade_id}`} className="table-link">View</Link>
-                                                    <span style={{ color: 'var(--color-border)' }}>|</span>
-                                                    <ActionBtn onClick={() => handleDelete(t.trade_id, t.stock_name)}
-                                                        disabled={deletingId === t.trade_id} color="var(--color-danger)">
-                                                        {deletingId === t.trade_id ? 'Deleting…' : 'Delete'}
-                                                    </ActionBtn>
-                                                </div>
-                                            </td>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Symbol</th>
+                                            <th>Direction</th>
+                                            <th>Mode</th>
+                                            <th>Entry ₹</th>
+                                            <th>Qty</th>
+                                            <th>P&L</th>
+                                            <th>Status</th>
+                                            <th>Open Date</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {trades.map(t => (
+                                            <tr key={t.trade_id}>
+                                                <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
+                                                <td>
+                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+                                                        {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
+                                                    </span>
+                                                </td>
+                                                <td><span className="badge badge--yellow" style={{ fontSize: '0.7rem' }}>{t.mode}</span></td>
+                                                <td>₹{Number(t.entry_price).toLocaleString()}</td>
+                                                <td>{t.quantity}</td>
+                                                <td style={{
+                                                    fontWeight: 600,
+                                                    color: t.total_pnl > 0 ? 'var(--color-success)'
+                                                        : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
+                                                 }}>
+                                                    {t.status === 'OPEN' ? '—' : fmt(t.total_pnl)}
+                                                </td>
+                                                <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
+                                                <td>{fmtDate(t.trade_date) ?? fmtDate(t.created_at) ?? '—'}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                        <Link to={`/trades/${t.trade_id}`} className="table-link">View</Link>
+                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                        <ActionBtn onClick={() => handleDelete(t.trade_id, t.stock_name)}
+                                                            disabled={deletingId === t.trade_id} color="var(--color-danger)">
+                                                            {deletingId === t.trade_id ? 'Deleting…' : 'Delete'}
+                                                        </ActionBtn>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </>
@@ -235,42 +237,44 @@ export default function TradesList() {
 
                     {!deletedLoading && !deletedError && deleted.length > 0 && (
                         <Card style={{ padding: 0, overflow: 'hidden' }}>
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Status</th>
-                                        <th>P&L</th>
-                                        <th>Deleted On</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {deleted.map(t => (
-                                        <tr key={t.trade_id} style={{ opacity: 0.8 }}>
-                                            <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
-                                            <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
-                                            <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
-                                                {fmt(t.total_pnl)}
-                                            </td>
-                                            <td>{fmtDate(t.deleted_at) ?? '—'}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                                    <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
-                                                        disabled={restoringId === t.trade_id} color="var(--color-success)">
-                                                        {restoringId === t.trade_id ? 'Restoring…' : '↩ Restore'}
-                                                    </ActionBtn>
-                                                    <span style={{ color: 'var(--color-border)' }}>|</span>
-                                                    <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
-                                                        disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
-                                                        {hardDeletingId === t.trade_id ? 'Deleting…' : '🗑 Delete Forever'}
-                                                    </ActionBtn>
-                                                </div>
-                                            </td>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Symbol</th>
+                                            <th>Status</th>
+                                            <th>P&L</th>
+                                            <th>Deleted On</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {deleted.map(t => (
+                                            <tr key={t.trade_id} style={{ opacity: 0.8 }}>
+                                                <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
+                                                <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
+                                                <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
+                                                    {fmt(t.total_pnl)}
+                                                </td>
+                                                <td>{fmtDate(t.deleted_at) ?? '—'}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                                        <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
+                                                            disabled={restoringId === t.trade_id} color="var(--color-success)">
+                                                            {restoringId === t.trade_id ? 'Restoring…' : '↩ Restore'}
+                                                        </ActionBtn>
+                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                        <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
+                                                            disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
+                                                            {hardDeletingId === t.trade_id ? 'Deleting…' : '🗑 Delete Forever'}
+                                                        </ActionBtn>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </>

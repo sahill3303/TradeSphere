@@ -111,7 +111,7 @@ export default function OpenTrade() {
             {submitError && <div className="alert alert--error">{submitError}</div>}
 
             <form onSubmit={handleSubmit} noValidate>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 'var(--space-lg)', alignItems: 'start' }}>
+                <div className="trade-form-layout">
 
                     {/* ── Left column ───────────────────────────────────────── */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
@@ -272,17 +272,23 @@ export default function OpenTrade() {
 
                             {/* Notes */}
                             <div className="form-group" style={{ marginTop: 'var(--space-md)' }}>
-                                <label htmlFor="entry_notes" className="form-label">Entry Notes</label>
-                                <textarea id="entry_notes" className="form-input"
-                                    value={form.entry_notes} onChange={handleChange}
+                                <label htmlFor="entry_notes" className="form-label">
+                                    Entry Notes <span className="required-mark">*</span>
+                                </label>
+                                <textarea id="entry_notes" className={`form-input ${errors.entry_notes ? 'form-input--error' : ''}`}
+                                    value={form.entry_notes} onChange={(e) => {
+                                        handleChange(e);
+                                        if (errors.entry_notes) setErrors(prev => ({ ...prev, entry_notes: '' }));
+                                    }}
                                     placeholder="Why are you entering this trade? What's your thesis?"
                                     rows={3} />
+                                {errors.entry_notes && <span className="form-error">{errors.entry_notes}</span>}
                             </div>
                         </Card>
                     </div>
 
                     {/* ── Right column — Live Preview ───────────────────────── */}
-                    <div style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+                    <div className="trade-form-preview">
                         <Card>
                             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: 'var(--space-md)', paddingBottom: 'var(--space-sm)', borderBottom: '1px solid var(--color-border)' }}>
                                 Trade Preview

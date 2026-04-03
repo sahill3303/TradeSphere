@@ -620,6 +620,16 @@ svg {
   opacity: 0.75;
 }
 
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 4px;
+}
+
 /* ──────────────────────────────────────────────────────────
    10. Badges
 ────────────────────────────────────────────────────────── */
@@ -1131,6 +1141,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: var(--radius-sm);
 }
 
+/* Trade Form Layout */
+.trade-form-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.trade-form-preview {
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-md));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
 /* ──────────────────────────────────────────────────────────
    19. Responsive — Mobile Sidebar
 ────────────────────────────────────────────────────────── */
@@ -1151,6 +1177,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     margin-left: 0;
   }
 
+  .navbar {
+    padding: 0 var(--space-md);
+  }
+
   .navbar__menu-btn {
     display: flex;
   }
@@ -1161,6 +1191,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   .dashboard-sections {
     grid-template-columns: 1fr;
+  }
+
+  .market-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trade-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-form-preview {
+    position: static;
   }
 
   .form-grid {

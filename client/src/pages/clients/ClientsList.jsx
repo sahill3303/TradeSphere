@@ -271,56 +271,58 @@ export default function ClientsList() {
                     )}
 
                     {!loading && !error && clients.length > 0 && (
-                        <Card>
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Broker</th>
-                                        <th>Capital Invested</th>
-                                        <th>Status</th>
-                                        <th>Joined</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {clients.map((client) => (
-                                        <tr key={client.client_id}>
-                                            <td style={{ fontWeight: 500 }}>{client.name}</td>
-                                            <td>{client.broker ?? '—'}</td>
-                                            <td>₹{Number(client.capital_invested).toLocaleString()}</td>
-                                            <td>
-                                                <span className={`badge ${STATUS_BADGE[client.status] ?? ''}`}>
-                                                    {client.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {client.join_date
-                                                    ? new Date(client.join_date).toLocaleDateString()
-                                                    : '—'}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                    <Link to={`/clients/${client.client_id}`} className="table-link">View</Link>
-                                                    <span style={{ color: 'var(--color-border)' }}>|</span>
-                                                    <button
-                                                        onClick={() => openEditModal(client)}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0 }}
-                                                    >Edit</button>
-                                                    <span style={{ color: 'var(--color-border)' }}>|</span>
-                                                    <button
-                                                        onClick={() => handleDelete(client.client_id, client.name)}
-                                                        disabled={deletingId === client.client_id}
-                                                        style={{ background: 'none', border: 'none', cursor: deletingId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0 }}
-                                                    >
-                                                        {deletingId === client.client_id ? 'Deleting…' : 'Delete'}
-                                                    </button>
-                                                </div>
-                                            </td>
+                        <Card style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Broker</th>
+                                            <th>Capital Invested</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {clients.map((client) => (
+                                            <tr key={client.client_id}>
+                                                <td style={{ fontWeight: 500 }}>{client.name}</td>
+                                                <td>{client.broker ?? '—'}</td>
+                                                <td>₹{Number(client.capital_invested).toLocaleString()}</td>
+                                                <td>
+                                                    <span className={`badge ${STATUS_BADGE[client.status] ?? ''}`}>
+                                                        {client.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {client.join_date
+                                                        ? new Date(client.join_date).toLocaleDateString()
+                                                        : '—'}
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                        <Link to={`/clients/${client.client_id}`} className="table-link">View</Link>
+                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                        <button
+                                                            onClick={() => openEditModal(client)}
+                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0 }}
+                                                        >Edit</button>
+                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                        <button
+                                                            onClick={() => handleDelete(client.client_id, client.name)}
+                                                            disabled={deletingId === client.client_id}
+                                                            style={{ background: 'none', border: 'none', cursor: deletingId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0 }}
+                                                        >
+                                                            {deletingId === client.client_id ? 'Deleting…' : 'Delete'}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </>
@@ -339,57 +341,59 @@ export default function ClientsList() {
                     )}
 
                     {!deletedLoading && !deletedError && deleted.length > 0 && (
-                        <Card>
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Broker</th>
-                                        <th>Capital Invested</th>
-                                        <th>Status</th>
-                                        <th>Deleted On</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {deleted.map((client) => (
-                                        <tr key={client.client_id} style={{ opacity: 0.75 }}>
-                                            <td style={{ fontWeight: 500 }}>{client.name}</td>
-                                            <td>{client.broker ?? '—'}</td>
-                                            <td>₹{Number(client.capital_invested).toLocaleString()}</td>
-                                            <td>
-                                                <span className={`badge ${STATUS_BADGE[client.status] ?? ''}`}>
-                                                    {client.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {client.deleted_at
-                                                    ? (() => { const s = String(client.deleted_at); const m = s.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'; })()
-                                                    : '—'}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                                    <button
-                                                        onClick={() => handleRestore(client.client_id, client.name)}
-                                                        disabled={restoringId === client.client_id}
-                                                        style={{ background: 'none', border: 'none', cursor: restoringId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-success)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0, opacity: restoringId === client.client_id ? 0.5 : 1 }}
-                                                    >
-                                                        {restoringId === client.client_id ? 'Restoring…' : '↩ Restore'}
-                                                    </button>
-                                                    <span style={{ color: 'var(--color-border)' }}>|</span>
-                                                    <button
-                                                        onClick={() => handleHardDelete(client.client_id, client.name)}
-                                                        disabled={hardDeletingId === client.client_id}
-                                                        style={{ background: 'none', border: 'none', cursor: hardDeletingId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0, opacity: hardDeletingId === client.client_id ? 0.5 : 1 }}
-                                                    >
-                                                        {hardDeletingId === client.client_id ? 'Deleting…' : '🗑 Delete Forever'}
-                                                    </button>
-                                                </div>
-                                            </td>
+                        <Card style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Broker</th>
+                                            <th>Capital Invested</th>
+                                            <th>Status</th>
+                                            <th>Deleted On</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {deleted.map((client) => (
+                                            <tr key={client.client_id} style={{ opacity: 0.75 }}>
+                                                <td style={{ fontWeight: 500 }}>{client.name}</td>
+                                                <td>{client.broker ?? '—'}</td>
+                                                <td>₹{Number(client.capital_invested).toLocaleString()}</td>
+                                                <td>
+                                                    <span className={`badge ${STATUS_BADGE[client.status] ?? ''}`}>
+                                                        {client.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {client.deleted_at
+                                                        ? (() => { const s = String(client.deleted_at); const m = s.match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'; })()
+                                                        : '—'}
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                                        <button
+                                                            onClick={() => handleRestore(client.client_id, client.name)}
+                                                            disabled={restoringId === client.client_id}
+                                                            style={{ background: 'none', border: 'none', cursor: restoringId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-success)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0, opacity: restoringId === client.client_id ? 0.5 : 1 }}
+                                                        >
+                                                            {restoringId === client.client_id ? 'Restoring…' : '↩ Restore'}
+                                                        </button>
+                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                        <button
+                                                            onClick={() => handleHardDelete(client.client_id, client.name)}
+                                                            disabled={hardDeletingId === client.client_id}
+                                                            style={{ background: 'none', border: 'none', cursor: hardDeletingId === client.client_id ? 'not-allowed' : 'pointer', color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0, opacity: hardDeletingId === client.client_id ? 0.5 : 1 }}
+                                                        >
+                                                            {hardDeletingId === client.client_id ? 'Deleting…' : '🗑 Delete Forever'}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </>
