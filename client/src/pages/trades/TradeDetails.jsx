@@ -28,6 +28,7 @@ export default function TradeDetails() {
 
     const [trade, setTrade] = useState(null);
     const [notes, setNotes] = useState([]);
+    const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -51,7 +52,7 @@ export default function TradeDetails() {
 
     useEffect(() => {
         api.get(`/api/trades/${id}`)
-            .then(({ data }) => { setTrade(data.trade); setNotes(data.notes || []); })
+            .then(({ data }) => { setTrade(data.trade); setNotes(data.notes || []); setClients(data.clients || []); })
             .catch(() => setError('Trade not found or could not be loaded.'))
             .finally(() => setLoading(false));
     }, [id]);
@@ -82,10 +83,14 @@ export default function TradeDetails() {
         e.preventDefault();
         setExitError('');
         
+        const actualExitDate = trade.mode === 'INTRADAY' && trade.trade_date
+            ? new Date(trade.trade_date).toISOString().split('T')[0] 
+            : exitForm.exit_date;
+
         // Comprehensive validation
         const errs = [];
         if (!exitForm.exit_price) errs.push('Exit price');
-        if (!exitForm.exit_date) errs.push('Exit date');
+        if (!actualExitDate) errs.push('Exit date');
         if (!exitForm.exit_reason) errs.push('Exit reason');
         if (!exitForm.exit_emotion) errs.push('Exit emotion');
         if (!exitForm.exit_nifty_mood) errs.push('Nifty mood');
@@ -104,10 +109,10 @@ export default function TradeDetails() {
                 exit_reason: exitForm.exit_reason,
                 exit_emotion: exitForm.exit_emotion,
                 conclusion: exitForm.conclusion.trim(),
-                exit_date: exitForm.exit_date,
+                exit_date: actualExitDate,
             });
             // Refresh trade data
-            setTrade(prev => ({ ...prev, status: 'CLOSED', total_pnl: data.total_pnl, ...exitForm, exit_price: Number(exitForm.exit_price) }));
+            setTrade(prev => ({ ...prev, status: 'CLOSED', total_pnl: data.total_pnl, ...exitForm, exit_date: actualExitDate, exit_price: Number(exitForm.exit_price) }));
             setShowExitForm(false);
         } catch (err) { setExitError(err.response?.data?.message || 'Failed to exit trade.'); }
         finally { setExitSubmitting(false); }
@@ -142,7 +147,9 @@ export default function TradeDetails() {
                                 value={exitForm.exit_price} onChange={handleExitChange}
                                 placeholder="0.00" required />
                             <Input id="exit_date" label="Exit Date" type="date"
-                                value={exitForm.exit_date} onChange={handleExitChange} required />
+                                value={trade.mode === 'INTRADAY' && trade.trade_date ? new Date(trade.trade_date).toISOString().split('T')[0] : exitForm.exit_date} 
+                                onChange={handleExitChange} required 
+                                disabled={trade.mode === 'INTRADAY'} />
                             <div className="form-group">
                                 <label className="form-label">Exit Reason <span className="required-mark">*</span></label>
                                 <select id="exit_reason" className="form-input" value={exitForm.exit_reason} onChange={handleExitChange}>
@@ -205,6 +212,7 @@ export default function TradeDetails() {
                     <h3 className="detail-card__title">Entry Details</h3>
                     <dl className="detail-list">
                         <dt>Symbol</dt>      <dd style={{ fontWeight: 700 }}>{trade.stock_name}</dd>
+                        <dt>Clients</dt>     <dd>{clients.length > 0 ? clients.map(c => <span key={c.client_id} className="badge badge--blue" style={{marginRight: '4px', marginBottom: '4px'}}>{c.name}</span>) : '—'}</dd>
                         <dt>Direction</dt>   <dd style={{ color: trade.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 600 }}>{trade.trade_type === 'LONG' ? '▲' : '▼'} {trade.trade_type}</dd>
                         <dt>Mode</dt>        <dd><span className="badge badge--yellow">{trade.mode}</span></dd>
                         <dt>Entry Price</dt> <dd>₹{Number(trade.entry_price).toLocaleString()}</dd>

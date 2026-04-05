@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 const PAGE_TITLES = {
     '/dashboard': 'Dashboard',
@@ -9,6 +10,7 @@ const PAGE_TITLES = {
 
 export default function Navbar({ onMenuToggle }) {
     const { pathname } = useLocation();
+    const { toggleTheme, isDarkMode } = useTheme();
     // Match longest prefix
     const title = Object.entries(PAGE_TITLES)
         .find(([path]) => pathname === path || pathname.startsWith(path + '/') || pathname === path)?.[1]
@@ -27,6 +29,13 @@ export default function Navbar({ onMenuToggle }) {
             <h1 className="navbar__title">{title}</h1>
 
             <div className="navbar__actions">
+                <button 
+                    className="navbar__theme-toggle" 
+                    onClick={toggleTheme}
+                    title={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Mode`}
+                >
+                    {isDarkMode ? '☀️' : '🌙'}
+                </button>
                 <span style={{
                     fontSize: '0.72rem',
                     color: 'var(--color-text-dim)',

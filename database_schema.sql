@@ -61,6 +61,17 @@ CREATE TABLE IF NOT EXISTS `trades` (
 );
 
 -- --------------------------------------------------------
+-- Table structure for table `trade_clients`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `trade_clients` (
+  `trade_id` INT NOT NULL,
+  `client_id` INT NOT NULL,
+  PRIMARY KEY (`trade_id`, `client_id`),
+  FOREIGN KEY (`trade_id`) REFERENCES `trades`(`trade_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`client_id`) REFERENCES `clients`(`client_id`) ON DELETE CASCADE
+);
+
+-- --------------------------------------------------------
 -- Table structure for table `trade_notes`
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trade_notes` (
@@ -84,3 +95,17 @@ CREATE TABLE IF NOT EXISTS `capital_summary` (
 -- Seed initial row for capital_summary
 INSERT IGNORE INTO `capital_summary` (`capital_id`, `total_capital`, `total_pnl`, `deployed_capital`) 
 VALUES (1, 0.00, 0.00, 0.00);
+
+-- --------------------------------------------------------
+-- Table structure for table `reference_notes`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `reference_notes` (
+  `note_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(255) NOT NULL,
+  `content` TEXT,
+  `file_name` VARCHAR(255) DEFAULT NULL,
+  `original_file_name` VARCHAR(255) DEFAULT NULL,
+  `file_type` VARCHAR(100) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

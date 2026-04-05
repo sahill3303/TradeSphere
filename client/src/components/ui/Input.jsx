@@ -11,6 +11,7 @@ export default function Input({
     onChange,
     placeholder = '',
     required = false,
+    disabled = false,
     style,
     className = '',
 }) {
@@ -29,7 +30,8 @@ export default function Input({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className={`form-input${error ? ' form-input--error' : ''}`}
+                disabled={disabled}
+                className={`form-input${error ? ' form-input--error' : ''}${disabled ? ' form-input--disabled' : ''}`}
             />
             {error && <p className="form-error">{error}</p>}
         </div>

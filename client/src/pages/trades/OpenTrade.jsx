@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
@@ -25,6 +25,7 @@ const BLANK = {
     entry_nifty_mood: 'NEUTRAL',
     entry_notes: '',
     leverage: '1',
+    client_ids: [],
 };
 
 function validate(f) {
@@ -42,6 +43,7 @@ function validate(f) {
     if (!f.strategy) e.strategy = 'Select a strategy.';
     if (!f.entry_notes.trim()) e.entry_notes = 'Entry notes are required.';
     if (!f.leverage) e.leverage = 'Leverage is required.';
+    if (!f.client_ids || f.client_ids.length === 0) e.client_ids = 'At least one client must be selected.';
     
     return e;
 }
@@ -52,6 +54,17 @@ export default function OpenTrade() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState('');
+    const [availableClients, setAvailableClients] = useState([]);
+
+    useEffect(() => {
+        api.get('/api/clients')
+           .then(res => {
+               if (res.data?.data) {
+                   setAvailableClients(res.data.data.filter(c => c.status === 'ACTIVE'));
+               }
+           })
+           .catch(err => console.error("Failed to load clients", err));
+    }, []);
 
     function handleChange(e) {
         const { id, value } = e.target;
@@ -64,8 +77,11 @@ export default function OpenTrade() {
     const target = parseFloat(form.target) || 0;
     const stopLoss = parseFloat(form.stop_loss) || 0;
     const qty = parseFloat(form.quantity) || 0;
-    const maxProfit = entryPrice && target ? ((target - entryPrice) * qty).toFixed(2) : null;
-    const maxLoss = entryPrice && stopLoss ? ((entryPrice - stopLoss) * qty).toFixed(2) : null;
+    const maxProfitVal = form.mode === 'BUY' ? (target - entryPrice) * qty : (entryPrice - target) * qty;
+    const maxLossVal = form.mode === 'BUY' ? (entryPrice - stopLoss) * qty : (stopLoss - entryPrice) * qty;
+
+    const maxProfit = entryPrice && target ? maxProfitVal.toFixed(2) : null;
+    const maxLoss = entryPrice && stopLoss ? maxLossVal.toFixed(2) : null;
     const rr = maxLoss && maxProfit && maxLoss > 0
         ? (Math.abs(maxProfit) / Math.abs(maxLoss)).toFixed(2) : null;
 
@@ -92,6 +108,7 @@ export default function OpenTrade() {
                 entry_nifty_mood: form.entry_nifty_mood,
                 entry_notes: form.entry_notes.trim() || null,
                 leverage: Number(form.leverage),
+                client_ids: form.client_ids,
             });
             navigate('/trades');
         } catch (err) {
@@ -160,7 +177,7 @@ export default function OpenTrade() {
                                 <div className="form-group">
                                     <label className="form-label">Trade Type</label>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-                                        {['INTRADAY', 'MTF'].map(opt => (
+                                        {['INTRADAY', 'MTF', 'SWING', 'LONG TERM'].map(opt => (
                                             <label key={opt} style={{
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 padding: '0.55rem',
@@ -173,7 +190,14 @@ export default function OpenTrade() {
                                             }}>
                                                 <input type="radio" name="trade_type" value={opt}
                                                     checked={form.trade_type === opt}
-                                                    onChange={(e) => setForm(prev => ({ ...prev, trade_type: e.target.value }))}
+                                                    onChange={(e) => {
+                                                        const targetVal = e.target.value;
+                                                        setForm(prev => ({
+                                                            ...prev,
+                                                            trade_type: targetVal,
+                                                            leverage: (targetVal === 'SWING' || targetVal === 'LONG TERM') ? '0' : (prev.leverage === '0' ? '1' : prev.leverage)
+                                                        }));
+                                                    }}
                                                     style={{ display: 'none' }} />
                                                 {opt}
                                             </label>
@@ -181,8 +205,49 @@ export default function OpenTrade() {
                                     </div>
                                 </div>
                                 <Input id="leverage" label="Leverage" type="number" value={form.leverage}
-                                    onChange={handleChange} placeholder="1" required error={errors.leverage} />
+                                    onChange={handleChange} placeholder="1" required error={errors.leverage}
+                                    disabled={form.trade_type === 'SWING' || form.trade_type === 'LONG TERM'} />
                             </div>
+                        </Card>
+
+                        {/* Clients Involved */}
+                        <Card>
+                            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: 'var(--space-md)', paddingBottom: 'var(--space-sm)', borderBottom: '1px solid var(--color-border)' }}>
+                                Clients Involved <span className="required-mark">*</span>
+                            </h3>
+                            {availableClients.length === 0 ? (
+                                <p className="placeholder-text">Loading clients or none available...</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+                                    {availableClients.map(c => {
+                                        const isSelected = form.client_ids.includes(c.client_id);
+                                        return (
+                                            <button key={c.client_id} type="button" 
+                                                onClick={() => {
+                                                    setForm(prev => {
+                                                        const newIds = isSelected 
+                                                            ? prev.client_ids.filter(id => id !== c.client_id)
+                                                            : [...prev.client_ids, c.client_id];
+                                                        return { ...prev, client_ids: newIds };
+                                                    });
+                                                    if (errors.client_ids) setErrors(prev => ({...prev, client_ids: ''}));
+                                                }}
+                                                style={{
+                                                padding: '0.4rem 0.85rem',
+                                                borderRadius: 'var(--radius-sm)',
+                                                border: `1.5px solid ${isSelected ? 'var(--color-gold)' : 'var(--color-border)'}`,
+                                                background: isSelected ? 'var(--color-gold-soft)' : 'transparent',
+                                                color: isSelected ? 'var(--color-gold)' : 'var(--color-text-muted)',
+                                                fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                                                cursor: 'pointer', transition: 'all var(--transition)',
+                                            }}>
+                                                {c.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {errors.client_ids && <span className="form-error" style={{ display:'block', marginTop:'var(--space-sm)' }}>{errors.client_ids}</span>}
                         </Card>
 
                         {/* Price Details */}
@@ -296,6 +361,9 @@ export default function OpenTrade() {
                             <dl className="detail-list">
                                 <dt>Symbol</dt>
                                 <dd style={{ fontWeight: 700 }}>{form.stock_name.toUpperCase() || '—'}</dd>
+
+                                <dt>Clients</dt>
+                                <dd style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{form.client_ids.length}</dd>
 
                                 <dt>Mode</dt>
                                 <dd style={{ color: form.mode === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 600 }}>

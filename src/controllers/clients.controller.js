@@ -8,12 +8,13 @@ import db from '../config/db.js';
 export const createClient = async (req, res) => {
 
     try {
-        const { name, broker, capital_invested, join_date } = req.body;
+        const { name, broker, capital_invested, join_date, status } = req.body;
+        const clientStatus = status || 'ACTIVE';
 
         const [result] = await db.query(
             `INSERT INTO clients (name, broker, capital_invested, join_date, status)
-       VALUES (?, ?, ?, ?, 'ACTIVE')`,
-            [name, broker, capital_invested, join_date]
+       VALUES (?, ?, ?, ?, ?)`,
+            [name, broker, capital_invested, join_date, clientStatus]
         );
         await recalculateCapital();
 
@@ -89,9 +90,18 @@ export const getClientById = async (req, res) => {
             });
         }
 
+        const [trades] = await db.query(
+            `SELECT t.trade_id, t.stock_name, t.trade_type, t.mode, t.trade_date, t.status, t.total_pnl, t.entry_price, t.exit_price 
+             FROM trade_clients tc
+             JOIN trades t ON tc.trade_id = t.trade_id
+             WHERE tc.client_id = ? AND t.is_deleted = FALSE
+             ORDER BY t.created_at DESC`,
+            [id]
+        );
+
         res.status(200).json({
             success: true,
-            data: rows[0]
+            data: { ...rows[0], trades }
         });
     } catch (error) {
         res.status(500).json({

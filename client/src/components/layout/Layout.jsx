@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import ChatWidget from '../ui/ChatWidget';
 
 export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,8 @@ export default function Layout({ children }) {
                     {children}
                 </main>
             </div>
+            
+            <ChatWidget />
         </div>
     );
 }

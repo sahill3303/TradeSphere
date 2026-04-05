@@ -16,11 +16,12 @@ export const openTrade = async (req, res) => {
             conviction_level,
             entry_nifty_mood,
             entry_notes,
-            trade_date
+            trade_date,
+            client_ids
         } = req.body;
 
         // Basic validation
-        if (!stock_name || !trade_type || !mode || !entry_price || !quantity) {
+        if (!stock_name || !trade_type || !mode || !entry_price || !quantity || !client_ids || client_ids.length === 0) {
             return res.status(400).json({
                 message: "Required fields missing"
             });
@@ -63,9 +64,17 @@ export const openTrade = async (req, res) => {
             ]
         );
 
+        const trade_id = result.insertId;
+
+        // Map and insert clients
+        if (client_ids && client_ids.length > 0) {
+            const values = client_ids.map(cid => [trade_id, cid]);
+            await db.query(`INSERT INTO trade_clients (trade_id, client_id) VALUES ?`, [values]);
+        }
+
         res.status(201).json({
             message: "Trade opened successfully",
-            trade_id: result.insertId
+            trade_id
         });
 
     } catch (error) {
@@ -305,9 +314,18 @@ export const getTradeById = async (req, res) => {
             [trade_id]
         );
 
+        const [clients] = await db.query(
+            `SELECT c.client_id, c.name 
+             FROM trade_clients tc
+             JOIN clients c ON tc.client_id = c.client_id
+             WHERE tc.trade_id = ?`,
+            [trade_id]
+        );
+
         res.json({
             trade,
-            notes
+            notes,
+            clients
         });
 
     } catch (error) {

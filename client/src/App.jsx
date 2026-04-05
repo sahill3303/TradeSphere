@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
@@ -14,10 +15,12 @@ import ClientDetails from './pages/clients/ClientDetails';
 import TradesList from './pages/trades/TradesList';
 import TradeDetails from './pages/trades/TradeDetails';
 import OpenTrade from './pages/trades/OpenTrade';
+import Notes from './pages/notes/Notes';
 
 export default function App() {
   return (
-    <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
@@ -49,6 +52,11 @@ export default function App() {
             <Route path="/trades/:id" element={
               <Layout><TradeDetails /></Layout>
             } />
+
+            {/* Notes */}
+            <Route path="/notes" element={
+              <Layout><Notes /></Layout>
+            } />
           </Route>
 
           {/* Fallback */}
@@ -57,5 +65,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   );
 }

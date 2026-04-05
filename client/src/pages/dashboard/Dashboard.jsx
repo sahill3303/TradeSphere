@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import MarketChart from '../../components/ui/MarketChart';
+import DailyNews from '../../components/dashboard/DailyNews';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -75,6 +76,8 @@ export default function Dashboard() {
                     <p className="page__subtitle">Your portfolio at a glance</p>
                 </div>
             </div>
+
+            <DailyNews />
 
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
