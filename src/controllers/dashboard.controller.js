@@ -25,37 +25,55 @@ export const getDashboardSummary = async (req, res) => {
              AND is_deleted = FALSE`
         );
 
-        // TRADE STATS (ONLY CLOSED)
+        // TOTAL TRADE COUNT (ALL — Open + Closed)
+        const [[{ allTrades }]] = await db.query(
+            `SELECT COUNT(*) AS allTrades FROM trades WHERE is_deleted = FALSE`
+        );
+
+        // TRADE STATS (ONLY CLOSED — for profitability ratios)
         const [[stats]] = await db.query(
             `SELECT 
-                COUNT(*) AS totalTrades,
+                COUNT(*) AS closedTrades,
                 COALESCE(SUM(total_pnl), 0) AS totalPnl,
                 SUM(CASE WHEN total_pnl > 0 THEN 1 ELSE 0 END) AS wins,
-                SUM(CASE WHEN total_pnl < 0 THEN 1 ELSE 0 END) AS losses
+                SUM(CASE WHEN total_pnl < 0 THEN 1 ELSE 0 END) AS losses,
+                COALESCE(AVG(CASE WHEN total_pnl > 0 THEN total_pnl END), 0) AS avgWin,
+                COALESCE(AVG(CASE WHEN total_pnl < 0 THEN total_pnl END), 0) AS avgLoss,
+                COALESCE(SUM(CASE WHEN total_pnl > 0 THEN total_pnl ELSE 0 END), 0) AS totalGrossWin,
+                COALESCE(ABS(SUM(CASE WHEN total_pnl < 0 THEN total_pnl ELSE 0 END)), 0) AS totalGrossLoss
              FROM trades
              WHERE status = 'CLOSED'
              AND is_deleted = FALSE`
         );
 
-        const totalTrades = stats.totalTrades || 0;
+        const totalTrades = allTrades || 0;
+        const closedTrades = parseInt(stats.closedTrades, 10) || 0;
         const totalPnl = stats.totalPnl || 0;
-        const wins = stats.wins || 0;
-        const losses = stats.losses || 0;
+        const wins = parseInt(stats.wins, 10) || 0;
+        const losses = parseInt(stats.losses, 10) || 0;
+        const avgWin = Number(Number(stats.avgWin || 0).toFixed(2));
+        const avgLoss = Number(Number(stats.avgLoss || 0).toFixed(2));
+        const totalGrossWin = Number(stats.totalGrossWin || 0);
+        const totalGrossLoss = Number(stats.totalGrossLoss || 0);
+        const profitFactor = totalGrossLoss > 0 ? Number((totalGrossWin / totalGrossLoss).toFixed(2)) : totalGrossWin > 0 ? Infinity : 0;
 
         const winRate =
-            totalTrades > 0
-                ? Number(((wins / totalTrades) * 100).toFixed(2))
+            closedTrades > 0
+                ? Number(((wins / closedTrades) * 100).toFixed(2))
                 : 0;
 
         res.json({
             totalClients,
             activeClients,
-            totalCapital,   // 👈 This replaces capitalManaged
+            totalCapital,
             totalTrades,
             totalPnl,
             wins,
             losses,
-            winRate
+            winRate,
+            avgWin,
+            avgLoss,
+            profitFactor
         });
 
     } catch (error) {

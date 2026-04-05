@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import MarketChart from '../../components/ui/MarketChart';
 import DailyNews from '../../components/dashboard/DailyNews';
+import Profitability from '../../components/dashboard/Profitability';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -131,6 +132,11 @@ export default function Dashboard() {
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* ── Profitability Gauge & Ratios ── */}
+            {!loading && !error && summary && (
+                <Profitability summary={summary} />
             )}
 
             {/* ── Market Overview (Lightweight Charts via backend proxy) ── */}

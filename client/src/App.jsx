@@ -16,6 +16,7 @@ import TradesList from './pages/trades/TradesList';
 import TradeDetails from './pages/trades/TradeDetails';
 import OpenTrade from './pages/trades/OpenTrade';
 import Notes from './pages/notes/Notes';
+import Analysis from './pages/analysis/Analysis';
 
 export default function App() {
   return (
@@ -56,6 +57,11 @@ export default function App() {
             {/* Notes */}
             <Route path="/notes" element={
               <Layout><Notes /></Layout>
+            } />
+
+            {/* Analysis */}
+            <Route path="/analysis" element={
+              <Layout><Analysis /></Layout>
             } />
           </Route>
 

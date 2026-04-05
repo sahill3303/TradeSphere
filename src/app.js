@@ -9,6 +9,7 @@ import tradeRoutes from './routes/trades.routes.js';
 import notesRoutes from './routes/notes.routes.js';
 import botRoutes from './routes/bot.routes.js';
 import newsRoutes from './routes/news.routes.js';
+import screenerRoutes from './routes/screener.routes.js';
 import path from 'path';
 
 const app = express(); // ✅ MUST be before app.use
@@ -26,6 +27,7 @@ app.use('/api/trades', tradeRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/bot', botRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/screener', screenerRoutes);
 
 // Static files (uploads)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
