@@ -13,7 +13,7 @@ const RSS_SOURCES = [
     { url: 'https://feeds.feedburner.com/ndtvprofit-latest', source: 'NDTV Profit' },
 ];
 
-// Keywords to filter financial market relevant news (exclude IPL, cricket etc)
+// Keywords to filter financial market relevant news (exclude IPL, cricket and others not related to Stock market etc)
 const FINANCE_KEYWORDS = [
     'nifty', 'sensex', 'market', 'stock', 'share', 'bse', 'nse', 'sebi',
     'rbi', 'inflation', 'gdp', 'rate', 'economy', 'trade', 'tariff',
