@@ -19,15 +19,76 @@ const TIMEFRAMES = [
     { label: '1Y / 1d', interval: '1d', range: '1y' },
 ];
 
-export default function MarketChart({ symbol, label, accentColor = '#D4AF37', height = 260 }) {
+const POPULAR_SYMBOLS = [
+    { label: 'NIFTY 50', symbol: '%5ENSEI', color: '#D4AF37' },
+    { label: 'BANK NIFTY', symbol: '%5ENSEBANK', color: '#60A5FA' },
+    { label: 'FIN NIFTY', symbol: '%5ENSEFIN', color: '#F472B6' },
+    { label: 'NIFTY IT', symbol: '%5ECNXIT', color: '#34D399' },
+    { label: 'SENSEX', symbol: '%5EBSESN', color: '#EF4444' },
+];
+
+export default function MarketChart({ 
+    symbol: initialSymbol, 
+    label: initialLabel, 
+    accentColor: initialColor = '#D4AF37', 
+    height = 260,
+    onSymbolChange // callback if parent needs to know
+}) {
     const containerRef = useRef(null);
     const chartRef     = useRef(null);
     const seriesRef    = useRef(null);
+
+    const [symbol, setSymbol] = useState(initialSymbol);
+    const [label, setLabel]   = useState(initialLabel);
+    const [accentColor, setAccentColor] = useState(initialColor);
 
     const [meta, setMeta]   = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [activeTF, setActiveTF] = useState(TIMEFRAMES[0]);
+
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            let s = searchQuery.trim().toUpperCase();
+            // Basic heuristic: if no dot, and looks like a stock, add .NS
+            if (!s.includes('.') && !s.startsWith('^') && !s.startsWith('%5E')) {
+                s += '.NS';
+            }
+            
+            // If it's a popular symbol, use its label/color
+            const pop = POPULAR_SYMBOLS.find(p => p.symbol === s || p.symbol === encodeURIComponent(s));
+            if (pop) {
+                setSymbol(pop.symbol);
+                setLabel(pop.label);
+                setAccentColor(pop.color);
+            } else {
+                setSymbol(encodeURIComponent(s));
+                setLabel(s.replace('.NS', ''));
+                setAccentColor('var(--color-gold)');
+            }
+            setIsSearching(false);
+            setSearchQuery('');
+            if (onSymbolChange) {
+                onSymbolChange({ symbol: s, label: s.replace('.NS', '') });
+            }
+        }
+    };
+
+    const handlePopSelect = (pop) => {
+        setSymbol(pop.symbol);
+        setLabel(pop.label);
+        setAccentColor(pop.color);
+        if (onSymbolChange) onSymbolChange(pop);
+    };
+
+    useEffect(() => {
+        if (initialSymbol) setSymbol(initialSymbol);
+        if (initialLabel) setLabel(initialLabel);
+        if (initialColor) setAccentColor(initialColor);
+    }, [initialSymbol, initialLabel, initialColor]);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -135,12 +196,47 @@ export default function MarketChart({ symbol, label, accentColor = '#D4AF37', he
                     display: 'inline-block', flexShrink: 0,
                     boxShadow: `0 0 6px ${accentColor}`,
                 }} />
-                <span style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 700, fontSize: '0.85rem',
-                    color: 'var(--color-text)',
-                    letterSpacing: '0.03em',
-                }}>{label}</span>
+
+                {!isSearching ? (
+                    <>
+                        <span style={{
+                            fontFamily: 'var(--font-heading)',
+                            fontWeight: 700, fontSize: '0.85rem',
+                            color: 'var(--color-text)',
+                            letterSpacing: '0.03em',
+                            cursor: 'pointer'
+                        }} onClick={() => setIsSearching(true)}>{label}</span>
+                        
+                        <button 
+                            onClick={() => setIsSearching(true)}
+                            style={{ background: 'none', border: 'none', color: 'var(--color-text-dim)', cursor: 'pointer', display: 'flex', padding: 4 }}
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </>
+                ) : (
+                    <input 
+                        autoFocus
+                        placeholder="Search Symbol (e.g. RELIANCE)..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={handleSearch}
+                        onBlur={() => setIsSearching(false)}
+                        style={{
+                            background: 'var(--color-surface-alt)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--color-text)',
+                            fontSize: '0.75rem',
+                            padding: '0.15rem 0.5rem',
+                            width: '140px',
+                            outline: 'none'
+                        }}
+                    />
+                )}
 
                 {meta && (
                     <span style={{
@@ -157,25 +253,49 @@ export default function MarketChart({ symbol, label, accentColor = '#D4AF37', he
                     </span>
                 )}
 
-                <select 
-                    value={activeTF.label}
-                    onChange={e => setActiveTF(TIMEFRAMES.find(t => t.label === e.target.value))}
-                    style={{
-                        fontSize: '0.68rem',
-                        color: 'var(--color-text-dim)',
-                        background: 'var(--color-surface-alt)',
-                        border: '1px solid var(--color-border)',
-                        padding: '0.15rem 0.45rem',
-                        borderRadius: 'var(--radius-sm)',
-                        marginLeft: meta ? 'var(--space-sm)' : 'auto',
-                        cursor: 'pointer',
-                        outline: 'none',
-                    }}
-                >
-                    {TIMEFRAMES.map(t => (
-                        <option key={t.label} value={t.label}>NSE · {t.label}</option>
-                    ))}
-                </select>
+                <div style={{ display: 'flex', gap: '0.35rem', marginLeft: meta ? 'var(--space-sm)' : 'auto' }}>
+                    <select 
+                        value="" 
+                        onChange={e => {
+                            const pop = POPULAR_SYMBOLS.find(p => p.label === e.target.value);
+                            if (pop) handlePopSelect(pop);
+                        }}
+                        style={{
+                            fontSize: '0.68rem',
+                            color: 'var(--color-text-dim)',
+                            background: 'var(--color-surface-alt)',
+                            border: '1px solid var(--color-border)',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            outline: 'none',
+                        }}
+                    >
+                        <option value="" disabled>Quick List</option>
+                        {POPULAR_SYMBOLS.map(p => (
+                            <option key={p.label} value={p.label}>{p.label}</option>
+                        ))}
+                    </select>
+
+                    <select 
+                        value={activeTF.label}
+                        onChange={e => setActiveTF(TIMEFRAMES.find(t => t.label === e.target.value))}
+                        style={{
+                            fontSize: '0.68rem',
+                            color: 'var(--color-text-dim)',
+                            background: 'var(--color-surface-alt)',
+                            border: '1px solid var(--color-border)',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            outline: 'none',
+                        }}
+                    >
+                        {TIMEFRAMES.map(t => (
+                            <option key={t.label} value={t.label}>{t.label.split('/')[1]}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Chart area */}

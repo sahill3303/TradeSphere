@@ -40,6 +40,26 @@ export default function Dashboard() {
     const [activityLoading, setActivityLoading] = useState(true);
     const [activityError, setActivityError] = useState(null);
 
+    const [chart1, setChart1] = useState(() => {
+        const saved = localStorage.getItem('dash_chart_1');
+        return saved ? JSON.parse(saved) : { symbol: '%5ENSEI', label: 'NIFTY 50', accentColor: '#D4AF37' };
+    });
+
+    const [chart2, setChart2] = useState(() => {
+        const saved = localStorage.getItem('dash_chart_2');
+        return saved ? JSON.parse(saved) : { symbol: '%5ENSEBANK', label: 'BANK NIFTY', accentColor: '#60A5FA' };
+    });
+
+    const updateChart1 = (data) => {
+        setChart1(data);
+        localStorage.setItem('dash_chart_1', JSON.stringify(data));
+    };
+
+    const updateChart2 = (data) => {
+        setChart2(data);
+        localStorage.setItem('dash_chart_2', JSON.stringify(data));
+    };
+
     useEffect(() => {
         api.get('/api/dashboard/summary')
             .then(res => setSummary(res.data))
@@ -143,15 +163,17 @@ export default function Dashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}
                  className="market-overview-grid">
                 <MarketChart
-                    symbol="%5ENSEI"
-                    label="NIFTY 50"
-                    accentColor="#D4AF37"
+                    symbol={chart1.symbol}
+                    label={chart1.label}
+                    accentColor={chart1.accentColor}
+                    onSymbolChange={updateChart1}
                     height={260}
                 />
                 <MarketChart
-                    symbol="%5ENSEBANK"
-                    label="BANK NIFTY"
-                    accentColor="#60A5FA"
+                    symbol={chart2.symbol}
+                    label={chart2.label}
+                    accentColor={chart2.accentColor}
+                    onSymbolChange={updateChart2}
                     height={260}
                 />
             </div>
