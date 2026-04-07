@@ -76,4 +76,36 @@ router.get('/market-chart/:symbol', verifyToken, async (req, res) => {
     }
 });
 
+// 🔹 Symbol Search Proxy (Yahoo Finance → resolves name to ticker)
+router.get('/search-symbol', verifyToken, async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) return res.status(400).json({ message: 'Missing query parameter' });
+
+        const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=5&newsCount=0&enableFuzzyQuery=true`;
+
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Accept': 'application/json',
+            },
+        });
+
+        if (!response.ok) return res.status(response.status).json({ message: 'Yahoo Finance search failed' });
+
+        const json = await response.json();
+        const quotes = (json?.quotes || []).map(q => ({
+            symbol:   q.symbol,
+            name:     q.shortname || q.longname || q.symbol,
+            exchange: q.exchange,
+            type:     q.quoteType
+        }));
+
+        res.json(quotes);
+    } catch (err) {
+        console.error('Symbol search proxy error:', err.message);
+        res.status(500).json({ message: 'Symbol search proxy error', error: err.message });
+    }
+});
+
 export default router;

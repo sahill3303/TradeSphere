@@ -50,29 +50,63 @@ export default function MarketChart({
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const handleSearch = (e) => {
+    const handleSearch = async (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
-            let s = searchQuery.trim().toUpperCase();
-            // Basic heuristic: if no dot, and looks like a stock, add .NS
-            if (!s.includes('.') && !s.startsWith('^') && !s.startsWith('%5E')) {
-                s += '.NS';
-            }
-            
-            // If it's a popular symbol, use its label/color
-            const pop = POPULAR_SYMBOLS.find(p => p.symbol === s || p.symbol === encodeURIComponent(s));
-            if (pop) {
-                setSymbol(pop.symbol);
-                setLabel(pop.label);
-                setAccentColor(pop.color);
-            } else {
-                setSymbol(encodeURIComponent(s));
-                setLabel(s.replace('.NS', ''));
-                setAccentColor('var(--color-gold)');
-            }
+            const query = searchQuery.trim();
             setIsSearching(false);
             setSearchQuery('');
-            if (onSymbolChange) {
-                onSymbolChange({ symbol: s, label: s.replace('.NS', '') });
+            setLoading(true);
+            setError('');
+
+            try {
+                // 1. Try resolving symbol via backend proxy
+                const { data: results } = await api.get(`/api/dashboard/search-symbol?q=${encodeURIComponent(query)}`);
+                
+                if (results && results.length > 0) {
+                    const match = results[0];
+                    const rawSymbol = match.symbol;
+                    const encodedSymbol = encodeURIComponent(rawSymbol);
+
+                    // If it's a popular symbol, use its predefined color
+                    const pop = POPULAR_SYMBOLS.find(p => p.symbol === rawSymbol || p.symbol === encodedSymbol);
+                    
+                    const finalColor = pop ? pop.color : 'var(--color-gold)';
+                    const finalLabel = match.name;
+
+                    setSymbol(encodedSymbol);
+                    setLabel(finalLabel);
+                    setAccentColor(finalColor);
+
+                    if (onSymbolChange) {
+                        onSymbolChange({ 
+                            symbol: encodedSymbol, 
+                            label: finalLabel, 
+                            accentColor: finalColor 
+                        });
+                    }
+                } else {
+                    // 2. Fallback to heuristic if no search results (e.g. indices or direct ticker)
+                    let s = query.toUpperCase();
+                    if (!s.includes('.') && !s.startsWith('^') && !s.startsWith('%5E')) {
+                        s += '.NS';
+                    }
+                    
+                    const encodedS = encodeURIComponent(s);
+                    const pop = POPULAR_SYMBOLS.find(p => p.symbol === s || p.symbol === encodedS);
+                    
+                    setSymbol(encodedS);
+                    setLabel(s.replace('.NS', ''));
+                    setAccentColor(pop ? pop.color : 'var(--color-gold)');
+                    
+                    if (onSymbolChange) {
+                        onSymbolChange({ symbol: encodedS, label: s.replace('.NS', '') });
+                    }
+                }
+            } catch (err) {
+                console.error('Search resolution error:', err);
+                setError('Failed to resolve symbol.');
+            } finally {
+                setLoading(false);
             }
         }
     };
