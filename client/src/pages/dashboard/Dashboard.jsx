@@ -161,7 +161,7 @@ export default function Dashboard() {
 
             {/* ── Market Overview (Lightweight Charts via backend proxy) ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}
-                 className="market-overview-grid">
+                className="market-overview-grid">
                 <MarketChart
                     symbol={chart1.symbol}
                     label={chart1.label}
@@ -204,49 +204,49 @@ export default function Dashboard() {
                     {!tradesLoading && !tradesError && recentTrades.length > 0 && (
                         <div className="table-container">
                             <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Symbol</th>
-                                    <th>Direction</th>
-                                    <th>P&L</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {recentTrades.map(t => {
-                                    const pnlPos = t.total_pnl > 0;
-                                    const pnlNeg = t.total_pnl < 0;
-                                    return (
-                                        <tr key={t.trade_id}>
-                                            <td style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.stock_name}</td>
-                                            <td>
-                                                <span style={{
-                                                    color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
-                                                    fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Direction</th>
+                                        <th>P&L</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recentTrades.map(t => {
+                                        const pnlPos = t.total_pnl > 0;
+                                        const pnlNeg = t.total_pnl < 0;
+                                        return (
+                                            <tr key={t.trade_id}>
+                                                <td style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.stock_name}</td>
+                                                <td>
+                                                    <span style={{
+                                                        color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
+                                                        fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                                                    }}>
+                                                        {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
+                                                    </span>
+                                                </td>
+                                                <td style={{
+                                                    fontWeight: 600,
+                                                    color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'var(--color-text-muted)',
                                                 }}>
-                                                    {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
-                                                </span>
-                                            </td>
-                                            <td style={{
-                                                fontWeight: 600,
-                                                color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'var(--color-text-muted)',
-                                            }}>
-                                                {t.status === 'OPEN' ? '—' : `${pnlPos ? '+' : ''}₹${Number(t.total_pnl).toLocaleString('en-IN')}`}
-                                            </td>
-                                            <td>
-                                                <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
-                                                    {t.status}
-                                                </span>
-                                            </td>
-                                            <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                                    {t.status === 'OPEN' ? '—' : `${pnlPos ? '+' : ''}₹${Number(t.total_pnl).toLocaleString('en-IN')}`}
+                                                </td>
+                                                <td>
+                                                    <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
+                                                        {t.status}
+                                                    </span>
+                                                </td>
+                                                <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
 
                 {/* Client Activity */}
@@ -286,8 +286,8 @@ export default function Dashboard() {
                                             <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{c.name}</td>
                                             <td>
                                                 <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
-                                                        c.status === 'INACTIVE' ? 'badge--red' :
-                                                            'badge--yellow'
+                                                    c.status === 'INACTIVE' ? 'badge--red' :
+                                                        'badge--yellow'
                                                     }`}>{c.status}</span>
                                             </td>
                                             <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(c.join_date)}</td>
@@ -302,3 +302,4 @@ export default function Dashboard() {
         </div>
     );
 }
+// deployment planning
