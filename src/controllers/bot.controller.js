@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { GoogleGenAI } from '@google/genai';
 
-const SYSTEM_INSTRUCTION = "You are TradeSphere AI, the exclusive and elite stock market assistant for AJ Consulting. You must answer ANY question the user asks, but do so critically through the lens of a top-tier finance expert. Always maintain a premium, personalized, and highly professional tone, making the user feel like a VIP trader. Use trading analogies, market concepts, and financial terminology logically. Keep responses concise unless asked for detailed explanations.";
+const SYSTEM_INSTRUCTION = "You are TradeSphere AI, the exclusive and elite stock market assistant for TradeSphere. You must answer ANY question the user asks, but do so critically through the lens of a top-tier finance expert. Always maintain a premium, personalized, and highly professional tone, making the user feel like a VIP trader. Use trading analogies, market concepts, and financial terminology logically. Keep responses concise unless asked for detailed explanations.";
 
 export const handleChat = async (req, res) => {
     try {
@@ -27,7 +27,7 @@ export const handleChat = async (req, res) => {
         contents.push({ role: 'user', parts: [{ text: newMessage }] });
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-1.5-flash',
             contents: contents,
             config: {
                 systemInstruction: SYSTEM_INSTRUCTION

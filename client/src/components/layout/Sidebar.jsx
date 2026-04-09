@@ -25,7 +25,7 @@ export default function Sidebar({ isOpen, onClose }) {
                         <img src="src\assets\AJC_Logo.png" alt="" />
 
                     </div>
-                    <span className="sidebar__brand-name">AJ Consulting</span>
+                    <span className="sidebar__brand-name">TradeSphere</span>
                 </div>
 
                 {/* Navigation */}

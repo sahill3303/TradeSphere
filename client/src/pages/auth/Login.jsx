@@ -48,7 +48,7 @@ export default function Login() {
                     <div className="auth-card__logo-mark">
                         <img src="src\assets\AJC_Logo.png" alt="" />
                     </div>
-                    <span className="auth-card__logo-text">AJ Consulting</span>
+                    <span className="auth-card__logo-text">TradeSphere</span>
                 </div>
 
                 <h2 className="auth-card__title">Welcome back</h2>

@@ -1,7 +1,7 @@
 {
   "name": "aj-consultancy-backend",
   "version": "1.0.0",
-  "description": "Backend for AJ Consultancy",
+  "description": "Backend for TradeSphere",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

@@ -87,7 +87,7 @@ export const getMe = async (req, res) => {
         // Fetch full admin row from DB to get name, email, etc.
         const [rows] = await db.query(
             'SELECT id, name, email, role FROM admins WHERE id = ?',
-            [req.admin.id]
+            [req.user.id]
         );
 
         if (rows.length === 0) {

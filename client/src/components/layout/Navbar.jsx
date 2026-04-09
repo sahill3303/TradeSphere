@@ -14,7 +14,7 @@ export default function Navbar({ onMenuToggle }) {
     // Match longest prefix
     const title = Object.entries(PAGE_TITLES)
         .find(([path]) => pathname === path || pathname.startsWith(path + '/') || pathname === path)?.[1]
-        ?? 'AJ Consulting';
+        ?? 'TradeSphere';
 
     return (
         <header className="navbar">
