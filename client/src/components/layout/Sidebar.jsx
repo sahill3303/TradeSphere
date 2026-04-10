@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Brand */}
                 <div className="sidebar__brand">
                     <div className="sidebar__logo">
-                        <img src="src\assets\AJC_Logo.png" alt="" />
+                        <img src="src\assets\TS2.png" alt="" />
 
                     </div>
                     <span className="sidebar__brand-name">TradeSphere</span>

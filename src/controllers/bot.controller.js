@@ -26,15 +26,16 @@ export const handleChat = async (req, res) => {
         }
         contents.push({ role: 'user', parts: [{ text: newMessage }] });
 
-        const response = await ai.models.generateContent({
+        const model = ai.getGenerativeModel({ 
             model: 'gemini-1.5-flash',
-            contents: contents,
-            config: {
-                systemInstruction: SYSTEM_INSTRUCTION
-            }
+            systemInstruction: SYSTEM_INSTRUCTION 
         });
 
-        res.json({ success: true, text: response.text });
+        const result = await model.generateContent({ contents });
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ success: true, text });
     } catch (error) {
         console.error('Bot Error:', error);
         res.status(500).json({ success: false, message: 'Failed to communicate with AI model.', error: error.message });

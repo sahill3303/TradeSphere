@@ -130,12 +130,14 @@ Provide response in this EXACT JSON format (no markdown):
 
 Return ONLY valid JSON.`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+        const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+        const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
 
-        let text = response.text.trim()
+        const response = await result.response;
+        let text = response.text().trim()
             .replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
         return JSON.parse(text);
     } catch (e) {
