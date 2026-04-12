@@ -178,6 +178,14 @@ function StockAnalysis() {
                                 </div>
                             )}
 
+                            {/* New Insight: Global Context & Future Potential */}
+                            {ai.futurePotential && (
+                                <div style={{ background: 'rgba(55, 125, 212, 0.06)', border: '1px solid #377DD4', borderRadius: 'var(--radius-md)', padding: '0.9rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                                    <div style={{ fontSize: '0.72rem', color: '#377DD4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>🌏 Global Context & Future Potential</div>
+                                    {ai.futurePotential}
+                                </div>
+                            )}
+
                             {/* Key Metrics & Watch Points */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-md)', minWidth: 0 }}>
                                 {ai.keyMetrics && ai.keyMetrics.length > 0 && (
@@ -212,9 +220,11 @@ function StockAnalysis() {
                     {data.ratios && Object.keys(data.ratios).length > 0 && (
                         <SectionCard title="📈 Key Financial Ratios">
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(145px, 1fr))', gap: 'var(--space-sm)' }}>
-                                {Object.entries(data.ratios).map(([k, v]) => (
-                                    <RatioCard key={k} label={k} value={v} />
-                                ))}
+                                {Object.entries(data.ratios)
+                                    .filter(([k]) => !k.toLowerCase().includes('promoter')) // Deduplicate promoter holding
+                                    .map(([k, v]) => (
+                                        <RatioCard key={k} label={k} value={v} />
+                                    ))}
                             </div>
                         </SectionCard>
                     )}
@@ -270,13 +280,35 @@ function StockAnalysis() {
                         </SectionCard>
                     )}
 
-                    {/* Shareholding */}
-                    {data.shareholding?.length > 0 && (
-                        <SectionCard title="🏦 Shareholding Pattern (Latest Quarter)">
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 'var(--space-sm)' }}>
-                                {data.shareholding.map((s, i) => (
-                                    <RatioCard key={i} label={s.group} value={s.latest} />
-                                ))}
+                    {/* Shareholding Section - Enhanced with AI Insights */}
+                    {data.shareholding?.rows?.length > 0 && (
+                        <SectionCard title="🏦 Shareholding Pattern Trends">
+                            {/* AI Insights on Shareholding */}
+                            {ai && ai.shareholdingAnalysis && (
+                                <div style={{ background: 'var(--color-surface-alt)', borderLeft: '3px solid var(--color-gold)', borderRadius: 'var(--radius-md)', padding: '0.8rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Institutional & Public Activity</div>
+                                    {ai.shareholdingAnalysis}
+                                </div>
+                            )}
+
+                            {/* Shareholding Trend Table */}
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            {data.shareholding.headers.map((h, i) => <th key={i}>{h}</th>)}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.shareholding.rows.map((row, i) => (
+                                            <tr key={i}>
+                                                {row.map((cell, j) => (
+                                                    <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </SectionCard>
                     )}

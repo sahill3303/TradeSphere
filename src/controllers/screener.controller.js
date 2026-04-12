@@ -88,15 +88,18 @@ function parseScreenerHtml(html) {
         });
     }
 
-    // Shareholding (most recent quarter)
-    const shareholding = [];
-    $('section#shareholding table tbody tr').each((_, tr) => {
-        const cells = [];
-        $(tr).find('td').each((_, td) => cells.push($(td).text().trim()));
-        if (cells[0] && cells.length > 1) {
-            shareholding.push({ group: cells[0], latest: cells[cells.length - 1] });
-        }
-    });
+    // Shareholding (first table only to avoid standalone vs consolidated duplication)
+    const shareholding = { headers: [], rows: [] };
+    const sSection = $('section#shareholding');
+    if (sSection.length) {
+        const firstTable = sSection.find('table').first();
+        firstTable.find('thead th').each((_, th) => shareholding.headers.push($(th).text().trim()));
+        firstTable.find('tbody tr').each((_, tr) => {
+            const cells = [];
+            $(tr).find('td').each((_, td) => cells.push($(td).text().trim().replace(/\s+/g, ' ')));
+            if (cells.length > 1) shareholding.rows.push(cells);
+        });
+    }
 
     return { name, ratios, about, pros, cons, quarterly, annual, shareholding };
 }
@@ -114,6 +117,7 @@ async function generateAISummary(stockData, symbol, horizon, apiKey) {
 
 Stock: ${stockData.name || symbol}
 Key Ratios: ${JSON.stringify(stockData.ratios)}
+Shareholding Data (Quarterly Trend): ${JSON.stringify(stockData.shareholding)}
 Pros from Screener: ${stockData.pros.join('; ')}
 Cons from Screener: ${stockData.cons.join('; ')}
 About: ${stockData.about?.substring(0, 300)}
@@ -122,6 +126,8 @@ Provide response in this EXACT JSON format (no markdown):
 {
   "summary": "3-4 sentence factual business and financial summary. Mention key metrics. No opinion.",
   "horizonContext": "${horizon ? `Factual observations specifically relevant for ${horizon} analysis (2-3 sentences, no advice)` : ''}",
+  "shareholdingAnalysis": "Analyze the shareholding trend (last few columns). Specifically mention if FII, DII, or Public are adding or removing shares. (2-3 sentences)",
+  "futurePotential": "Analyze future potential and risks considering current global market conditions (e.g. impact of war, geopolitical tensions, or international economic shifts). (3-4 sentences)",
   "keyMetrics": [
     {"label": "metric name", "value": "value", "context": "what this means factually (1 line)"}
   ],
