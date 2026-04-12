@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const cache = new Map();
 const CACHE_TTL = 15 * 60 * 1000; // 15 min
@@ -104,7 +104,7 @@ function parseScreenerHtml(html) {
 // Step 4: AI factual summary (no buy/sell verdict)
 async function generateAISummary(stockData, symbol, horizon, apiKey) {
     try {
-        const ai = new GoogleGenAI({ apiKey });
+        const genAI = new GoogleGenerativeAI(apiKey);
 
         const horizonContext = horizon
             ? `\nThe user is analysing this stock for: **${horizon}** purpose.`
@@ -130,7 +130,7 @@ Provide response in this EXACT JSON format (no markdown):
 
 Return ONLY valid JSON.`;
 
-        const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }]
