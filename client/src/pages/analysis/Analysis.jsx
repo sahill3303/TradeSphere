@@ -26,9 +26,6 @@ function SectionCard({ title, children }) {
 
 const HORIZONS = [
     { value: '', label: 'General Analysis' },
-    { value: 'Intraday', label: '⚡ Intraday' },
-    { value: 'Swing (2–10 weeks)', label: '🌊 Swing Trade' },
-    { value: 'Long Term Investment', label: '📅 Long Term' },
 ];
 
 // ─── Stock Analysis Tab ───────────────────────────────────────────────────────
@@ -76,25 +73,7 @@ function StockAnalysis() {
                     />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <label style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                        Horizon <span style={{ color: 'var(--color-text-muted)', textTransform: 'none', fontWeight: 400 }}>(optional)</span>
-                    </label>
-                    <select
-                        value={horizon}
-                        onChange={e => setHorizon(e.target.value)}
-                        style={{
-                            padding: '0.68rem 0.8rem', background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-                            color: horizon ? 'var(--color-gold)' : 'var(--color-text-dim)',
-                            fontSize: '0.88rem', cursor: 'pointer', outline: 'none'
-                        }}
-                    >
-                        {HORIZONS.map(h => (
-                            <option key={h.value} value={h.value}>{h.label}</option>
-                        ))}
-                    </select>
-                </div>
+
 
                 <button
                     onClick={handleSearch} type="button" disabled={loading}
@@ -267,13 +246,15 @@ function StockAnalysis() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.quarterly.rows.map((row, i) => (
-                                            <tr key={i}>
-                                                {row.map((cell, j) => (
-                                                    <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
-                                                ))}
-                                            </tr>
-                                        ))}
+                                        {data.quarterly.rows
+                                            .filter(row => !row[0].toLowerCase().includes('promoter'))
+                                            .map((row, i) => (
+                                                <tr key={i}>
+                                                    {row.map((cell, j) => (
+                                                        <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
+                                                    ))}
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -302,9 +283,29 @@ function StockAnalysis() {
                                     <tbody>
                                         {data.shareholding.rows.map((row, i) => (
                                             <tr key={i}>
-                                                {row.map((cell, j) => (
-                                                    <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
-                                                ))}
+                                                {row.map((cell, j) => {
+                                                    let cellColor = j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)';
+                                                    
+                                                    // Highlight trends starting from the second data column (j > 1)
+                                                    // row[0] is the group name, row[1] is the first quarter
+                                                    if (j > 1) {
+                                                        const current = parseFloat(cell.replace(/[^0-9.]/g, ''));
+                                                        const prev = parseFloat(row[j-1].replace(/[^0-9.]/g, ''));
+                                                        if (!isNaN(current) && !isNaN(prev)) {
+                                                            if (current > prev) cellColor = '#4ade80'; // Green
+                                                            else if (current < prev) cellColor = '#f87171'; // Red
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <td key={j} style={{ 
+                                                            fontWeight: j === 0 ? 600 : 400, 
+                                                            color: cellColor 
+                                                        }}>
+                                                            {cell}
+                                                        </td>
+                                                    );
+                                                })}
                                             </tr>
                                         ))}
                                     </tbody>
