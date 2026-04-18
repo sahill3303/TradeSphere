@@ -1,12 +1,6 @@
--- TradeSphere Production Schema
--- Use this script to initialize your database on Aiven, TiDB, or any cloud MySQL provider.
+-- TradeSphere Production Database Schema
+-- Optimized for Railway Deployment
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
--- --------------------------------------------------------
--- Table structure for table `admins`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `admins` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
@@ -14,11 +8,8 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `password_hash` VARCHAR(255) NOT NULL,
   `role` VARCHAR(50) DEFAULT 'admin',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- --------------------------------------------------------
--- Table structure for table `clients`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `clients` (
   `client_id` INT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
@@ -29,11 +20,8 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` BOOLEAN DEFAULT FALSE,
   `deleted_at` TIMESTAMP NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- --------------------------------------------------------
--- Table structure for table `trades`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trades` (
   `trade_id` INT AUTO_INCREMENT PRIMARY KEY,
   `stock_name` VARCHAR(255) NOT NULL,
@@ -61,56 +49,39 @@ CREATE TABLE IF NOT EXISTS `trades` (
   `closed_at` TIMESTAMP NULL DEFAULT NULL,
   `is_deleted` BOOLEAN DEFAULT FALSE,
   `deleted_at` TIMESTAMP NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- --------------------------------------------------------
--- Table structure for table `trade_clients`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trade_clients` (
   `trade_id` INT NOT NULL,
   `client_id` INT NOT NULL,
   PRIMARY KEY (`trade_id`, `client_id`),
   FOREIGN KEY (`trade_id`) REFERENCES `trades`(`trade_id`) ON DELETE CASCADE,
   FOREIGN KEY (`client_id`) REFERENCES `clients`(`client_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- --------------------------------------------------------
--- Table structure for table `trade_notes`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trade_notes` (
   `note_id` INT AUTO_INCREMENT PRIMARY KEY,
   `trade_id` INT NOT NULL,
   `note_text` TEXT NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`trade_id`) REFERENCES `trades`(`trade_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- --------------------------------------------------------
--- Table structure for table `capital_summary`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `capital_summary` (
   `capital_id` INT PRIMARY KEY,
   `total_capital` DECIMAL(15,2) DEFAULT 0.00,
   `total_pnl` DECIMAL(15,2) DEFAULT 0.00,
   `deployed_capital` DECIMAL(15,2) DEFAULT 0.00
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 -- Seed initial row for capital_summary
 INSERT IGNORE INTO `capital_summary` (`capital_id`, `total_capital`, `total_pnl`, `deployed_capital`) 
 VALUES (1, 0.00, 0.00, 0.00);
 
--- --------------------------------------------------------
--- Table structure for table `reference_notes`
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `reference_notes` (
   `note_id` INT AUTO_INCREMENT PRIMARY KEY,
   `title` VARCHAR(255) NOT NULL,
   `content` TEXT,
-  `file_name` VARCHAR(255) DEFAULT NULL,
-  `original_file_name` VARCHAR(255) DEFAULT NULL,
-  `file_type` VARCHAR(100) DEFAULT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-SET FOREIGN_KEY_CHECKS = 1;
+);
