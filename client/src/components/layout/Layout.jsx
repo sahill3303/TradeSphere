@@ -1,15 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-
+import ChatWidget from '../ui/ChatWidget';
 
 export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
-    // Force dark theme always (Black+Gold design)
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }, []);
+    // ❌ REMOVED: the useEffect that was hardcoding data-theme="dark" and overriding
+    // the user's theme toggle. Theme is now managed solely by ThemeContext.
 
     const toggleSidebar = () => setSidebarOpen(prev => !prev);
     const closeSidebar = () => setSidebarOpen(false);
@@ -24,8 +21,8 @@ export default function Layout({ children }) {
                     {children}
                 </main>
             </div>
-            
 
+            <ChatWidget />
         </div>
     );
 }

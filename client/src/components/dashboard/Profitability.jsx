@@ -2,11 +2,13 @@ export default function Profitability({ summary }) {
     if (!summary) return null;
 
     const { totalTrades, wins, losses, winRate, avgWin, avgLoss, profitFactor } = summary;
-    const totalClosed = (wins || 0) + (losses || 0);
+    const safeWins = Number(wins) || 0;
+    const safeLosses = Number(losses) || 0;
+    const totalClosed = safeWins + safeLosses;
 
     // Semi-circle gauge calculations
-    const winPct = totalClosed > 0 ? (wins / totalClosed) * 100 : 0;
-    const lossPct = totalClosed > 0 ? (losses / totalClosed) * 100 : 0;
+    const winPct = totalClosed > 0 ? (safeWins / totalClosed) * 100 : 0;
+    const lossPct = totalClosed > 0 ? (safeLosses / totalClosed) * 100 : 0;
 
     // SVG arc for the semi-circle gauge
     const radius = 80;
@@ -117,12 +119,12 @@ export default function Profitability({ summary }) {
                     <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-success)' }}>{winPct.toFixed(0)}%</span>
                         <br />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Wins: {wins || 0}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Wins: {safeWins}</span>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-danger)' }}>{lossPct.toFixed(0)}%</span>
                         <br />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Losses: {losses || 0}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Losses: {safeLosses}</span>
                     </div>
                 </div>
             </div>
@@ -158,7 +160,7 @@ export default function Profitability({ summary }) {
                         <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Win Ratio</span>
                     </div>
                     <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                        {winRate}%
+                        {winRate != null ? `${winRate}%` : '0%'}
                     </span>
                 </div>
 
@@ -186,8 +188,8 @@ export default function Profitability({ summary }) {
                         </svg>
                         <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Profit Factor</span>
                     </div>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: profitFactor >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                        {profitFactor === Infinity ? '∞' : profitFactor}
+                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: (profitFactor ?? 0) >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                        {profitFactor == null ? '—' : profitFactor === Infinity ? '∞' : profitFactor}
                     </span>
                 </div>
             </div>

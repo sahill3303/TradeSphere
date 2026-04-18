@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -15,6 +15,7 @@ export default function Notes() {
     const [file, setFile] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchNotes();
@@ -57,8 +58,8 @@ export default function Notes() {
             setTitle('');
             setContent('');
             setFile(null);
-            // Reset file input element visually
-            document.getElementById('file-upload').value = '';
+            // Reset file input safely via ref
+            if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err) {
             setFormError(err.response?.data?.message || 'Failed to create note');
         } finally {
@@ -120,6 +121,7 @@ export default function Notes() {
                             <label className="form-label">Attach File (CSV, Excel, Images)</label>
                             <input 
                                 id="file-upload"
+                                ref={fileInputRef}
                                 type="file" 
                                 className="form-input" 
                                 onChange={e => setFile(e.target.files[0])}
@@ -162,7 +164,7 @@ export default function Notes() {
                                     {note.title}
                                 </h3>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: 'var(--space-md)' }}>
-                                    Added {new Date(note.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    Added {note.created_at ? new Date(note.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                 </div>
                                 
                                 {note.content && (

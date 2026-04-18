@@ -59,10 +59,14 @@ export const loginAdmin = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        if (!process.env.JWT_SECRET) {
+            return res.status(500).json({ message: 'Server misconfiguration: JWT_SECRET not set.' });
+        }
+
         const token = jwt.sign(
             { id: admin.id, role: admin.role },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN }
+            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
 
         res.json({
@@ -104,7 +108,4 @@ export const getMe = async (req, res) => {
 };
 
 
-// controller auth review
-
-
-console.log("AUTH CONTROLLER LOADED");
+// auth controller

@@ -210,8 +210,8 @@ export default function ChatWidget() {
                                     margin: 0
                                 }}>
                                     <ReactMarkdown components={{
-                                        p: ({node, ...props}) => <p style={{margin: '0 0 0.5em 0', lastChild: {marginBottom: 0}}} {...props}/>,
-                                        a: ({node, ...props}) => <a style={{color: 'var(--color-gold)', textDecoration: 'underline'}} target="_blank" {...props}/>,
+                                        p: ({node, ...props}) => <p style={{margin: '0 0 0.5em 0'}} {...props}/>,
+                                        a: ({node, ...props}) => <a style={{color: 'var(--color-gold)', textDecoration: 'underline'}} target="_blank" rel="noreferrer" {...props}/>,
                                         strong: ({node, ...props}) => <strong style={{color: msg.role === 'user' ? 'var(--color-gold)' : 'var(--color-text)'}} {...props}/>,
                                     }}>{msg.content}</ReactMarkdown>
                                 </div>

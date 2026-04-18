@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -13,10 +13,8 @@ export default function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Force dark theme on auth pages too
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }, []);
+    // ❌ REMOVED: hardcoded data-theme="dark" override that was
+    // permanently resetting the user's theme whenever visiting login.
 
     const handleChange = (e) =>
         setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));

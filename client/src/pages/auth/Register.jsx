@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Input from '../../components/ui/Input';
@@ -11,10 +11,6 @@ export default function Register() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }, []);
 
     const handleChange = (e) =>
         setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
