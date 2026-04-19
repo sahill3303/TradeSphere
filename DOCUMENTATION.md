@@ -1,7 +1,6 @@
 # TradeSphere – Comprehensive Project Documentation
 
-Welcome to the official documentation for **TradeSphere**, a premium full-stack financial research and trade management platform developed during my internship at **AJ Consultancy**.
-
+Welcome to the official documentation for **TradeSphere**, a premium full-stack financial research and trade management platform developed by me
 TradeSphere is designed for professional traders and financial analysts to streamline the process of market research, trade tracking, and client management. It combines live market data, AI-driven factual insights, and robust portfolio management into a single, high-performance interface.
 
 ---
