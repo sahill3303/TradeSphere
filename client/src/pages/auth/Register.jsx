@@ -20,7 +20,7 @@ export default function Register() {
         setError(''); setSuccess('');
         setLoading(true);
         try {
-            await api.post('/api/auth/register', form);
+            await api.post('/auth/register', form);
             setSuccess('Account created! Redirecting to login…');
             setTimeout(() => navigate('/login'), 1500);
         } catch (err) {

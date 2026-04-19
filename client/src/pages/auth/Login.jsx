@@ -25,7 +25,7 @@ export default function Login() {
         if (!form.email || !form.password) { setError('Email and password are required.'); return; }
         setLoading(true);
         try {
-            const { data } = await api.post('/api/auth/login', {
+            const { data } = await api.post('/auth/login', {
                 email: form.email.trim(),
                 password: form.password,
             });

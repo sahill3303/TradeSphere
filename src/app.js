@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import helmet from 'helmet';
+import compression from 'compression';
+import { rateLimit } from 'express-rate-limit';
 
 import authRoutes from './routes/auth.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
@@ -11,31 +14,43 @@ import botRoutes from './routes/bot.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import screenerRoutes from './routes/screener.routes.js';
 
-const app = express(); // ✅ MUST be before app.use
+const app = express();
 
-// middleware
+// Security and Performance Middlewares
+app.use(helmet()); // Sets various security headers
+app.use(compression()); // Compresses responses (gzip)
 app.use(express.json());
+app.use(morgan('dev'));
+
+// Rate Limiting - Prevent abuse
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api/', limiter);
 
 // CORS configuration - dynamic for local and production
 const allowedOrigins = [
-  'http://localhost:5173', // Vite default
-  'http://localhost:3000',
-  process.env.CLIENT_URL   // Your Vercel URL (will be set in Render)
-];
+  'http://localhost:5173',
+  process.env.CLIENT_URL
+].filter(Boolean).map(url => url.replace(/\/$/, '')); // Remove trailing slashes
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
+    // Allow requests with no origin (like mobile apps/curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS Policy: Access denied'), false);
+    
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    } else {
+      console.warn(`CORS BLOCKED: ${origin}`);
+      return callback(new Error(`CORS Policy: Origin ${origin} not allowed`), false);
     }
-    return callback(null, true);
   },
   credentials: true
 }));
-
-app.use(morgan('dev'));
 
 // routes
 app.use('/api/auth', authRoutes);
@@ -47,7 +62,7 @@ app.use('/api/bot', botRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/screener', screenerRoutes);
 
-// test route
+// testing route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API working' });
 });

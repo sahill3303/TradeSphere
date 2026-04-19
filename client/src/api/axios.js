@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const rawBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+    // Consistently handle the /api suffix here so it's not needed in component calls
+    baseURL: `${rawBaseURL.replace(/\/$/, '')}/api`,
     headers: {
         'Content-Type': 'application/json',
     },
