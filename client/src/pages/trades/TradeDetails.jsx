@@ -51,7 +51,7 @@ export default function TradeDetails() {
     const [exitError, setExitError] = useState('');
 
     useEffect(() => {
-        api.get(`/api/trades/${id}`)
+        api.get(`/trades/${id}`)
             .then(({ data }) => { setTrade(data.trade); setNotes(data.notes || []); setClients(data.clients || []); })
             .catch(() => setError('Trade not found or could not be loaded.'))
             .finally(() => setLoading(false));
@@ -69,7 +69,7 @@ export default function TradeDetails() {
         if (!noteText.trim()) { setNoteError('Note cannot be empty.'); return; }
         setAddingNote(true); setNoteError('');
         try {
-            await api.post(`/api/trades/${id}/notes`, { note_text: noteText.trim() });
+            await api.post(`/trades/${id}/notes`, { note_text: noteText.trim() });
             setNotes(prev => [...prev, { note_id: Date.now(), note_text: noteText.trim(), created_at: new Date().toISOString() }]);
             setNoteText('');
         } catch (err) { setNoteError(err.response?.data?.message || 'Failed to add note.'); }
@@ -103,7 +103,7 @@ export default function TradeDetails() {
 
         setExitSubmitting(true);
         try {
-            const { data } = await api.patch(`/api/trades/${id}/exit`, {
+            const { data } = await api.patch(`/trades/${id}/exit`, {
                 exit_price: Number(exitForm.exit_price),
                 exit_nifty_mood: exitForm.exit_nifty_mood,
                 exit_reason: exitForm.exit_reason,

@@ -20,7 +20,7 @@ export default function ClientDetails() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        api.get(`/api/clients/${id}`)
+        api.get(`/clients/${id}`)
             .then(({ data }) => {
                 setClient(data.data);
                 setTrades(data.data.trades || []);

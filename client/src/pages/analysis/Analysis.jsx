@@ -43,7 +43,7 @@ function StockAnalysis() {
         setLoading(true); setError(''); setData(null);
         try {
             const params = horizon ? `?horizon=${encodeURIComponent(horizon)}` : '';
-            const res = await api.get(`/api/screener/${sym}${params}`);
+            const res = await api.get(`/screener/${sym}${params}`);
             if (res.data.success) setData(res.data.data);
             else setError(res.data.message || 'Failed to fetch data.');
         } catch (err) {
