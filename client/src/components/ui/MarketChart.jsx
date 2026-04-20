@@ -60,7 +60,7 @@ export default function MarketChart({
 
             try {
                 // 1. Try resolving symbol via backend proxy
-                const { data: results } = await api.get(`/api/dashboard/search-symbol?q=${encodeURIComponent(query)}`);
+                const { data: results } = await api.get(`/dashboard/search-symbol?q=${encodeURIComponent(query)}`);
                 
                 if (results && results.length > 0) {
                     const match = results[0];
@@ -181,7 +181,7 @@ export default function MarketChart({
         ro.observe(container);
 
         // ── Fetch data from backend proxy ─────────────────────────────────────
-        api.get(`/api/dashboard/market-chart/${symbol}?interval=${activeTF.interval}&range=${activeTF.range}`)
+        api.get(`/dashboard/market-chart/${symbol}?interval=${activeTF.interval}&range=${activeTF.range}`)
             .then(({ data }) => {
                 setMeta({ price: data.currentPrice, prev: data.previousClose });
 

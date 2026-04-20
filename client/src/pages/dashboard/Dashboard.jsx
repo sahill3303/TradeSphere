@@ -61,17 +61,17 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        api.get('/api/dashboard/summary')
+        api.get('/dashboard/summary')
             .then(res => setSummary(res.data))
             .catch(() => setError('Failed to load summary.'))
             .finally(() => setLoading(false));
 
-        api.get('/api/dashboard/recent-trades')
+        api.get('/dashboard/recent-trades')
             .then(res => setRecentTrades(res.data))
             .catch(() => setTradesError('Failed to load recent trades.'))
             .finally(() => setTradesLoading(false));
 
-        api.get('/api/clients/client-activity')
+        api.get('/clients/client-activity')
             .then(res => setClientActivity(res.data))
             .catch(() => setActivityError('Failed to load activity.'))
             .finally(() => setActivityLoading(false));

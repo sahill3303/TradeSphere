@@ -50,7 +50,7 @@ export default function ChatWidget() {
         setLoading(true);
 
         try {
-            const res = await api.post('/api/bot/chat', {
+            const res = await api.post('/bot/chat', {
                 messages: messages, // send history before current
                 newMessage: userMsg.content
             });

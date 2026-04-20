@@ -33,6 +33,7 @@ app.use('/api/', limiter);
 // CORS configuration - dynamic for local and production
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   process.env.CLIENT_URL
 ].filter(Boolean).map(url => url.replace(/\/$/, '')); // Remove trailing slashes
 

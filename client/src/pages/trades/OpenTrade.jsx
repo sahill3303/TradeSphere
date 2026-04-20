@@ -57,7 +57,7 @@ export default function OpenTrade() {
     const [availableClients, setAvailableClients] = useState([]);
 
     useEffect(() => {
-        api.get('/api/clients')
+        api.get('/clients')
            .then(res => {
                if (res.data?.data) {
                    setAvailableClients(res.data.data.filter(c => c.status === 'ACTIVE'));
@@ -93,7 +93,7 @@ export default function OpenTrade() {
 
         setSubmitting(true);
         try {
-            await api.post('/api/trades', {
+            await api.post('/trades', {
                 stock_name: form.stock_name.trim().toUpperCase(),
                 // DB: trade_type = LONG/SHORT (direction), mode = INTRADAY/MTF (duration)
                 trade_type: form.mode === 'BUY' ? 'LONG' : 'SHORT',

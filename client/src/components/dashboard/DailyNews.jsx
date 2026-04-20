@@ -7,7 +7,7 @@ export default function DailyNews() {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        api.get('/api/news')
+        api.get('/news')
             .then(res => {
                 if (res.data.success) setData(res.data.data);
                 else setError(true);

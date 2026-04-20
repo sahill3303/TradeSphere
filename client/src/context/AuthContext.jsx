@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
             return;
         }
 
-        api.get('/api/auth/me')
+        api.get('/auth/me')
             .then(({ data }) => {
                 // Backend returns the admin object directly
                 setUser(data);

@@ -72,7 +72,7 @@ export default function TradesList() {
         setLoading(true); setError('');
         try {
             const params = statusFilter ? `?status=${statusFilter}&limit=50` : '?limit=50';
-            const { data } = await api.get(`/api/trades${params}`);
+            const { data } = await api.get(`/trades${params}`);
             setTrades(data.trades);
         } catch { setError('Failed to load trades.'); }
         finally { setLoading(false); }
@@ -81,7 +81,7 @@ export default function TradesList() {
     const fetchDeleted = useCallback(async () => {
         setDeletedLoading(true); setDeletedError('');
         try {
-            const { data } = await api.get('/api/trades/deleted');
+            const { data } = await api.get('/trades/deleted');
             setDeleted(data);
         } catch { setDeletedError('Failed to load deleted trades.'); }
         finally { setDeletedLoading(false); }
@@ -95,7 +95,7 @@ export default function TradesList() {
         if (!window.confirm(`Move "${stockName}" to Deleted Trades?`)) return;
         setDeletingId(tradeId);
         try {
-            await api.delete(`/api/trades/${tradeId}`);
+            await api.delete(`/trades/${tradeId}`);
             setTrades(prev => prev.filter(t => t.trade_id !== tradeId));
         } catch (err) { alert(err.response?.data?.message || 'Delete failed.'); }
         finally { setDeletingId(null); }
@@ -106,7 +106,7 @@ export default function TradesList() {
         if (!window.confirm(`Restore "${stockName}"?`)) return;
         setRestoringId(tradeId);
         try {
-            await api.patch(`/api/trades/${tradeId}/restore`);
+            await api.patch(`/trades/${tradeId}/restore`);
             setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
             fetchTrades();
         } catch (err) { alert(err.response?.data?.message || 'Restore failed.'); }
@@ -121,7 +121,7 @@ export default function TradesList() {
         if (!window.confirm(`⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`)) return;
         setHardDeletingId(tradeId);
         try {
-            await api.delete(`/api/trades/${tradeId}/permanent`);
+            await api.delete(`/trades/${tradeId}/permanent`);
             setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
         } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
         finally { setHardDeletingId(null); }

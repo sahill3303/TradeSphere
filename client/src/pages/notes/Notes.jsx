@@ -22,7 +22,7 @@ export default function Notes() {
     const fetchNotes = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/notes');
+            const res = await api.get('/notes');
             setNotes(res.data.data || []);
         } catch (err) {
             setError('Failed to load notes');
@@ -42,7 +42,7 @@ export default function Notes() {
 
         setSubmitting(true);
         try {
-            const res = await api.post('/api/notes', { title: title.trim(), content });
+            const res = await api.post('/notes', { title: title.trim(), content });
             setNotes([res.data.data, ...notes]);
             setTitle('');
             setContent('');
@@ -56,7 +56,7 @@ export default function Notes() {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this note?')) return;
         try {
-            await api.delete(`/api/notes/${id}`);
+            await api.delete(`/notes/${id}`);
             setNotes(notes.filter(n => n.note_id !== id));
         } catch (err) {
             alert('Failed to delete note');

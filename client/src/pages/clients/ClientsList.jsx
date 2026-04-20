@@ -91,7 +91,7 @@ export default function ClientsList() {
         setLoading(true);
         setError('');
         try {
-            const { data } = await api.get('/api/clients');
+            const { data } = await api.get('/clients');
             setClients(data.data);
         } catch {
             setError('Failed to load clients.');
@@ -105,7 +105,7 @@ export default function ClientsList() {
         setDeletedLoading(true);
         setDeletedError('');
         try {
-            const { data } = await api.get('/api/clients/deleted');
+            const { data } = await api.get('/clients/deleted');
             // Backend returns array directly (no wrapper)
             setDeleted(data);
         } catch {
@@ -128,7 +128,7 @@ export default function ClientsList() {
         if (!window.confirm(`⚠️ Permanently delete "${name}"? This CANNOT be undone.`)) return;
         setHardDeletingId(clientId);
         try {
-            await api.delete(`/api/clients/${clientId}/permanent`);
+            await api.delete(`/clients/${clientId}/permanent`);
             setDeleted(prev => prev.filter(c => c.client_id !== clientId));
         } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
         finally { setHardDeletingId(null); }
@@ -177,7 +177,7 @@ export default function ClientsList() {
         setSubmitting(true);
         try {
             if (modalMode === 'add') {
-                await api.post('/api/clients', {
+                await api.post('/clients', {
                     name: form.name.trim(),
                     broker: form.broker.trim() || null,
                     capital_invested: Number(form.capital_invested),
@@ -185,13 +185,13 @@ export default function ClientsList() {
                     status: form.status,
                 });
             } else {
-                await api.put(`/api/clients/${editingId}`, {
+                await api.put(`/clients/${editingId}`, {
                     name: form.name.trim(),
                     broker: form.broker.trim() || null,
                     capital_invested: Number(form.capital_invested),
                     join_date: form.join_date,
                 });
-                await api.patch(`/api/clients/${editingId}/status`, {
+                await api.patch(`/clients/${editingId}/status`, {
                     status: form.status,
                 });
             }
@@ -209,7 +209,7 @@ export default function ClientsList() {
         if (!window.confirm(`Delete client "${clientName}"? They will be moved to Recently Deleted.`)) return;
         setDeletingId(clientId);
         try {
-            await api.delete(`/api/clients/${clientId}`);
+            await api.delete(`/clients/${clientId}`);
             setClients(prev => prev.filter(c => c.client_id !== clientId));
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to delete client.');
@@ -223,7 +223,7 @@ export default function ClientsList() {
         if (!window.confirm(`Restore "${clientName}"?`)) return;
         setRestoringId(clientId);
         try {
-            await api.patch(`/api/clients/${clientId}/restore`);
+            await api.patch(`/clients/${clientId}/restore`);
             // Remove from deleted list, refresh active list
             setDeleted(prev => prev.filter(c => c.client_id !== clientId));
             fetchClients();
