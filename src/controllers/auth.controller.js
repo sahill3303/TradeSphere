@@ -32,7 +32,12 @@ export const registerAdmin = async (req, res) => {
 
         res.status(201).json({ message: 'Admin registered successfully' });
     } catch (err) {
-        res.status(500).json({ message: 'Register error', error: err.message });
+        console.error('REGISTRATION ERROR:', err);
+        res.status(500).json({ 
+            message: 'Register error', 
+            error: err.message,
+            code: err.code // Helpful for DB errors like 'ER_BAD_TABLE_ERROR'
+        });
     }
 };
 
@@ -80,6 +85,7 @@ export const loginAdmin = async (req, res) => {
             }
         });
     } catch (err) {
+        console.error('LOGIN ERROR:', err);
         res.status(500).json({ message: 'Login error', error: err.message });
     }
 };
