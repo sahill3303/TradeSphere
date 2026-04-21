@@ -13,6 +13,7 @@ import notesRoutes from './routes/notes.routes.js';
 import botRoutes from './routes/bot.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import screenerRoutes from './routes/screener.routes.js';
+import db from './config/db.js';
 
 const app = express();
 
@@ -63,9 +64,22 @@ app.use('/api/bot', botRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/screener', screenerRoutes);
 
+
 // testing route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API working' });
+app.get('/api/test', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT 1 as connected');
+    res.json({ 
+      message: 'API working', 
+      database: 'Connected',
+      db_check: rows[0].connected === 1
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      message: 'API working, but Database FAILED', 
+      error: err.message 
+    });
+  }
 });
 
 // Final Error Handler

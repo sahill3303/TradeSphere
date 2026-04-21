@@ -13,6 +13,13 @@ const dbConfig = {
         ? { rejectUnauthorized: false }
         : false
 };
+console.log('DEBUG: Database Configuration:');
+console.log('  - Host:', dbConfig.host);
+console.log('  - User:', dbConfig.user);
+console.log('  - Database:', dbConfig.database);
+console.log('  - Port:', dbConfig.port);
+console.log('  - SSL:', !!dbConfig.ssl);
+
 
 const db = mysql.createPool(dbConfig);
 
