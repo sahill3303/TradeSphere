@@ -25,9 +25,9 @@ app.use(morgan('dev'));
 
 // Rate Limiting - Prevent abuse
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per window
-    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api/', limiter);
 
@@ -42,7 +42,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps/curl)
     if (!origin) return callback(null, true);
-    
+
     const normalizedOrigin = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
@@ -69,28 +69,29 @@ app.use('/api/screener', screenerRoutes);
 app.get('/api/test', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT 1 as connected');
-    res.json({ 
-      message: 'API working', 
+    res.json({
+      message: 'API working',
       database: 'Connected',
       db_check: rows[0].connected === 1
     });
   } catch (err) {
-    res.status(500).json({ 
-      message: 'API working, but Database FAILED', 
-      error: err.message 
+    res.status(500).json({
+      message: 'API working, but Database FAILED',
+      error: err.message
     });
   }
 });
 
 // Final Error Handler
 app.use((err, req, res, next) => {
-    console.error('SERVER ERROR:', err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? err : {}
-    });
+  console.error('SERVER ERROR:', err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
+  });
 });
 
 export default app;
 
+// app not working in deployment, all solutions tried
