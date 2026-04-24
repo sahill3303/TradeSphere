@@ -94,4 +94,4 @@ app.use((err, req, res, next) => {
 
 export default app;
 
-// app not working in deployment, all solutions tried
+// there was a small issue that i have resolved, now it should work, the issue was both the projects i.e. backend and database both were in the different projects, because of which the database was unable to connect due to shared variable not fetching

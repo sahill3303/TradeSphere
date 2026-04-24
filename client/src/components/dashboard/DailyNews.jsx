@@ -22,7 +22,7 @@ export default function DailyNews() {
         try {
             const d = new Date(dateStr);
             const day = d.getDate();
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             let h = d.getHours(), ampm = h >= 12 ? 'PM' : 'AM';
             h = h % 12 || 12;
             const m = String(d.getMinutes()).padStart(2, '0');
