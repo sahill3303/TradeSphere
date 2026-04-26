@@ -47,13 +47,8 @@ export function AuthProvider({ children }) {
         setUser(null);
     }, []);
 
-    // ─── Update User ───────────────────────────────────────────────────────────
-    const updateUser = useCallback((userData) => {
-        setUser(userData);
-    }, []);
-
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

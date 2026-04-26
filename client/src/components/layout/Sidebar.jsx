@@ -7,7 +7,6 @@ const navItems = [
     { to: '/trades', label: 'Trades', icon: '◈' },
     { to: '/analysis', label: 'Research', icon: '🔬' },
     { to: '/notes', label: 'Notes', icon: '📝' },
-    { to: '/profile', label: 'Profile', icon: '👤' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
