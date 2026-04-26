@@ -6,6 +6,7 @@ const PAGE_TITLES = {
     '/clients': 'Clients',
     '/trades': 'Trades',
     '/trades/open': 'Open Trade',
+    '/profile': 'Profile',
 };
 
 export default function Navbar({ onMenuToggle }) {
