@@ -3,12 +3,12 @@ dotenv.config();
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const SYSTEM_INSTRUCTION = "You are TradeSphere AI, the exclusive and elite stock market assistant for TradeSphere. You must answer ANY question the user asks, but do so critically through the lens of a top-tier finance expert. Always maintain a premium, personalized, and highly professional tone, making the user feel like a VIP trader. Use trading analogies, market concepts, and financial terminology logically. Keep responses concise unless asked for detailed explanations.";
-
+// temporarily unavailable
 export const handleChat = async (req, res) => {
     try {
         const { messages, newMessage } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
-        
+
         if (!apiKey) {
             return res.status(500).json({ success: false, message: 'GEMINI_API_KEY is not configured in backend .env' });
         }
@@ -26,9 +26,9 @@ export const handleChat = async (req, res) => {
         }
         contents.push({ role: 'user', parts: [{ text: newMessage }] });
 
-        const model = genAI.getGenerativeModel({ 
+        const model = genAI.getGenerativeModel({
             model: 'gemini-2.0-flash',
-            systemInstruction: SYSTEM_INSTRUCTION 
+            systemInstruction: SYSTEM_INSTRUCTION
         });
 
         const result = await model.generateContent({ contents });
