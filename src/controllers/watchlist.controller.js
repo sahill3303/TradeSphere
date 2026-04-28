@@ -1,5 +1,4 @@
 import db from '../config/db.js';
-import fetch from 'node-fetch';
 
 // Fetch all watchlist symbols
 export const getWatchlist = async (req, res) => {

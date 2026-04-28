@@ -13,6 +13,7 @@ import notesRoutes from './routes/notes.routes.js';
 import botRoutes from './routes/bot.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import screenerRoutes from './routes/screener.routes.js';
+import watchlistRoutes from './routes/watchlist.routes.js';
 import db from './config/db.js';
 
 const app = express();
@@ -26,7 +27,7 @@ app.use(morgan('dev'));
 // Rate Limiting - Prevent abuse
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  max: process.env.NODE_ENV === 'development' ? 5000 : 100, // Higher limit for development
   message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api/', limiter);
@@ -63,6 +64,7 @@ app.use('/api/notes', notesRoutes);
 app.use('/api/bot', botRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/screener', screenerRoutes);
+app.use('/api/watchlist', watchlistRoutes);
 
 
 // testing route

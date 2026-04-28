@@ -17,6 +17,7 @@ import TradeDetails from './pages/trades/TradeDetails';
 import OpenTrade from './pages/trades/OpenTrade';
 import Notes from './pages/notes/Notes';
 import Analysis from './pages/analysis/Analysis';
+import Watchlist from './pages/watchlist/Watchlist';
 
 export default function App() {
   return (
@@ -62,6 +63,11 @@ export default function App() {
             {/* Analysis */}
             <Route path="/analysis" element={
               <Layout><Analysis /></Layout>
+            } />
+
+            {/* Watchlist */}
+            <Route path="/watchlist" element={
+              <Layout><Watchlist /></Layout>
             } />
           </Route>
 
