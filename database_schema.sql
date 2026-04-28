@@ -109,3 +109,13 @@ CREATE TABLE IF NOT EXISTS `reference_notes` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- --------------------------------------------------------
+-- Table structure for table `watchlist_symbols`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `watchlist_symbols` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `symbol` VARCHAR(255) NOT NULL UNIQUE,
+  `name` VARCHAR(255),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
