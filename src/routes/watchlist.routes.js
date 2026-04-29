@@ -3,9 +3,9 @@ import { getWatchlist, addWatchlistSymbol, removeWatchlistSymbol, searchStocks }
 
 const router = express.Router();
 
+router.get('/search', searchStocks);
 router.get('/', getWatchlist);
 router.post('/', addWatchlistSymbol);
 router.delete('/:id', removeWatchlistSymbol);
-router.get('/search', searchStocks);
 
 export default router;

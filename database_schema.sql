@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS tradesphere;
 USE tradesphere;
 
 -- --------------------------------------------------------
+-- Adding the watchlist table
 -- Table structure for table `admins`
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `admins` (

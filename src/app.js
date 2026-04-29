@@ -24,10 +24,9 @@ app.use(compression()); // Compresses responses (gzip)
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Rate Limiting - Prevent abuse
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 5000 : 100, // Higher limit for development
+  max: 10000, // Temporarily increased to prevent dev friction
   message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api/', limiter);
