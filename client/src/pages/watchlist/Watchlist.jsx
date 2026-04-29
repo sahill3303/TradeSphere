@@ -87,13 +87,19 @@ export default function Watchlist() {
 
     const renderWidget = () => {
         if (!widgetContainerRef.current || symbols.length === 0) {
-            // clear if no symbols
             if (widgetContainerRef.current) widgetContainerRef.current.innerHTML = '';
             return;
         }
 
         // Clean previous widget
         widgetContainerRef.current.innerHTML = '';
+
+        // Add the specific inner container class TradingView looks for
+        const innerWidget = document.createElement('div');
+        innerWidget.className = 'tradingview-widget-container__widget';
+        innerWidget.style.height = '100%';
+        innerWidget.style.width = '100%';
+        widgetContainerRef.current.appendChild(innerWidget);
 
         const script = document.createElement('script');
         script.type = 'text/javascript';
@@ -197,7 +203,7 @@ export default function Watchlist() {
                 {/* Main Widget Area */}
                 <div className="watchlist-main">
                     {symbols.length > 0 ? (
-                        <div className="watchlist-widget-container" ref={widgetContainerRef}></div>
+                        <div className="watchlist-widget-container tradingview-widget-container" ref={widgetContainerRef}></div>
                     ) : (
                         <div className="watchlist-placeholder">
                             <div className="watchlist-placeholder-icon">📈</div>
