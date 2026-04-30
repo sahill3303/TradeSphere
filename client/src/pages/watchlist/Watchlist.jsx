@@ -39,8 +39,14 @@ export default function Watchlist() {
     }, [activeSymbols]);
 
     useEffect(() => {
-        renderWidget();
-    }, [activeSymbols]);
+        if (!loading && !isEditing) {
+            // Add a small delay to ensure DOM is fully painted
+            const timer = setTimeout(() => {
+                renderWidget();
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [activeSymbols, loading, isEditing, activeCategory]);
 
     const fetchWatchlist = async () => {
         try {
@@ -120,7 +126,7 @@ export default function Watchlist() {
 
         widgetContainerRef.current.innerHTML = '';
 
-        if (activeSymbols.length === 0 && !isEditing) return;
+        if (activeSymbols.length === 0) return;
 
         const innerWidget = document.createElement('div');
         innerWidget.className = 'tradingview-widget-container__widget';
