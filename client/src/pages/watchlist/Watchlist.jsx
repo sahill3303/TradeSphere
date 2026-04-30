@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import api from '../../api/axios';
 import './Watchlist.css';
+
+const CATEGORIES = ['Short', 'Long', 'Specific Week'];
 
 export default function Watchlist() {
     const [symbols, setSymbols] = useState([]);
@@ -8,6 +10,10 @@ export default function Watchlist() {
     const [suggestions, setSuggestions] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+    const [selectedForAdd, setSelectedForAdd] = useState(null); // { symbol, name }
+    const [isEditing, setIsEditing] = useState(false);
+
     const widgetContainerRef = useRef(null);
     const searchTimeoutRef = useRef(null);
 
@@ -15,9 +21,26 @@ export default function Watchlist() {
         fetchWatchlist();
     }, []);
 
+    const activeSymbols = useMemo(() => {
+        return symbols.filter(s => (s.category || 'Short') === activeCategory);
+    }, [symbols, activeCategory]);
+
+    const lastUpdated = useMemo(() => {
+        if (activeSymbols.length === 0) return null;
+        const latest = activeSymbols.reduce((latestDate, current) => {
+            const currentDate = new Date(current.created_at);
+            return currentDate > latestDate ? currentDate : latestDate;
+        }, new Date(0));
+        
+        return latest.toLocaleString('en-IN', { 
+            dateStyle: 'medium', 
+            timeStyle: 'short' 
+        });
+    }, [activeSymbols]);
+
     useEffect(() => {
         renderWidget();
-    }, [symbols]);
+    }, [activeSymbols]);
 
     const fetchWatchlist = async () => {
         try {
@@ -58,15 +81,22 @@ export default function Watchlist() {
             } finally {
                 setIsSearching(false);
             }
-        }, 500); // 500ms debounce
+        }, 500);
     };
 
-    const addSymbol = async (symbol, name) => {
+    const confirmAddSymbol = async (category) => {
+        if (!selectedForAdd) return;
         try {
-            const { data } = await api.post('/watchlist', { symbol, name });
+            const { data } = await api.post('/watchlist', { 
+                symbol: selectedForAdd.symbol, 
+                name: selectedForAdd.name,
+                category 
+            });
             if (data.success) {
                 setSearchQuery('');
                 setSuggestions([]);
+                setSelectedForAdd(null);
+                setActiveCategory(category); // switch to the category to see it
                 fetchWatchlist();
             }
         } catch (error) {
@@ -86,15 +116,12 @@ export default function Watchlist() {
     };
 
     const renderWidget = () => {
-        if (!widgetContainerRef.current || symbols.length === 0) {
-            if (widgetContainerRef.current) widgetContainerRef.current.innerHTML = '';
-            return;
-        }
+        if (!widgetContainerRef.current) return;
 
-        // Clean previous widget
         widgetContainerRef.current.innerHTML = '';
 
-        // Add the specific inner container class TradingView looks for
+        if (activeSymbols.length === 0 && !isEditing) return;
+
         const innerWidget = document.createElement('div');
         innerWidget.className = 'tradingview-widget-container__widget';
         innerWidget.style.height = '100%';
@@ -119,9 +146,9 @@ export default function Watchlist() {
             height: "100%",
             symbolsGroups: [
                 {
-                    name: "My Watchlist",
+                    name: activeCategory,
                     originalName: "Indices",
-                    symbols: symbols.map(s => ({
+                    symbols: activeSymbols.map(s => ({
                         name: s.symbol,
                         displayName: s.name || s.symbol.split(':')[1]
                     }))
@@ -138,12 +165,12 @@ export default function Watchlist() {
             <header className="page__header watchlist-header">
                 <div>
                     <h1 className="page__title">Watchlist</h1>
-                    <p className="page__subtitle">Live market data for your selected stocks</p>
+                    <p className="page__subtitle">Live market data categorized by timeline</p>
                 </div>
             </header>
 
             <div className="watchlist-content">
-                {/* Sidebar for Search and List */}
+                {/* Sidebar for Search */}
                 <div className="watchlist-sidebar">
                     <div className="watchlist-search">
                         <input 
@@ -152,17 +179,18 @@ export default function Watchlist() {
                             value={searchQuery}
                             onChange={handleSearch}
                             className="form-input"
+                            autoFocus
                         />
                         {isSearching && (
                             <div className="watchlist-search__loader"></div>
                         )}
 
-                        {suggestions.length > 0 && (
+                        {suggestions.length > 0 && !selectedForAdd && (
                             <div className="watchlist-suggestions">
                                 {suggestions.map((s, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => addSymbol(s.symbol, s.name)}
+                                        onClick={() => setSelectedForAdd(s)}
                                         className="watchlist-suggestion-btn"
                                     >
                                         <span className="watchlist-suggestion-name">{s.name}</span>
@@ -171,45 +199,104 @@ export default function Watchlist() {
                                 ))}
                             </div>
                         )}
-                    </div>
-
-                    <div className="watchlist-list">
-                        {loading ? (
-                            <div className="watchlist-empty">Loading watchlist...</div>
-                        ) : symbols.length === 0 ? (
-                            <div className="watchlist-empty">
-                                Your watchlist is empty.<br/><br/>Search above to add stocks.
-                            </div>
-                        ) : (
-                            symbols.map((item) => (
-                                <div key={item.id} className="watchlist-item">
-                                    <div className="watchlist-item-info">
-                                        <span className="watchlist-item-name">{item.name || item.symbol.split(':')[1]}</span>
-                                        <span className="watchlist-item-symbol">{item.symbol}</span>
-                                    </div>
-                                    <button 
-                                        onClick={() => removeSymbol(item.id)}
-                                        className="watchlist-item-remove"
-                                        title="Remove"
-                                    >
-                                        &times;
-                                    </button>
+                        
+                        {/* Category Selection Modal/Overlay */}
+                        {selectedForAdd && (
+                            <div className="watchlist-add-modal">
+                                <h4>Add to Category</h4>
+                                <p className="watchlist-add-stock-name">{selectedForAdd.name}</p>
+                                <div className="watchlist-add-options">
+                                    {CATEGORIES.map(cat => (
+                                        <button 
+                                            key={cat} 
+                                            onClick={() => confirmAddSymbol(cat)}
+                                            className="btn btn--secondary"
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
                                 </div>
-                            ))
+                                <button 
+                                    className="btn btn--ghost mt-2" 
+                                    onClick={() => setSelectedForAdd(null)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         )}
+                    </div>
+                    
+                    <div className="watchlist-sidebar-info">
+                        <div className="watchlist-sidebar-icon">🔍</div>
+                        <p>Search for a stock above and select a category to add it to your watchlist.</p>
                     </div>
                 </div>
 
-                {/* Main Widget Area */}
-                <div className="watchlist-main">
-                    {symbols.length > 0 ? (
-                        <div className="watchlist-widget-container tradingview-widget-container" ref={widgetContainerRef}></div>
-                    ) : (
-                        <div className="watchlist-placeholder">
-                            <div className="watchlist-placeholder-icon">📈</div>
-                            <p>Add stocks to your watchlist to see live market data here.</p>
+                {/* Main Area */}
+                <div className="watchlist-main-wrapper">
+                    <div className="watchlist-tabs-header">
+                        <div className="watchlist-tabs">
+                            {CATEGORIES.map(cat => (
+                                <button 
+                                    key={cat}
+                                    className={`watchlist-tab ${activeCategory === cat ? 'active' : ''}`}
+                                    onClick={() => { setActiveCategory(cat); setIsEditing(false); }}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
                         </div>
-                    )}
+                        <div className="watchlist-tabs-actions">
+                            {lastUpdated && (
+                                <span className="watchlist-last-updated">Last Updated: {lastUpdated}</span>
+                            )}
+                            <button 
+                                className={`btn ${isEditing ? 'btn--primary' : 'btn--secondary'}`}
+                                onClick={() => setIsEditing(!isEditing)}
+                                disabled={activeSymbols.length === 0}
+                            >
+                                {isEditing ? 'Done' : 'Edit List'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="watchlist-main">
+                        {loading ? (
+                            <div className="watchlist-placeholder">Loading...</div>
+                        ) : isEditing ? (
+                            <div className="watchlist-edit-mode">
+                                <h3 className="mb-4">Manage {activeCategory} Watchlist</h3>
+                                {activeSymbols.length === 0 ? (
+                                    <p className="text-zinc-500">No stocks in this category.</p>
+                                ) : (
+                                    <div className="watchlist-edit-list">
+                                        {activeSymbols.map(item => (
+                                            <div key={item.id} className="watchlist-edit-item">
+                                                <div>
+                                                    <div className="font-medium">{item.name || item.symbol.split(':')[1]}</div>
+                                                    <div className="text-xs text-zinc-500">{item.symbol}</div>
+                                                </div>
+                                                <button 
+                                                    className="btn btn--danger"
+                                                    onClick={() => removeSymbol(item.id)}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : activeSymbols.length > 0 ? (
+                            <div className="watchlist-widget-container tradingview-widget-container" ref={widgetContainerRef}></div>
+                        ) : (
+                            <div className="watchlist-placeholder">
+                                <div className="watchlist-placeholder-icon">📈</div>
+                                <p>No stocks in the <strong>{activeCategory}</strong> category.</p>
+                                <p className="text-sm mt-2 opacity-50">Search in the left panel to add some.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

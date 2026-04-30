@@ -102,73 +102,158 @@
   font-size: 0.7rem;
 }
 
-.watchlist-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.watchlist-empty {
+.watchlist-sidebar-info {
+  margin-top: auto;
+  padding: var(--space-xl) var(--space-md);
   text-align: center;
   color: var(--color-text-dim);
-  padding: var(--space-xl) var(--space-md);
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
 }
 
-.watchlist-item {
+.watchlist-sidebar-icon {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.watchlist-add-modal {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-md);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.watchlist-add-modal h4 {
+  margin-bottom: var(--space-xs);
+  color: var(--color-gold);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.watchlist-add-stock-name {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-md);
+}
+
+.watchlist-add-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.watchlist-add-options .btn {
+  width: 100%;
+}
+
+.watchlist-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.watchlist-tabs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.watchlist-tabs {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+}
+
+.watchlist-tab {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.watchlist-tab:hover {
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+.watchlist-tab.active {
+  background: var(--color-surface-alt);
+  color: var(--color-gold);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.watchlist-tabs-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.watchlist-last-updated {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  background: var(--color-surface-alt);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-soft);
+}
+
+.watchlist-edit-mode {
+  padding: var(--space-xl);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.watchlist-edit-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.watchlist-edit-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--color-surface-alt);
-  border: 1px solid var(--color-border-soft);
-  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  padding: 1rem;
   border-radius: var(--radius-md);
-  transition: all var(--transition);
 }
 
-.watchlist-item:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-}
-
-.watchlist-item-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.watchlist-item-name {
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
-
-.watchlist-item-symbol {
-  color: var(--color-text-dim);
-  font-size: 0.7rem;
-}
-
-.watchlist-item-remove {
-  background: none;
-  border: none;
-  color: var(--color-text-dim);
-  cursor: pointer;
-  padding: 4px;
-  font-size: 1.2rem;
-  opacity: 0;
-  transition: all var(--transition);
-}
-
-.watchlist-item:hover .watchlist-item-remove {
-  opacity: 1;
-}
-
-.watchlist-item-remove:hover {
-  color: var(--color-danger);
-}
+.mb-4 { margin-bottom: 1rem; }
+.mt-2 { margin-top: 0.5rem; }
+.font-medium { font-weight: 500; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-zinc-500 { color: var(--color-text-muted); }
+.opacity-50 { opacity: 0.5; }
 
 .watchlist-main {
   background: var(--color-surface);
@@ -177,6 +262,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .watchlist-widget-container {

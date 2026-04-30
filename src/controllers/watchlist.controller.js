@@ -13,13 +13,15 @@ export const getWatchlist = async (req, res) => {
 
 // Add a symbol to watchlist
 export const addWatchlistSymbol = async (req, res) => {
-    const { symbol, name } = req.body;
+    const { symbol, name, category } = req.body;
     if (!symbol) return res.status(400).json({ success: false, message: 'Symbol is required' });
+    
+    const cat = category || 'Short'; // default to Short if not provided
 
     try {
         await db.query(
-            'INSERT INTO watchlist_symbols (symbol, name) VALUES (?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
-            [symbol.toUpperCase(), name || null]
+            'INSERT INTO watchlist_symbols (symbol, name, category) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), category=VALUES(category), created_at=CURRENT_TIMESTAMP',
+            [symbol.toUpperCase(), name || null, cat]
         );
         res.status(201).json({ success: true, message: 'Symbol added to watchlist' });
     } catch (err) {
