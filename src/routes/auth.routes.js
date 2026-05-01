@@ -9,3 +9,6 @@ router.post("/register", registerAdmin);
 router.get("/me", verifyToken, getMe);
 
 export default router;
+
+
+//test
