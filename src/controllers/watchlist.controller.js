@@ -81,3 +81,91 @@ export const searchStocks = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to search stocks' });
     }
 };
+
+export const getCategories = async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM watchlist_categories ORDER BY created_at ASC');
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('Category fetch error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+};
+
+export const addCategory = async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: 'Category name is required' });
+
+    try {
+        await db.query('INSERT IGNORE INTO watchlist_categories (name) VALUES (?)', [name]);
+        res.status(201).json({ success: true, message: 'Category created' });
+    } catch (err) {
+        console.error('Add category error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to create category' });
+    }
+};
+
+export const removeCategory = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Find the category name
+        const [rows] = await db.query('SELECT name FROM watchlist_categories WHERE id = ?', [id]);
+        if (rows.length > 0) {
+            const categoryName = rows[0].name;
+            // Optionally delete symbols in this category
+            await db.query('DELETE FROM watchlist_symbols WHERE category = ?', [categoryName]);
+        }
+        await db.query('DELETE FROM watchlist_categories WHERE id = ?', [id]);
+        res.json({ success: true, message: 'Category removed' });
+    } catch (err) {
+        console.error('Remove category error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to remove category' });
+    }
+};
+
+export const getPrices = async (req, res) => {
+    const { symbols } = req.query; // Expecting comma separated string e.g. NSE:RELIANCE,BOM:500325
+    if (!symbols) return res.json({ success: true, data: {} });
+
+    try {
+        const symbolArray = symbols.split(',').filter(Boolean);
+        const cheerio = await import('cheerio');
+        const priceMap = {};
+
+        // Fetch prices concurrently
+        await Promise.all(symbolArray.map(async (sym) => {
+            try {
+                // Screener expects symbol like RELIANCE without NSE: prefix
+                const cleanSymbol = sym.split(':').pop(); 
+                const response = await fetch(`https://www.screener.in/company/${cleanSymbol}/consolidated/`, {
+                    headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+                
+                if (!response.ok) {
+                    // Try standalone format if consolidated fails
+                    const fallbackResponse = await fetch(`https://www.screener.in/company/${cleanSymbol}/`, {
+                        headers: { 'User-Agent': 'Mozilla/5.0' }
+                    });
+                    if (!fallbackResponse.ok) return;
+                    const html = await fallbackResponse.text();
+                    const $ = cheerio.load(html);
+                    const price = $('.nowrap.value .number').first().text();
+                    if (price) priceMap[sym] = price;
+                    return;
+                }
+
+                const html = await response.text();
+                const $ = cheerio.load(html);
+                const price = $('.nowrap.value .number').first().text();
+                if (price) priceMap[sym] = price;
+            } catch (err) {
+                console.error(`Failed to fetch price for ${sym}:`, err.message);
+            }
+        }));
+
+        res.json({ success: true, data: priceMap });
+    } catch (err) {
+        console.error('Get prices error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch prices' });
+    }
+};

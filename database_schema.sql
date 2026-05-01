@@ -112,6 +112,15 @@ CREATE TABLE IF NOT EXISTS `reference_notes` (
 );
 
 -- --------------------------------------------------------
+-- Table structure for table `watchlist_categories`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS watchlist_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- --------------------------------------------------------
 -- Table structure for table `watchlist_symbols`
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS watchlist_symbols (

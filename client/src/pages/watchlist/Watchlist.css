@@ -278,11 +278,99 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-dim);
-  font-size: var(--font-size-sm);
-  gap: 1rem;
+  text-align: center;
+  padding: var(--space-xl);
 }
 
 .watchlist-placeholder-icon {
   font-size: 3rem;
+  margin-bottom: var(--space-md);
   opacity: 0.5;
+}
+
+/* Custom Table Styles */
+.watchlist-table-container {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.watchlist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.watchlist-table th,
+.watchlist-table td {
+  padding: 1rem var(--space-xl);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.watchlist-table th {
+  color: var(--color-text-dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  background: var(--color-surface-alt);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.watchlist-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.watchlist-ltp {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.text-right { text-align: right !important; }
+.flex { display: flex; }
+.gap-2 { gap: 0.5rem; }
+.justify-end { justify-content: flex-end; }
+
+.pulsing-text {
+  animation: pulse 1.5s infinite;
+  opacity: 0.7;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+.watchlist-tab--add {
+  color: var(--color-gold) !important;
+  border: 1px dashed var(--color-border-soft);
+  background: transparent !important;
+}
+.watchlist-tab--add:hover {
+  border-color: var(--color-gold);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }

@@ -2,28 +2,80 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import api from '../../api/axios';
 import './Watchlist.css';
 
-const CATEGORIES = ['Short', 'Long', 'Specific Week'];
-
 export default function Watchlist() {
+    const [categories, setCategories] = useState([]);
     const [symbols, setSymbols] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+    const [activeCategory, setActiveCategory] = useState('');
     const [selectedForAdd, setSelectedForAdd] = useState(null); // { symbol, name }
     const [isEditing, setIsEditing] = useState(false);
+    const [prices, setPrices] = useState({});
+    const [pricesLoading, setPricesLoading] = useState(false);
+    
+    // New Category Modal
+    const [showNewCategoryModal, setShowNewCategoryModal] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
 
-    const widgetContainerRef = useRef(null);
     const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
-        fetchWatchlist();
+        fetchData();
     }, []);
 
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [catsRes, symsRes] = await Promise.all([
+                api.get('/watchlist/categories'),
+                api.get('/watchlist')
+            ]);
+            
+            if (catsRes.data.success) {
+                setCategories(catsRes.data.data);
+                if (catsRes.data.data.length > 0 && !activeCategory) {
+                    setActiveCategory(catsRes.data.data[0].name);
+                }
+            }
+            if (symsRes.data.success) {
+                setSymbols(symsRes.data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch watchlist data', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const activeSymbols = useMemo(() => {
-        return symbols.filter(s => (s.category || 'Short') === activeCategory);
+        return symbols.filter(s => s.category === activeCategory);
     }, [symbols, activeCategory]);
+
+    // Fetch prices when active symbols change
+    useEffect(() => {
+        if (activeSymbols.length > 0) {
+            fetchPrices(activeSymbols);
+        } else {
+            setPrices({});
+        }
+    }, [activeSymbols]);
+
+    const fetchPrices = async (syms) => {
+        try {
+            setPricesLoading(true);
+            const symbolString = syms.map(s => s.symbol).join(',');
+            const { data } = await api.get(`/watchlist/prices?symbols=${symbolString}`);
+            if (data.success) {
+                setPrices(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch prices', error);
+        } finally {
+            setPricesLoading(false);
+        }
+    };
 
     const lastUpdated = useMemo(() => {
         if (activeSymbols.length === 0) return null;
@@ -38,37 +90,11 @@ export default function Watchlist() {
         });
     }, [activeSymbols]);
 
-    useEffect(() => {
-        if (!loading && !isEditing) {
-            // Add a small delay to ensure DOM is fully painted
-            const timer = setTimeout(() => {
-                renderWidget();
-            }, 50);
-            return () => clearTimeout(timer);
-        }
-    }, [activeSymbols, loading, isEditing, activeCategory]);
-
-    const fetchWatchlist = async () => {
-        try {
-            setLoading(true);
-            const { data } = await api.get('/watchlist');
-            if (data.success) {
-                setSymbols(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch watchlist', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleSearch = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
 
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
-        }
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
         if (query.length < 2) {
             setSuggestions([]);
@@ -102,8 +128,8 @@ export default function Watchlist() {
                 setSearchQuery('');
                 setSuggestions([]);
                 setSelectedForAdd(null);
-                setActiveCategory(category); // switch to the category to see it
-                fetchWatchlist();
+                setActiveCategory(category);
+                fetchData();
             }
         } catch (error) {
             console.error('Failed to add symbol', error);
@@ -113,57 +139,26 @@ export default function Watchlist() {
     const removeSymbol = async (id) => {
         try {
             const { data } = await api.delete(`/watchlist/${id}`);
-            if (data.success) {
-                fetchWatchlist();
-            }
+            if (data.success) fetchData();
         } catch (error) {
             console.error('Failed to remove symbol', error);
         }
     };
 
-    const renderWidget = () => {
-        if (!widgetContainerRef.current) return;
-
-        widgetContainerRef.current.innerHTML = '';
-
-        if (activeSymbols.length === 0) return;
-
-        const innerWidget = document.createElement('div');
-        innerWidget.className = 'tradingview-widget-container__widget';
-        innerWidget.style.height = '100%';
-        innerWidget.style.width = '100%';
-        widgetContainerRef.current.appendChild(innerWidget);
-
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-data.js';
-        script.async = true;
-
-        const widgetConfig = {
-            colorTheme: "dark",
-            dateRange: "12M",
-            showChart: false,
-            locale: "en",
-            largeChartUrl: "",
-            isTransparent: true,
-            showSymbolLogo: true,
-            showFloatingTooltip: true,
-            width: "100%",
-            height: "100%",
-            symbolsGroups: [
-                {
-                    name: activeCategory,
-                    originalName: "Indices",
-                    symbols: activeSymbols.map(s => ({
-                        name: s.symbol,
-                        displayName: s.name || s.symbol.split(':')[1]
-                    }))
-                }
-            ]
-        };
-
-        script.innerHTML = JSON.stringify(widgetConfig);
-        widgetContainerRef.current.appendChild(script);
+    const createNewCategory = async (e) => {
+        e.preventDefault();
+        if (!newCategoryName.trim()) return;
+        try {
+            const { data } = await api.post('/watchlist/categories', { name: newCategoryName.trim() });
+            if (data.success) {
+                setNewCategoryName('');
+                setShowNewCategoryModal(false);
+                fetchData();
+                setActiveCategory(newCategoryName.trim());
+            }
+        } catch (error) {
+            console.error('Failed to create category', error);
+        }
     };
 
     return (
@@ -187,18 +182,12 @@ export default function Watchlist() {
                             className="form-input"
                             autoFocus
                         />
-                        {isSearching && (
-                            <div className="watchlist-search__loader"></div>
-                        )}
+                        {isSearching && <div className="watchlist-search__loader"></div>}
 
                         {suggestions.length > 0 && !selectedForAdd && (
                             <div className="watchlist-suggestions">
                                 {suggestions.map((s, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setSelectedForAdd(s)}
-                                        className="watchlist-suggestion-btn"
-                                    >
+                                    <button key={i} onClick={() => setSelectedForAdd(s)} className="watchlist-suggestion-btn">
                                         <span className="watchlist-suggestion-name">{s.name}</span>
                                         <span className="watchlist-suggestion-symbol">{s.symbol}</span>
                                     </button>
@@ -212,22 +201,13 @@ export default function Watchlist() {
                                 <h4>Add to Category</h4>
                                 <p className="watchlist-add-stock-name">{selectedForAdd.name}</p>
                                 <div className="watchlist-add-options">
-                                    {CATEGORIES.map(cat => (
-                                        <button 
-                                            key={cat} 
-                                            onClick={() => confirmAddSymbol(cat)}
-                                            className="btn btn--secondary"
-                                        >
-                                            {cat}
+                                    {categories.map(cat => (
+                                        <button key={cat.id} onClick={() => confirmAddSymbol(cat.name)} className="btn btn--secondary">
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>
-                                <button 
-                                    className="btn btn--ghost mt-2" 
-                                    onClick={() => setSelectedForAdd(null)}
-                                >
-                                    Cancel
-                                </button>
+                                <button className="btn btn--ghost mt-2" onClick={() => setSelectedForAdd(null)}>Cancel</button>
                             </div>
                         )}
                     </div>
@@ -242,20 +222,21 @@ export default function Watchlist() {
                 <div className="watchlist-main-wrapper">
                     <div className="watchlist-tabs-header">
                         <div className="watchlist-tabs">
-                            {CATEGORIES.map(cat => (
+                            {categories.map(cat => (
                                 <button 
-                                    key={cat}
-                                    className={`watchlist-tab ${activeCategory === cat ? 'active' : ''}`}
-                                    onClick={() => { setActiveCategory(cat); setIsEditing(false); }}
+                                    key={cat.id}
+                                    className={`watchlist-tab ${activeCategory === cat.name ? 'active' : ''}`}
+                                    onClick={() => { setActiveCategory(cat.name); setIsEditing(false); }}
                                 >
-                                    {cat}
+                                    {cat.name}
                                 </button>
                             ))}
+                            <button className="watchlist-tab watchlist-tab--add" onClick={() => setShowNewCategoryModal(true)}>
+                                + New Watchlist
+                            </button>
                         </div>
                         <div className="watchlist-tabs-actions">
-                            {lastUpdated && (
-                                <span className="watchlist-last-updated">Last Updated: {lastUpdated}</span>
-                            )}
+                            {lastUpdated && <span className="watchlist-last-updated">Last Updated: {lastUpdated}</span>}
                             <button 
                                 className={`btn ${isEditing ? 'btn--primary' : 'btn--secondary'}`}
                                 onClick={() => setIsEditing(!isEditing)}
@@ -269,42 +250,72 @@ export default function Watchlist() {
                     <div className="watchlist-main">
                         {loading ? (
                             <div className="watchlist-placeholder">Loading...</div>
-                        ) : isEditing ? (
-                            <div className="watchlist-edit-mode">
-                                <h3 className="mb-4">Manage {activeCategory} Watchlist</h3>
-                                {activeSymbols.length === 0 ? (
-                                    <p className="text-zinc-500">No stocks in this category.</p>
-                                ) : (
-                                    <div className="watchlist-edit-list">
-                                        {activeSymbols.map(item => (
-                                            <div key={item.id} className="watchlist-edit-item">
-                                                <div>
-                                                    <div className="font-medium">{item.name || item.symbol.split(':')[1]}</div>
-                                                    <div className="text-xs text-zinc-500">{item.symbol}</div>
-                                                </div>
-                                                <button 
-                                                    className="btn btn--danger"
-                                                    onClick={() => removeSymbol(item.id)}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ) : activeSymbols.length > 0 ? (
-                            <div className="watchlist-widget-container tradingview-widget-container" ref={widgetContainerRef}></div>
-                        ) : (
+                        ) : activeSymbols.length === 0 ? (
                             <div className="watchlist-placeholder">
                                 <div className="watchlist-placeholder-icon">📈</div>
                                 <p>No stocks in the <strong>{activeCategory}</strong> category.</p>
                                 <p className="text-sm mt-2 opacity-50">Search in the left panel to add some.</p>
                             </div>
+                        ) : (
+                            <div className="watchlist-table-container">
+                                <table className="watchlist-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Company Name</th>
+                                            <th>Symbol</th>
+                                            <th className="text-right">LTP (₹)</th>
+                                            {isEditing && <th className="text-right">Action</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {activeSymbols.map(item => (
+                                            <tr key={item.id}>
+                                                <td className="font-medium">{item.name || item.symbol.split(':')[1]}</td>
+                                                <td className="text-xs text-zinc-500">{item.symbol}</td>
+                                                <td className="text-right watchlist-ltp">
+                                                    {pricesLoading ? (
+                                                        <span className="pulsing-text">Fetching...</span>
+                                                    ) : (
+                                                        prices[item.symbol] ? `₹${prices[item.symbol]}` : <span className="opacity-50">N/A</span>
+                                                    )}
+                                                </td>
+                                                {isEditing && (
+                                                    <td className="text-right">
+                                                        <button className="btn btn--danger btn--small" onClick={() => removeSymbol(item.id)}>Remove</button>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* New Category Modal */}
+            {showNewCategoryModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3 className="mb-4">Create New Watchlist</h3>
+                        <form onSubmit={createNewCategory}>
+                            <input 
+                                type="text" 
+                                className="form-input mb-4" 
+                                placeholder="Enter watchlist name..." 
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                autoFocus
+                            />
+                            <div className="flex gap-2 justify-end">
+                                <button type="button" className="btn btn--ghost" onClick={() => setShowNewCategoryModal(false)}>Cancel</button>
+                                <button type="submit" className="btn btn--primary" disabled={!newCategoryName.trim()}>Create</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
