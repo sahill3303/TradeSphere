@@ -17,21 +17,22 @@
   --color-border: #26262B;
   --color-border-soft: #1E1E22;
 
-  /* Gold accent */
+  /* Primary Accent (Default Gold) */
   --color-gold: #D4AF37;
   --color-gold-dark: #B8960C;
   --color-gold-soft: rgba(212, 175, 55, 0.10);
   --color-gold-glow: rgba(212, 175, 55, 0.20);
+  
+  --color-primary: var(--color-gold);
+  --color-primary-dark: var(--color-gold-dark);
+  --color-primary-soft: var(--color-gold-soft);
 
   /* Text */
   --color-text: #F5F5F5;
   --color-text-muted: #9CA3AF;
   --color-text-dim: #6B7280;
 
-  /* Semantic colours */
-  --color-primary: #D4AF37;
-  --color-primary-dark: #B8960C;
-  --color-primary-soft: rgba(212, 175, 55, 0.10);
+
 
   --color-success: #22C55E;
   --color-success-soft: rgba(34, 197, 94, 0.10);
@@ -78,6 +79,39 @@
   --transition-slow: 350ms ease;
 }
 
+/* Color Themes */
+[data-color='gold'] {
+  --color-gold: #D4AF37;
+  --color-gold-dark: #B8960C;
+  --color-gold-soft: rgba(212, 175, 55, 0.10);
+  --color-gold-glow: rgba(212, 175, 55, 0.20);
+  --shadow-gold: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+[data-color='green'] {
+  --color-gold: #22C55E;
+  --color-gold-dark: #16A34A;
+  --color-gold-soft: rgba(34, 197, 94, 0.10);
+  --color-gold-glow: rgba(34, 197, 94, 0.20);
+  --shadow-gold: 0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+[data-color='blue'] {
+  --color-gold: #3B82F6;
+  --color-gold-dark: #2563EB;
+  --color-gold-soft: rgba(59, 130, 246, 0.10);
+  --color-gold-glow: rgba(59, 130, 246, 0.20);
+  --shadow-gold: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+[data-color='red'] {
+  --color-gold: #EF4444;
+  --color-gold-dark: #DC2626;
+  --color-gold-soft: rgba(239, 68, 68, 0.10);
+  --color-gold-glow: rgba(239, 68, 68, 0.20);
+  --shadow-gold: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
 [data-theme='light'] {
   --color-bg: #F9FAFB;
   --color-sidebar: #FFFFFF;
@@ -90,14 +124,7 @@
   --color-text-muted: #6B7280;
   --color-text-dim: #9CA3AF;
 
-  /* Soften gold glow for light mode */
-  --color-gold-soft: rgba(212, 175, 55, 0.12);
-  --color-gold-glow: rgba(212, 175, 55, 0.15);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-gold: 0 0 16px rgba(212, 175, 55, 0.12);
 }
 
 /* ──────────────────────────────────────────────────────────

@@ -12,10 +12,20 @@ export function ThemeProvider({ children }) {
         return savedTheme ? savedTheme : 'dark';
     });
 
+    const [accentColor, setAccentColor] = useState(() => {
+        const savedColor = localStorage.getItem('accentColor');
+        return savedColor ? savedColor : 'gold';
+    });
+
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-color', accentColor);
+        localStorage.setItem('accentColor', accentColor);
+    }, [accentColor]);
 
     const toggleTheme = () => {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
@@ -24,7 +34,7 @@ export function ThemeProvider({ children }) {
     const isDarkMode = theme === 'dark';
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode }}>
+        <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode, accentColor, setAccentColor }}>
             {children}
         </ThemeContext.Provider>
     );

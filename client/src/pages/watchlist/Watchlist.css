@@ -29,9 +29,10 @@
   gap: var(--space-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .watchlist-search {
@@ -46,7 +47,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid var(--color-border);
-  border-top-color: var(--color-gold);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -127,7 +128,7 @@
   left: 0;
   right: 0;
   background: var(--color-surface);
-  border: 1px solid var(--color-gold);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: var(--space-md);
@@ -139,11 +140,11 @@
 }
 
 .watchlist-add-modal h4 {
-  margin-bottom: var(--space-xs);
-  color: var(--color-gold);
+  margin-bottom: var(--space-sm);
+  color: var(--color-primary);
   font-size: var(--font-size-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 .watchlist-add-stock-name {
@@ -179,9 +180,9 @@
 
 .watchlist-tabs {
   display: flex;
-  background: var(--color-surface);
+  background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   padding: 4px;
   gap: 4px;
 }
@@ -189,25 +190,24 @@
 .watchlist-tab {
   background: transparent;
   border: none;
-  color: var(--color-text-muted);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
+  color: var(--color-text-dim);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
 }
 
 .watchlist-tab:hover {
   color: var(--color-text);
-  background: var(--color-surface-alt);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .watchlist-tab.active {
-  background: var(--color-surface-alt);
-  color: var(--color-gold);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  background: var(--color-primary);
+  color: #000;
+  box-shadow: var(--shadow-sm);
 }
 
 .watchlist-tabs-actions {
@@ -346,31 +346,43 @@
 }
 
 .watchlist-tab--add {
-  color: var(--color-gold) !important;
-  border: 1px dashed var(--color-border-soft);
+  color: var(--color-text-muted) !important;
+  border: 1px dashed var(--color-border);
   background: transparent !important;
 }
 .watchlist-tab--add:hover {
-  border-color: var(--color-gold);
+  border-color: var(--color-primary);
+  color: var(--color-primary) !important;
 }
 
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  padding: 2rem;
-  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  border-radius: var(--radius-xl);
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

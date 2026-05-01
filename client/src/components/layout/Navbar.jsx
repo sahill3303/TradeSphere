@@ -10,11 +10,18 @@ const PAGE_TITLES = {
 
 export default function Navbar({ onMenuToggle }) {
     const { pathname } = useLocation();
-    const { toggleTheme, isDarkMode } = useTheme();
+    const { toggleTheme, isDarkMode, accentColor, setAccentColor } = useTheme();
     // Match longest prefix
     const title = Object.entries(PAGE_TITLES)
         .find(([path]) => pathname === path || pathname.startsWith(path + '/') || pathname === path)?.[1]
         ?? 'TradeSphere';
+
+    const colors = [
+        { id: 'gold', hex: '#D4AF37' },
+        { id: 'green', hex: '#22C55E' },
+        { id: 'blue', hex: '#3B82F6' },
+        { id: 'red', hex: '#EF4444' },
+    ];
 
     return (
         <header className="navbar">
@@ -29,6 +36,25 @@ export default function Navbar({ onMenuToggle }) {
             <h1 className="navbar__title">{title}</h1>
 
             <div className="navbar__actions">
+                <div className="navbar__theme-colors" style={{ display: 'flex', gap: '6px', marginRight: '10px' }}>
+                    {colors.map(c => (
+                        <button
+                            key={c.id}
+                            title={`Theme: ${c.id}`}
+                            onClick={() => setAccentColor(c.id)}
+                            style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                background: c.hex,
+                                border: accentColor === c.id ? '2px solid var(--color-text)' : '2px solid transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                padding: 0
+                            }}
+                        />
+                    ))}
+                </div>
                 <button 
                     className="navbar__theme-toggle" 
                     onClick={toggleTheme}

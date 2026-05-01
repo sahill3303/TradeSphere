@@ -149,14 +149,14 @@ export const getPrices = async (req, res) => {
                     if (!fallbackResponse.ok) return;
                     const html = await fallbackResponse.text();
                     const $ = cheerio.load(html);
-                    const price = $('.nowrap.value .number').first().text();
+                    const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
                     if (price) priceMap[sym] = price;
                     return;
                 }
 
                 const html = await response.text();
                 const $ = cheerio.load(html);
-                const price = $('.nowrap.value .number').first().text();
+                const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
                 if (price) priceMap[sym] = price;
             } catch (err) {
                 console.error(`Failed to fetch price for ${sym}:`, err.message);
