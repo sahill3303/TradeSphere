@@ -1,4 +1,5 @@
 import express from 'express';
+import { verifyToken } from '../middleware/auth.middleware.js';
 import {
     getAllNotes,
     getNoteById,
@@ -7,6 +8,8 @@ import {
 } from '../controllers/notes.controller.js';
 
 const router = express.Router();
+
+router.use(verifyToken);
 
 router.get('/', getAllNotes);
 router.get('/:id', getNoteById);

@@ -1,17 +1,19 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { usePreferences } from '../../context/PreferencesContext';
 
 const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: '⊞' },
-    { to: '/watchlist', label: 'Watchlist', icon: '📈' },
-    { to: '/clients', label: 'Clients', icon: '◎' },
-    { to: '/trades', label: 'Trades', icon: '◈' },
-    { to: '/analysis', label: 'Research', icon: '🔬' },
-    { to: '/notes', label: 'Notes', icon: '📝' },
+    { to: '/dashboard', label: 'Dashboard', icon: '⊞', key: 'dashboard' },
+    { to: '/watchlist', label: 'Watchlist', icon: '📈', key: 'watchlist' },
+    { to: '/clients', label: 'Clients', icon: '◎', key: 'clients' },
+    { to: '/trades', label: 'Trades', icon: '◈', key: 'trades' },
+    { to: '/analysis', label: 'Research', icon: '🔬', key: 'analysis' },
+    { to: '/notes', label: 'Notes', icon: '📝', key: 'notes' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
+    const { sidebarFeatures } = usePreferences();
 
     return (
         <>
@@ -32,7 +34,9 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Navigation */}
                 <nav className="sidebar__nav" aria-label="Main navigation">
                     <ul className="sidebar__list">
-                        {navItems.map(({ to, label, icon }) => (
+                        {navItems
+                            .filter(item => item.key === 'dashboard' || sidebarFeatures[item.key])
+                            .map(({ to, label, icon }) => (
                             <li key={to} className="sidebar__item">
                                 <NavLink
                                     to={to}
@@ -48,6 +52,19 @@ export default function Sidebar({ isOpen, onClose }) {
                         ))}
                     </ul>
                 </nav>
+
+                <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 1rem', marginBottom: '1rem' }}>
+                    <NavLink
+                        to="/settings"
+                        onClick={onClose}
+                        className={({ isActive }) =>
+                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                        }
+                    >
+                        <span className="sidebar__icon">⚙️</span>
+                        <span className="sidebar__label">Settings</span>
+                    </NavLink>
+                </div>
 
                 {/* User + Logout */}
                 <div className="sidebar__footer">

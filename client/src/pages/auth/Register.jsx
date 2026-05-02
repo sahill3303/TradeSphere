@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
 export default function Register() {
+    const { login } = useAuth();
+    const { hydrateFromPreferences } = useTheme();
     const navigate = useNavigate();
 
     const [form, setForm] = useState({ name: '', email: '', password: '' });
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) =>
@@ -17,12 +20,22 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); setSuccess('');
+        setError('');
         setLoading(true);
         try {
+            // Register the account
             await api.post('/auth/register', form);
-            setSuccess('Account created! Redirecting to login…');
-            setTimeout(() => navigate('/login'), 1500);
+            // Auto-login immediately after registration
+            const { data } = await api.post('/auth/login', {
+                email: form.email.trim(),
+                password: form.password,
+            });
+            login(data.token, data.admin);
+            if (data.admin?.preferences) {
+                hydrateFromPreferences(data.admin.preferences);
+            }
+            // Send to Welcome onboarding screen
+            navigate('/welcome', { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
@@ -44,7 +57,6 @@ export default function Register() {
                 <p className="auth-card__subtitle">Start managing your trading portfolio</p>
 
                 {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
-                {success && <div className="alert alert--success" style={{ marginBottom: 'var(--space-md)' }}>{success}</div>}
 
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
                     <Input

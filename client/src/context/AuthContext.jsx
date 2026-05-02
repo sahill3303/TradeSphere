@@ -6,11 +6,9 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem('token') || null);
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // true until session check completes
+    const [loading, setLoading] = useState(true);
 
-    // ─── Session restore on app load ───────────────────────────────────────────
-    // If a token exists in localStorage, call GET /api/auth/me to restore the
-    // admin object into state (avoids stale user data from localStorage).
+    // Session restore on app load
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         if (!storedToken) {
@@ -20,35 +18,41 @@ export function AuthProvider({ children }) {
 
         api.get('/auth/me')
             .then(({ data }) => {
-                // Backend returns the admin object directly
                 setUser(data);
                 setToken(storedToken);
             })
             .catch(() => {
-                // Token invalid / expired — clear everything
                 localStorage.removeItem('token');
                 setToken(null);
                 setUser(null);
             })
             .finally(() => setLoading(false));
-    }, []); // runs once on mount
+    }, []);
 
-    // ─── Login ─────────────────────────────────────────────────────────────────
+    // Login
     const login = useCallback((newToken, adminData) => {
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(adminData);
     }, []);
 
-    // ─── Logout ────────────────────────────────────────────────────────────────
+    // Logout — also clear any local preference caches
     const logout = useCallback(() => {
         localStorage.removeItem('token');
+        localStorage.removeItem('sidebarFeatures');
+        localStorage.removeItem('accentColor');
+        localStorage.removeItem('theme');
         setToken(null);
         setUser(null);
     }, []);
 
+    // Update local user state after preferences save (used by PreferencesContext)
+    const updateUserPreferences = useCallback((preferences) => {
+        setUser(prev => prev ? { ...prev, preferences } : prev);
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUserPreferences }}>
             {children}
         </AuthContext.Provider>
     );

@@ -3,7 +3,11 @@ import db from '../config/db.js';
 // Get all reference notes
 export const getAllNotes = async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT note_id, title, content, created_at FROM reference_notes ORDER BY created_at DESC');
+        const adminId = req.user.id;
+        const [rows] = await db.query(
+            'SELECT note_id, title, content, created_at FROM reference_notes WHERE admin_id = ? ORDER BY created_at DESC',
+            [adminId]
+        );
         res.status(200).json({ success: true, count: rows.length, data: rows });
     } catch (error) {
         console.error('Notes fetch error:', error);
@@ -14,9 +18,10 @@ export const getAllNotes = async (req, res) => {
 // Get single note
 export const getNoteById = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [rows] = await db.query(
-            'SELECT note_id, title, content, created_at FROM reference_notes WHERE note_id = ?',
-            [req.params.id]
+            'SELECT note_id, title, content, created_at FROM reference_notes WHERE note_id = ? AND admin_id = ?',
+            [req.params.id, adminId]
         );
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Note not found' });
@@ -37,14 +42,15 @@ export const createNote = async (req, res) => {
     }
 
     try {
+        const adminId = req.user.id;
         const [result] = await db.query(
-            'INSERT INTO reference_notes (title, content) VALUES (?, ?)',
-            [title.trim(), content || null]
+            'INSERT INTO reference_notes (title, content, admin_id) VALUES (?, ?, ?)',
+            [title.trim(), content || null, adminId]
         );
 
         const [newNote] = await db.query(
-            'SELECT note_id, title, content, created_at FROM reference_notes WHERE note_id = ?',
-            [result.insertId]
+            'SELECT note_id, title, content, created_at FROM reference_notes WHERE note_id = ? AND admin_id = ?',
+            [result.insertId, adminId]
         );
 
         res.status(201).json({ success: true, data: newNote[0] });
@@ -57,13 +63,14 @@ export const createNote = async (req, res) => {
 // Delete a note
 export const deleteNote = async (req, res) => {
     const { id } = req.params;
+    const adminId = req.user.id;
     try {
-        const [rows] = await db.query('SELECT note_id FROM reference_notes WHERE note_id = ?', [id]);
+        const [rows] = await db.query('SELECT note_id FROM reference_notes WHERE note_id = ? AND admin_id = ?', [id, adminId]);
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Note not found' });
         }
 
-        await db.query('DELETE FROM reference_notes WHERE note_id = ?', [id]);
+        await db.query('DELETE FROM reference_notes WHERE note_id = ? AND admin_id = ?', [id, adminId]);
         res.status(200).json({ success: true, message: 'Note deleted successfully' });
     } catch (error) {
         console.error('Note deletion error:', error);

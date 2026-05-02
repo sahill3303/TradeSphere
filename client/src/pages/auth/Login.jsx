@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
 export default function Login() {
     const { login } = useAuth();
+    const { hydrateFromPreferences } = useTheme();
     const navigate = useNavigate();
 
     const [form, setForm] = useState({ email: '', password: '' });
@@ -30,6 +32,10 @@ export default function Login() {
                 password: form.password,
             });
             login(data.token, data.admin);
+            // Hydrate theme from user's saved preferences
+            if (data.admin?.preferences) {
+                hydrateFromPreferences(data.admin.preferences);
+            }
             navigate('/dashboard', { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

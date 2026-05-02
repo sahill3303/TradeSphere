@@ -27,40 +27,20 @@ export const openTrade = async (req, res) => {
             });
         }
 
+        const adminId = req.user.id;
         const lev = leverage || 1;
 
         const [result] = await db.query(
             `INSERT INTO trades (
-                stock_name,
-                trade_type,
-                mode,
-                leverage,
-                entry_price,
-                quantity,
-                target,
-                stop_loss,
-                strategy,
-                conviction_level,
-                entry_nifty_mood,
-                entry_notes,
-                trade_date,
-                status
+                stock_name, trade_type, mode, leverage, entry_price,
+                quantity, target, stop_loss, strategy, conviction_level,
+                entry_nifty_mood, entry_notes, trade_date, status, admin_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?)`,
             [
-                stock_name,
-                trade_type,
-                mode,
-                lev,
-                entry_price,
-                quantity,
-                target,
-                stop_loss,
-                strategy,
-                conviction_level,
-                entry_nifty_mood,
-                entry_notes,
-                trade_date || null
+                stock_name, trade_type, mode, lev, entry_price,
+                quantity, target, stop_loss, strategy, conviction_level,
+                entry_nifty_mood, entry_notes, trade_date || null, adminId
             ]
         );
 
@@ -98,11 +78,11 @@ export const addTradeNote = async (req, res) => {
             });
         }
 
-        // Check if trade exists & is OPEN
+        // Check if trade exists & is OPEN (scoped to admin)
         const [[trade]] = await db.query(
             `SELECT status FROM trades 
-             WHERE trade_id = ? AND is_deleted = FALSE`,
-            [trade_id]
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
         );
 
         if (!trade) {
@@ -156,12 +136,12 @@ export const exitTrade = async (req, res) => {
             });
         }
 
-        // Fetch trade
+        // Fetch trade (scoped to admin)
         const [[trade]] = await db.query(
             `SELECT trade_type, entry_price, quantity, status
              FROM trades
-             WHERE trade_id = ? AND is_deleted = FALSE`,
-            [trade_id]
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
         );
 
         if (!trade) {
@@ -199,7 +179,7 @@ export const exitTrade = async (req, res) => {
                  exit_date = ?,
                  status = 'CLOSED',
                  closed_at = NOW()
-             WHERE trade_id = ?`,
+             WHERE trade_id = ? AND admin_id = ?`,
             [
                 exit_price,
                 exit_nifty_mood,
@@ -208,7 +188,8 @@ export const exitTrade = async (req, res) => {
                 conclusion,
                 pnl,
                 exit_date || null,
-                trade_id
+                trade_id,
+                req.user.id
             ]
         );
 
@@ -239,8 +220,8 @@ export const getAllTrades = async (req, res) => {
 
         const offset = (page - 1) * limit;
 
-        let where = "WHERE is_deleted = FALSE";
-        let values = [];
+        let where = "WHERE t.is_deleted = FALSE AND t.admin_id = ?";
+        let values = [req.user.id];
 
         if (status) {
             where += " AND status = ?";
@@ -249,27 +230,17 @@ export const getAllTrades = async (req, res) => {
 
         const [rows] = await db.query(
             `SELECT 
-                trade_id,
-                stock_name,
-                trade_type,
-                mode,
-                entry_price,
-                quantity,
-                total_pnl,
-                status,
-                created_at,
-                closed_at
-             FROM trades
+                trade_id, stock_name, trade_type, mode, entry_price,
+                quantity, total_pnl, status, created_at, closed_at
+             FROM trades t
              ${where}
-             ORDER BY ${sort} ${order}
+             ORDER BY t.${sort} ${order}
              LIMIT ? OFFSET ?`,
             [...values, Number(limit), Number(offset)]
         );
 
         const [[{ total }]] = await db.query(
-            `SELECT COUNT(*) as total
-             FROM trades
-             ${where}`,
+            `SELECT COUNT(*) as total FROM trades t ${where}`,
             values
         );
 
@@ -296,8 +267,8 @@ export const getTradeById = async (req, res) => {
 
         const [[trade]] = await db.query(
             `SELECT * FROM trades
-             WHERE trade_id = ? AND is_deleted = FALSE`,
-            [trade_id]
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
         );
 
         if (!trade) {
@@ -346,8 +317,8 @@ export const updateTrade = async (req, res) => {
         // Check trade exists
         const [[trade]] = await db.query(
             `SELECT status FROM trades
-             WHERE trade_id = ? AND is_deleted = FALSE`,
-            [trade_id]
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
         );
 
         if (!trade) {
@@ -415,11 +386,9 @@ export const deleteTrade = async (req, res) => {
         const { trade_id } = req.params;
 
         const [result] = await db.query(
-            `UPDATE trades
-             SET is_deleted = TRUE,
-                 deleted_at = NOW()
-             WHERE trade_id = ? AND is_deleted = FALSE`,
-            [trade_id]
+            `UPDATE trades SET is_deleted = TRUE, deleted_at = NOW()
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
         );
 
         if (result.affectedRows === 0) {
@@ -443,14 +412,11 @@ export const deleteTrade = async (req, res) => {
 export const getDeletedTrades = async (req, res) => {
     try {
         const [rows] = await db.query(
-            `SELECT trade_id,
-                    stock_name,
-                    status,
-                    total_pnl,
-                    deleted_at
+            `SELECT trade_id, stock_name, status, total_pnl, deleted_at
              FROM trades
-             WHERE is_deleted = TRUE
-             ORDER BY deleted_at DESC`
+             WHERE is_deleted = TRUE AND admin_id = ?
+             ORDER BY deleted_at DESC`,
+            [req.user.id]
         );
 
         res.json(rows);
@@ -469,11 +435,9 @@ export const restoreTrade = async (req, res) => {
         const { trade_id } = req.params;
 
         const [result] = await db.query(
-            `UPDATE trades
-             SET is_deleted = FALSE,
-                 deleted_at = NULL
-             WHERE trade_id = ? AND is_deleted = TRUE`,
-            [trade_id]
+            `UPDATE trades SET is_deleted = FALSE, deleted_at = NULL
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = TRUE`,
+            [trade_id, req.user.id]
         );
 
         if (result.affectedRows === 0) {
@@ -500,8 +464,8 @@ export const hardDeleteTrade = async (req, res) => {
 
         // Verify trade exists and is soft-deleted before proceeding
         const [[trade]] = await db.query(
-            `SELECT trade_id FROM trades WHERE trade_id = ? AND is_deleted = TRUE`,
-            [trade_id]
+            `SELECT trade_id FROM trades WHERE trade_id = ? AND admin_id = ? AND is_deleted = TRUE`,
+            [trade_id, req.user.id]
         );
 
         if (!trade) {

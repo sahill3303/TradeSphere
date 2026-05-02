@@ -6,17 +6,17 @@ import db from '../config/db.js';
  * CREATE CLIENT
  */
 export const createClient = async (req, res) => {
-
     try {
         const { name, broker, capital_invested, join_date, status } = req.body;
         const clientStatus = status || 'ACTIVE';
+        const adminId = req.user.id;
 
         const [result] = await db.query(
-            `INSERT INTO clients (name, broker, capital_invested, join_date, status)
-       VALUES (?, ?, ?, ?, ?)`,
-            [name, broker, capital_invested, join_date, clientStatus]
+            `INSERT INTO clients (name, broker, capital_invested, join_date, status, admin_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, broker, capital_invested, join_date, clientStatus, adminId]
         );
-        await recalculateCapital();
+        await recalculateCapital(adminId);
 
         res.status(201).json({
             message: 'Client created successfully',
@@ -32,6 +32,7 @@ export const createClient = async (req, res) => {
  */
 export const getAllClients = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [clients] = await db.query(`
       SELECT 
         client_id,
@@ -42,9 +43,9 @@ export const getAllClients = async (req, res) => {
         status,
         created_at
       FROM clients
-      WHERE is_deleted = FALSE
+      WHERE is_deleted = FALSE AND admin_id = ?
       ORDER BY created_at DESC
-    `);
+    `, [adminId]);
 
         res.status(200).json({
             success: true,
@@ -66,49 +67,30 @@ export const getAllClients = async (req, res) => {
 export const getClientById = async (req, res) => {
     try {
         const { id } = req.params;
+        const adminId = req.user.id;
 
         const [rows] = await db.query(
-            `
-      SELECT 
-        client_id,
-        name,
-        broker,
-        capital_invested,
-        join_date,
-        status,
-        created_at
-      FROM clients
-      WHERE client_id = ?
-      `,
-            [id]
+            `SELECT client_id, name, broker, capital_invested, join_date, status, created_at
+      FROM clients WHERE client_id = ? AND admin_id = ?`,
+            [id, adminId]
         );
 
         if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Client not found'
-            });
+            return res.status(404).json({ success: false, message: 'Client not found' });
         }
 
         const [trades] = await db.query(
             `SELECT t.trade_id, t.stock_name, t.trade_type, t.mode, t.trade_date, t.status, t.total_pnl, t.entry_price, t.exit_price 
              FROM trade_clients tc
              JOIN trades t ON tc.trade_id = t.trade_id
-             WHERE tc.client_id = ? AND t.is_deleted = FALSE
+             WHERE tc.client_id = ? AND t.is_deleted = FALSE AND t.admin_id = ?
              ORDER BY t.created_at DESC`,
-            [id]
+            [id, adminId]
         );
 
-        res.status(200).json({
-            success: true,
-            data: { ...rows[0], trades }
-        });
+        res.status(200).json({ success: true, data: { ...rows[0], trades } });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Fetch client error',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Fetch client error', error: error.message });
     }
 };
 
@@ -119,46 +101,22 @@ export const updateClientStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const adminId = req.user.id;
 
-        // validation
-        if (!status) {
-            return res.status(400).json({
-                success: false,
-                message: 'Status is required'
-            });
-        }
-
+        if (!status) return res.status(400).json({ success: false, message: 'Status is required' });
         const allowedStatuses = ['ACTIVE', 'INACTIVE', 'PENDING'];
-
-        if (!allowedStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid status value'
-            });
-        }
+        if (!allowedStatuses.includes(status)) return res.status(400).json({ success: false, message: 'Invalid status value' });
 
         const [result] = await db.query(
-            'UPDATE clients SET status = ? WHERE client_id = ?',
-            [status, id]
+            'UPDATE clients SET status = ? WHERE client_id = ? AND admin_id = ?',
+            [status, id, adminId]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Client not found'
-            });
-        }
+        if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Client not found' });
 
-        res.status(200).json({
-            success: true,
-            message: 'Client status updated successfully'
-        });
+        res.status(200).json({ success: true, message: 'Client status updated successfully' });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Update client status error',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Update client status error', error: error.message });
     }
 };
 
@@ -169,57 +127,33 @@ export const updateClientDetails = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, broker, capital_invested, join_date } = req.body;
-
-        if (!name && !broker && capital_invested === undefined && !join_date) {
-            return res.status(400).json({ message: 'Nothing to update' });
-        }
+        const adminId = req.user.id;
 
         const fields = [];
         const values = [];
 
-        if (name) {
-            fields.push('name = ?');
-            values.push(name);
-        }
-
-        if (broker !== undefined) {
-            fields.push('broker = ?');
-            values.push(broker);
-        }
-
-        // Track whether capital changed so we can recalculate after
+        if (name) { fields.push('name = ?'); values.push(name); }
+        if (broker !== undefined) { fields.push('broker = ?'); values.push(broker); }
         const capitalChanged = capital_invested !== undefined;
-        if (capitalChanged) {
-            fields.push('capital_invested = ?');
-            values.push(capital_invested);
-        }
+        if (capitalChanged) { fields.push('capital_invested = ?'); values.push(capital_invested); }
+        if (join_date) { fields.push('join_date = ?'); values.push(join_date); }
 
-        if (join_date) {
-            fields.push('join_date = ?');
-            values.push(join_date);
-        }
+        if (fields.length === 0) return res.status(400).json({ message: 'Nothing to update' });
 
-        values.push(id);
+        values.push(id, adminId);
 
         const [result] = await db.query(
-            `UPDATE clients SET ${fields.join(', ')} WHERE client_id = ?`,
+            `UPDATE clients SET ${fields.join(', ')} WHERE client_id = ? AND admin_id = ?`,
             values
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Client not found' });
-        }
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Client not found' });
 
-        if (capitalChanged) {
-            await recalculateCapital();
-        }
+        if (capitalChanged) await recalculateCapital(adminId);
 
         res.json({ message: 'Client details updated successfully' });
     } catch (error) {
-        res.status(500).json({
-            message: 'Update client error',
-            error: error.message
-        });
+        res.status(500).json({ message: 'Update client error', error: error.message });
     }
 };
 
@@ -229,6 +163,7 @@ export const updateClientDetails = async (req, res) => {
  */
 export const getClientSummary = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [[clientCounts]] = await db.query(`
             SELECT 
                 COUNT(*) as totalClients,
@@ -236,24 +171,17 @@ export const getClientSummary = async (req, res) => {
                 SUM(CASE WHEN status='INACTIVE' THEN 1 ELSE 0 END) as inactiveClients,
                 SUM(CASE WHEN status='PENDING' THEN 1 ELSE 0 END) as pendingClients
             FROM clients
-        `);
+            WHERE admin_id = ? AND is_deleted = FALSE
+        `, [adminId]);
 
-        const [[capitalData]] = await db.query(`
-            SELECT total_capital
-            FROM capital_summary
-            WHERE capital_id = 1
-        `);
+        const [[capitalData]] = await db.query(
+            `SELECT total_capital FROM capital_summary WHERE admin_id = ?`,
+            [adminId]
+        );
 
-        res.json({
-            ...clientCounts,
-            totalCapital: capitalData?.total_capital || 0
-        });
-
+        res.json({ ...clientCounts, totalCapital: capitalData?.total_capital || 0 });
     } catch (err) {
-        res.status(500).json({
-            message: "Client summary error",
-            error: err.message
-        });
+        res.status(500).json({ message: "Client summary error", error: err.message });
     }
 };
 
@@ -264,33 +192,19 @@ export const getClientSummary = async (req, res) => {
 export const deleteClient = async (req, res) => {
     try {
         const { id } = req.params;
+        const adminId = req.user.id;
 
         const [result] = await db.query(
-            `UPDATE clients
-             SET is_deleted = TRUE,
-                 deleted_at = NOW()
-             WHERE client_id = ? AND is_deleted = FALSE`,
-            [id]
+            `UPDATE clients SET is_deleted = TRUE, deleted_at = NOW() WHERE client_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [id, adminId]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                message: "Client not found or already deleted"
-            });
-        }
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Client not found or already deleted" });
 
-        await recalculateCapital();
-
-        res.json({
-            message: "Client deleted successfully"
-        });
-
+        await recalculateCapital(adminId);
+        res.json({ message: "Client deleted successfully" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: "Delete client error",
-            error: error.message
-        });
+        res.status(500).json({ message: "Delete client error", error: error.message });
     }
 };
 
@@ -298,12 +212,11 @@ export const deleteClient = async (req, res) => {
  * GET DELETED CLIENTS
  */
 export const getDeletedClients = async (req, res) => {
+    const adminId = req.user.id;
     const [rows] = await db.query(
-        `SELECT * FROM clients
-         WHERE is_deleted=TRUE
-         ORDER BY deleted_at DESC`
+        `SELECT * FROM clients WHERE is_deleted=TRUE AND admin_id = ? ORDER BY deleted_at DESC`,
+        [adminId]
     );
-
     res.json(rows);
 };
 
@@ -313,21 +226,17 @@ export const getDeletedClients = async (req, res) => {
  */
 export const restoreClient = async (req, res) => {
     try {
-        const { id } = req.params; // route is /:id/restore
+        const { id } = req.params;
+        const adminId = req.user.id;
 
         const [result] = await db.query(
-            `UPDATE clients
-             SET is_deleted = FALSE, deleted_at = NULL
-             WHERE client_id = ?`,
-            [id]
+            `UPDATE clients SET is_deleted = FALSE, deleted_at = NULL WHERE client_id = ? AND admin_id = ?`,
+            [id, adminId]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Client not found or already active' });
-        }
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Client not found or already active' });
 
-        await recalculateCapital();
-
+        await recalculateCapital(adminId);
         res.json({ message: 'Client restored successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Restore client error', error: error.message });
@@ -337,25 +246,18 @@ export const restoreClient = async (req, res) => {
 // get client activity
 export const getClientActivity = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [rows] = await db.query(`
-      SELECT
-        client_id,
-        name,
-        status,
-        join_date
+      SELECT client_id, name, status, join_date
       FROM clients
-      WHERE is_deleted = FALSE
+      WHERE is_deleted = FALSE AND admin_id = ?
       ORDER BY client_id DESC
       LIMIT 5
-    `);
+    `, [adminId]);
 
         res.json(rows);
-
     } catch (error) {
-        res.status(500).json({
-            message: "Client activity error",
-            error: error.message
-        });
+        res.status(500).json({ message: "Client activity error", error: error.message });
     }
 };
 
@@ -363,20 +265,17 @@ export const getClientActivity = async (req, res) => {
 export const hardDeleteClient = async (req, res) => {
     try {
         const { id } = req.params;
+        const adminId = req.user.id;
 
         const [result] = await db.query(
-            `DELETE FROM clients WHERE client_id = ? AND is_deleted = TRUE`,
-            [id]
+            `DELETE FROM clients WHERE client_id = ? AND admin_id = ? AND is_deleted = TRUE`,
+            [id, adminId]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Deleted client not found" });
-        }
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Deleted client not found" });
 
         res.json({ message: "Client permanently deleted" });
-
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: "Hard delete client error", error: error.message });
     }
 };

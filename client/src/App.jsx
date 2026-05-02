@@ -1,12 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PreferencesProvider } from './context/PreferencesContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
 // Auth pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import Welcome from './pages/welcome/Welcome';
 
 // Protected pages
 import Dashboard from './pages/dashboard/Dashboard';
@@ -18,16 +21,19 @@ import OpenTrade from './pages/trades/OpenTrade';
 import Notes from './pages/notes/Notes';
 import Analysis from './pages/analysis/Analysis';
 import Watchlist from './pages/watchlist/Watchlist';
+import Settings from './pages/settings/Settings';
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <AuthProvider>
+      <ThemeProvider>
+        <PreferencesProvider>
+          <BrowserRouter>
+            <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/welcome" element={<Welcome />} />
 
           {/* Protected routes — all inside ProtectedRoute outlet */}
           <Route element={<ProtectedRoute />}>
@@ -69,14 +75,73 @@ export default function App() {
             <Route path="/watchlist" element={
               <Layout><Watchlist /></Layout>
             } />
-          </Route>
 
-          {/* Fallback */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Settings */}
+            <Route path="/settings" element={
+              <Layout><Settings /></Layout>
+          <ConfirmProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/welcome" element={<Welcome />} />
+
+                {/* Protected routes — all inside ProtectedRoute outlet */}
+                <Route element={<ProtectedRoute />}>
+                  {/* Dashboard */}
+                  <Route path="/dashboard" element={
+                    <Layout><Dashboard /></Layout>
+                  } />
+
+                  {/* Clients */}
+                  <Route path="/clients" element={
+                    <Layout><ClientsList /></Layout>
+                  } />
+                  <Route path="/clients/:id" element={
+                    <Layout><ClientDetails /></Layout>
+                  } />
+
+                  {/* Trades — /trades/open must come BEFORE /trades/:id */}
+                  <Route path="/trades" element={
+                    <Layout><TradesList /></Layout>
+                  } />
+                  <Route path="/trades/open" element={
+                    <Layout><OpenTrade /></Layout>
+                  } />
+                  <Route path="/trades/:id" element={
+                    <Layout><TradeDetails /></Layout>
+                  } />
+
+                  {/* Notes */}
+                  <Route path="/notes" element={
+                    <Layout><Notes /></Layout>
+                  } />
+
+                  {/* Analysis */}
+                  <Route path="/analysis" element={
+                    <Layout><Analysis /></Layout>
+                  } />
+
+                  {/* Watchlist */}
+                  <Route path="/watchlist" element={
+                    <Layout><Watchlist /></Layout>
+                  } />
+
+                  {/* Settings */}
+                  <Route path="/settings" element={
+                    <Layout><Settings /></Layout>
+                  } />
+                </Route>
+
+                {/* Fallback */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </ConfirmProvider>
+        </PreferencesProvider>
+      </ThemeProvider>
     </AuthProvider>
-    </ThemeProvider>
   );
 }

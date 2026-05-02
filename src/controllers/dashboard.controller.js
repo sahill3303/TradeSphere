@@ -3,18 +3,22 @@ import db from '../config/db.js';
 export const getDashboardSummary = async (req, res) => {
     try {
 
+        const adminId = req.user.id;
+
         // CLIENT COUNTS
         const [[{ totalClients }]] = await db.query(
             `SELECT COUNT(*) AS totalClients 
              FROM clients 
-             WHERE is_deleted = FALSE`
+             WHERE is_deleted = FALSE AND admin_id = ?`,
+            [adminId]
         );
 
         const [[{ activeClients }]] = await db.query(
             `SELECT COUNT(*) AS activeClients 
              FROM clients 
              WHERE status = 'ACTIVE'
-             AND is_deleted = FALSE`
+             AND is_deleted = FALSE AND admin_id = ?`,
+            [adminId]
         );
 
         // TOTAL CLIENT CAPITAL (THIS IS WHAT YOU WANT)
@@ -22,12 +26,14 @@ export const getDashboardSummary = async (req, res) => {
             `SELECT COALESCE(SUM(capital_invested), 0) AS totalCapital
              FROM clients
              WHERE status = 'ACTIVE'
-             AND is_deleted = FALSE`
+             AND is_deleted = FALSE AND admin_id = ?`,
+            [adminId]
         );
 
         // TOTAL TRADE COUNT (ALL — Open + Closed)
         const [[{ allTrades }]] = await db.query(
-            `SELECT COUNT(*) AS allTrades FROM trades WHERE is_deleted = FALSE`
+            `SELECT COUNT(*) AS allTrades FROM trades WHERE is_deleted = FALSE AND admin_id = ?`,
+            [adminId]
         );
 
         // TRADE STATS (ONLY CLOSED — for profitability ratios)
@@ -43,7 +49,8 @@ export const getDashboardSummary = async (req, res) => {
                 COALESCE(ABS(SUM(CASE WHEN total_pnl < 0 THEN total_pnl ELSE 0 END)), 0) AS totalGrossLoss
              FROM trades
              WHERE status = 'CLOSED'
-             AND is_deleted = FALSE`
+             AND is_deleted = FALSE AND admin_id = ?`,
+            [adminId]
         );
 
         const totalTrades = allTrades || 0;
@@ -87,6 +94,7 @@ export const getDashboardSummary = async (req, res) => {
 
 export const getMonthlyPerformance = async (req, res) => {
     try {
+        const adminId = req.user.id;
 
         const [rows] = await db.query(`
             SELECT
@@ -97,11 +105,12 @@ export const getMonthlyPerformance = async (req, res) => {
             FROM trades
             WHERE status = 'CLOSED'
               AND is_deleted = FALSE
+              AND admin_id = ?
               AND closed_at IS NOT NULL
             GROUP BY DATE_FORMAT(closed_at, '%Y-%m'),
                      DATE_FORMAT(closed_at, '%b')
             ORDER BY month_key
-        `);
+        `, [adminId]);
 
         // remove month_key before sending to frontend
         const formatted = rows.map(r => ({
@@ -123,6 +132,7 @@ export const getMonthlyPerformance = async (req, res) => {
 
 export const getWinLossDistribution = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [[stats]] = await db.query(`
             SELECT
                 SUM(CASE WHEN total_pnl > 0 THEN 1 ELSE 0 END) AS wins,
@@ -130,8 +140,8 @@ export const getWinLossDistribution = async (req, res) => {
                 SUM(CASE WHEN total_pnl = 0 THEN 1 ELSE 0 END) AS breakeven
             FROM trades
             WHERE status = 'CLOSED'
-            AND is_deleted = FALSE
-        `);
+            AND is_deleted = FALSE AND admin_id = ?
+        `, [adminId]);
 
         res.json(stats);
 
@@ -146,6 +156,7 @@ export const getWinLossDistribution = async (req, res) => {
 
 export const getRecentTrades = async (req, res) => {
     try {
+        const adminId = req.user.id;
         const [rows] = await db.query(`
             SELECT
                 trade_id,
@@ -155,10 +166,10 @@ export const getRecentTrades = async (req, res) => {
                 status,
                 created_at
             FROM trades
-            WHERE is_deleted = FALSE
+            WHERE is_deleted = FALSE AND admin_id = ?
             ORDER BY created_at DESC
             LIMIT 5
-        `);
+        `, [adminId]);
 
         res.json(rows);
 

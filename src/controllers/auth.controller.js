@@ -2,6 +2,18 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
 
+const DEFAULT_PREFERENCES = {
+    theme: 'dark',
+    accentColor: 'gold',
+    sidebarFeatures: {
+        watchlist: true,
+        clients: true,
+        trades: true,
+        analysis: true,
+        notes: true
+    }
+};
+
 /**
  * REGISTER ADMIN
  */
@@ -13,7 +25,6 @@ export const registerAdmin = async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // check if email exists
         const [existing] = await db.query(
             'SELECT id FROM admins WHERE email = ?',
             [email]
@@ -25,18 +36,31 @@ export const registerAdmin = async (req, res) => {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        await db.query(
-            'INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)',
-            [name, email, passwordHash]
+        const [result] = await db.query(
+            'INSERT INTO admins (name, email, password_hash, preferences) VALUES (?, ?, ?, ?)',
+            [name, email, passwordHash, JSON.stringify(DEFAULT_PREFERENCES)]
         );
 
-        res.status(201).json({ message: 'Admin registered successfully' });
+        const newAdminId = result.insertId;
+
+        // Provision default data for new user
+        await db.query(
+            'INSERT INTO capital_summary (admin_id, total_capital, total_pnl, deployed_capital) VALUES (?, 0.00, 0.00, 0.00)',
+            [newAdminId]
+        );
+
+        await db.query(
+            'INSERT INTO watchlist_categories (name, admin_id) VALUES (?, ?), (?, ?), (?, ?)',
+            ['Short', newAdminId, 'Long', newAdminId, 'Specific Week', newAdminId]
+        );
+
+        res.status(201).json({ message: 'Admin registered successfully', isNew: true });
     } catch (err) {
         console.error('REGISTRATION ERROR:', err);
         res.status(500).json({ 
             message: 'Register error', 
             error: err.message,
-            code: err.code // Helpful for DB errors like 'ER_BAD_TABLE_ERROR'
+            code: err.code
         });
     }
 };
@@ -74,6 +98,15 @@ export const loginAdmin = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
 
+        let preferences = DEFAULT_PREFERENCES;
+        try {
+            if (admin.preferences) {
+                preferences = typeof admin.preferences === 'string'
+                    ? JSON.parse(admin.preferences)
+                    : admin.preferences;
+            }
+        } catch (_) { /* keep defaults */ }
+
         res.json({
             message: 'Login successful',
             token,
@@ -81,7 +114,8 @@ export const loginAdmin = async (req, res) => {
                 id: admin.id,
                 name: admin.name,
                 email: admin.email,
-                role: admin.role
+                role: admin.role,
+                preferences
             }
         });
     } catch (err) {
@@ -93,10 +127,8 @@ export const loginAdmin = async (req, res) => {
 
 export const getMe = async (req, res) => {
     try {
-        // req.admin = JWT payload which only has { id, role }
-        // Fetch full admin row from DB to get name, email, etc.
         const [rows] = await db.query(
-            'SELECT id, name, email, role FROM admins WHERE id = ?',
+            'SELECT id, name, email, role, preferences FROM admins WHERE id = ?',
             [req.user.id]
         );
 
@@ -104,7 +136,17 @@ export const getMe = async (req, res) => {
             return res.status(404).json({ message: 'Admin not found' });
         }
 
-        res.json(rows[0]);
+        const admin = rows[0];
+        let preferences = DEFAULT_PREFERENCES;
+        try {
+            if (admin.preferences) {
+                preferences = typeof admin.preferences === 'string'
+                    ? JSON.parse(admin.preferences)
+                    : admin.preferences;
+            }
+        } catch (_) { /* keep defaults */ }
+
+        res.json({ ...admin, preferences });
     } catch (error) {
         res.status(500).json({
             message: 'Failed to fetch admin',
@@ -113,5 +155,21 @@ export const getMe = async (req, res) => {
     }
 };
 
+/**
+ * UPDATE PREFERENCES
+ */
+export const updatePreferences = async (req, res) => {
+    try {
+        const { preferences } = req.body;
+        if (!preferences) return res.status(400).json({ message: 'Preferences required' });
 
-// auth controller
+        await db.query(
+            'UPDATE admins SET preferences = ? WHERE id = ?',
+            [JSON.stringify(preferences), req.user.id]
+        );
+
+        res.json({ message: 'Preferences saved' });
+    } catch (error) {
+        res.status(500).json({ message: 'Save preferences error', error: error.message });
+    }
+};

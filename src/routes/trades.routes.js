@@ -1,4 +1,5 @@
 import express from 'express';
+import { verifyToken } from '../middleware/auth.middleware.js';
 import {
     openTrade,
     addTradeNote,
@@ -13,6 +14,9 @@ import {
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
+
+// Apply verifyToken to ALL routes in this router
+router.use(verifyToken);
 
 // 🔹 OPEN TRADE
 router.post('/', openTrade);
