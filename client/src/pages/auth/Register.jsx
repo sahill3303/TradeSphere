@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import AuthInfo from '../../components/auth/AuthInfo';
 
 export default function Register() {
     const { login } = useAuth();
@@ -45,61 +46,65 @@ export default function Register() {
 
     return (
         <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-card__logo">
-                    <div className="auth-card__logo-mark">
-                        <img src="src\assets\AJC_Logo.png" alt="" />
+            <div className="auth-container">
+                <AuthInfo />
+                
+                <div className="auth-card">
+                    <div className="auth-card__logo">
+                        <div className="auth-card__logo-mark">
+                            <img src="src/assets/AJC_Logo.png" alt="" />
+                        </div>
+                        <span className="auth-card__logo-text">TradeBuddy</span>
                     </div>
-                    <span className="auth-card__logo-text">TradeSphere</span>
+
+                    <h2 className="auth-card__title">Create account</h2>
+                    <p className="auth-card__subtitle">Start managing your trading portfolio</p>
+
+                    {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
+
+                    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                        <Input
+                            id="name"
+                            label="Full Name"
+                            type="text"
+                            value={form.name}
+                            onChange={handleChange}
+                            placeholder="Rahul Sharma"
+                            required
+                        />
+                        <Input
+                            id="email"
+                            label="Email"
+                            type="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            placeholder="you@example.com"
+                            required
+                        />
+                        <Input
+                            id="password"
+                            label="Password"
+                            type="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            placeholder="Min. 8 characters"
+                            required
+                        />
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={loading}
+                            style={{ width: '100%', padding: '0.7rem', fontSize: '0.9rem', marginTop: '0.5rem' }}
+                        >
+                            {loading ? 'Creating account…' : 'Register →'}
+                        </Button>
+                    </form>
+
+                    <p className="auth-link">
+                        Already have an account?{' '}
+                        <Link to="/login">Sign In</Link>
+                    </p>
                 </div>
-
-                <h2 className="auth-card__title">Create account</h2>
-                <p className="auth-card__subtitle">Start managing your trading portfolio</p>
-
-                {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
-
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                    <Input
-                        id="name"
-                        label="Full Name"
-                        type="text"
-                        value={form.name}
-                        onChange={handleChange}
-                        placeholder="Rahul Sharma"
-                        required
-                    />
-                    <Input
-                        id="email"
-                        label="Email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="you@example.com"
-                        required
-                    />
-                    <Input
-                        id="password"
-                        label="Password"
-                        type="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        placeholder="Min. 8 characters"
-                        required
-                    />
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        disabled={loading}
-                        style={{ width: '100%', padding: '0.7rem', fontSize: '0.9rem', marginTop: '0.5rem' }}
-                    >
-                        {loading ? 'Creating account…' : 'Register →'}
-                    </Button>
-                </form>
-
-                <p className="auth-link">
-                    Already have an account?{' '}
-                    <Link to="/login">Sign In</Link>
-                </p>
             </div>
         </div>
     );

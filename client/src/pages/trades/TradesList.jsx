@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '../../context/ConfirmContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
@@ -50,6 +51,7 @@ function ActionBtn({ onClick, disabled, color, children }) {
 
 export default function TradesList() {
     const navigate = useNavigate();
+    const confirmAction = useConfirm();
 
     const [activeTab, setActiveTab] = useState('active');
 
@@ -92,25 +94,37 @@ export default function TradesList() {
 
     // ── Soft delete ───────────────────────────────────────────────────────────
     async function handleDelete(tradeId, stockName) {
-        if (!window.confirm(`Move "${stockName}" to Deleted Trades?`)) return;
-        setDeletingId(tradeId);
-        try {
-            await api.delete(`/trades/${tradeId}`);
-            setTrades(prev => prev.filter(t => t.trade_id !== tradeId));
-        } catch (err) { alert(err.response?.data?.message || 'Delete failed.'); }
-        finally { setDeletingId(null); }
+        confirmAction({
+            title: 'Delete Trade',
+            message: `Move "${stockName}" to Deleted Trades?`,
+            variant: 'warning',
+            onConfirm: async () => {
+                setDeletingId(tradeId);
+                try {
+                    await api.delete(`/trades/${tradeId}`);
+                    setTrades(prev => prev.filter(t => t.trade_id !== tradeId));
+                } catch (err) { alert(err.response?.data?.message || 'Delete failed.'); }
+                finally { setDeletingId(null); }
+            }
+        });
     }
 
     // ── Restore ───────────────────────────────────────────────────────────────
     async function handleRestore(tradeId, stockName) {
-        if (!window.confirm(`Restore "${stockName}"?`)) return;
-        setRestoringId(tradeId);
-        try {
-            await api.patch(`/trades/${tradeId}/restore`);
-            setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
-            fetchTrades();
-        } catch (err) { alert(err.response?.data?.message || 'Restore failed.'); }
-        finally { setRestoringId(null); }
+        confirmAction({
+            title: 'Restore Trade',
+            message: `Restore "${stockName}"?`,
+            variant: 'primary',
+            onConfirm: async () => {
+                setRestoringId(tradeId);
+                try {
+                    await api.patch(`/trades/${tradeId}/restore`);
+                    setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
+                    fetchTrades();
+                } catch (err) { alert(err.response?.data?.message || 'Restore failed.'); }
+                finally { setRestoringId(null); }
+            }
+        });
     }
 
     //sample test comment
@@ -118,13 +132,19 @@ export default function TradesList() {
 
     // ── Hard delete ───────────────────────────────────────────────────────────
     async function handleHardDelete(tradeId, stockName) {
-        if (!window.confirm(`⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`)) return;
-        setHardDeletingId(tradeId);
-        try {
-            await api.delete(`/trades/${tradeId}/permanent`);
-            setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
-        } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
-        finally { setHardDeletingId(null); }
+        confirmAction({
+            title: 'Permanent Delete',
+            message: `⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`,
+            variant: 'danger',
+            onConfirm: async () => {
+                setHardDeletingId(tradeId);
+                try {
+                    await api.delete(`/trades/${tradeId}/permanent`);
+                    setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
+                } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
+                finally { setHardDeletingId(null); }
+            }
+        });
     }
 
     return (

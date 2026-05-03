@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useConfirm } from '../../context/ConfirmContext';
 import api from '../../api/axios';
 import './Watchlist.css';
 
 export default function Watchlist() {
+    const confirmAction = useConfirm();
     const [categories, setCategories] = useState([]);
     const [symbols, setSymbols] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -137,12 +139,19 @@ export default function Watchlist() {
     };
 
     const removeSymbol = async (id) => {
-        try {
-            const { data } = await api.delete(`/watchlist/${id}`);
-            if (data.success) fetchData();
-        } catch (error) {
-            console.error('Failed to remove symbol', error);
-        }
+        confirmAction({
+            title: 'Remove Stock',
+            message: 'Are you sure you want to remove this stock from your watchlist?',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    const { data } = await api.delete(`/watchlist/${id}`);
+                    if (data.success) fetchData();
+                } catch (error) {
+                    console.error('Failed to remove symbol', error);
+                }
+            }
+        });
     };
 
     const createNewCategory = async (e) => {

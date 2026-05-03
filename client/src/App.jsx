@@ -28,57 +28,6 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <PreferencesProvider>
-          <BrowserRouter>
-            <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/welcome" element={<Welcome />} />
-
-          {/* Protected routes — all inside ProtectedRoute outlet */}
-          <Route element={<ProtectedRoute />}>
-            {/* Dashboard */}
-            <Route path="/dashboard" element={
-              <Layout><Dashboard /></Layout>
-            } />
-
-            {/* Clients */}
-            <Route path="/clients" element={
-              <Layout><ClientsList /></Layout>
-            } />
-            <Route path="/clients/:id" element={
-              <Layout><ClientDetails /></Layout>
-            } />
-
-            {/* Trades — /trades/open must come BEFORE /trades/:id */}
-            <Route path="/trades" element={
-              <Layout><TradesList /></Layout>
-            } />
-            <Route path="/trades/open" element={
-              <Layout><OpenTrade /></Layout>
-            } />
-            <Route path="/trades/:id" element={
-              <Layout><TradeDetails /></Layout>
-            } />
-
-            {/* Notes */}
-            <Route path="/notes" element={
-              <Layout><Notes /></Layout>
-            } />
-
-            {/* Analysis */}
-            <Route path="/analysis" element={
-              <Layout><Analysis /></Layout>
-            } />
-
-            {/* Watchlist */}
-            <Route path="/watchlist" element={
-              <Layout><Watchlist /></Layout>
-            } />
-
-            {/* Settings */}
-            <Route path="/settings" element={
-              <Layout><Settings /></Layout>
           <ConfirmProvider>
             <BrowserRouter>
               <Routes>
@@ -87,51 +36,18 @@ export default function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/welcome" element={<Welcome />} />
 
-                {/* Protected routes — all inside ProtectedRoute outlet */}
+                {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>
-                  {/* Dashboard */}
-                  <Route path="/dashboard" element={
-                    <Layout><Dashboard /></Layout>
-                  } />
-
-                  {/* Clients */}
-                  <Route path="/clients" element={
-                    <Layout><ClientsList /></Layout>
-                  } />
-                  <Route path="/clients/:id" element={
-                    <Layout><ClientDetails /></Layout>
-                  } />
-
-                  {/* Trades — /trades/open must come BEFORE /trades/:id */}
-                  <Route path="/trades" element={
-                    <Layout><TradesList /></Layout>
-                  } />
-                  <Route path="/trades/open" element={
-                    <Layout><OpenTrade /></Layout>
-                  } />
-                  <Route path="/trades/:id" element={
-                    <Layout><TradeDetails /></Layout>
-                  } />
-
-                  {/* Notes */}
-                  <Route path="/notes" element={
-                    <Layout><Notes /></Layout>
-                  } />
-
-                  {/* Analysis */}
-                  <Route path="/analysis" element={
-                    <Layout><Analysis /></Layout>
-                  } />
-
-                  {/* Watchlist */}
-                  <Route path="/watchlist" element={
-                    <Layout><Watchlist /></Layout>
-                  } />
-
-                  {/* Settings */}
-                  <Route path="/settings" element={
-                    <Layout><Settings /></Layout>
-                  } />
+                  <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+                  <Route path="/clients" element={<Layout><ClientsList /></Layout>} />
+                  <Route path="/clients/:id" element={<Layout><ClientDetails /></Layout>} />
+                  <Route path="/trades" element={<Layout><TradesList /></Layout>} />
+                  <Route path="/trades/open" element={<Layout><OpenTrade /></Layout>} />
+                  <Route path="/trades/:id" element={<Layout><TradeDetails /></Layout>} />
+                  <Route path="/notes" element={<Layout><Notes /></Layout>} />
+                  <Route path="/analysis" element={<Layout><Analysis /></Layout>} />
+                  <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />
+                  <Route path="/settings" element={<Layout><Settings /></Layout>} />
                 </Route>
 
                 {/* Fallback */}

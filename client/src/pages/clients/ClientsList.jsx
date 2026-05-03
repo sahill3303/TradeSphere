@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '../../context/ConfirmContext';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
@@ -61,6 +62,7 @@ function TabBtn({ active, onClick, children }) {
 }
 
 export default function ClientsList() {
+    const confirmAction = useConfirm();
     // ── Tab ───────────────────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState('active'); // 'active' | 'deleted'
 
@@ -125,13 +127,19 @@ export default function ClientsList() {
 
     // ── Hard delete client (permanent) ────────────────────────────────────────
     async function handleHardDelete(clientId, name) {
-        if (!window.confirm(`⚠️ Permanently delete "${name}"? This CANNOT be undone.`)) return;
-        setHardDeletingId(clientId);
-        try {
-            await api.delete(`/clients/${clientId}/permanent`);
-            setDeleted(prev => prev.filter(c => c.client_id !== clientId));
-        } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
-        finally { setHardDeletingId(null); }
+        confirmAction({
+            title: 'Permanent Delete',
+            message: `⚠️ Permanently delete "${name}"? This CANNOT be undone.`,
+            variant: 'danger',
+            onConfirm: async () => {
+                setHardDeletingId(clientId);
+                try {
+                    await api.delete(`/clients/${clientId}/permanent`);
+                    setDeleted(prev => prev.filter(c => c.client_id !== clientId));
+                } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
+                finally { setHardDeletingId(null); }
+            }
+        });
     }
 
     // ── Modal helpers ─────────────────────────────────────────────────────────
@@ -206,32 +214,44 @@ export default function ClientsList() {
 
     // ── Delete ────────────────────────────────────────────────────────────────
     async function handleDelete(clientId, clientName) {
-        if (!window.confirm(`Delete client "${clientName}"? They will be moved to Recently Deleted.`)) return;
-        setDeletingId(clientId);
-        try {
-            await api.delete(`/clients/${clientId}`);
-            setClients(prev => prev.filter(c => c.client_id !== clientId));
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to delete client.');
-        } finally {
-            setDeletingId(null);
-        }
+        confirmAction({
+            title: 'Delete Client',
+            message: `Delete client "${clientName}"? They will be moved to Recently Deleted.`,
+            variant: 'warning',
+            onConfirm: async () => {
+                setDeletingId(clientId);
+                try {
+                    await api.delete(`/clients/${clientId}`);
+                    setClients(prev => prev.filter(c => c.client_id !== clientId));
+                } catch (err) {
+                    alert(err.response?.data?.message || 'Failed to delete client.');
+                } finally {
+                    setDeletingId(null);
+                }
+            }
+        });
     }
 
     // ── Restore ───────────────────────────────────────────────────────────────
     async function handleRestore(clientId, clientName) {
-        if (!window.confirm(`Restore "${clientName}"?`)) return;
-        setRestoringId(clientId);
-        try {
-            await api.patch(`/clients/${clientId}/restore`);
-            // Remove from deleted list, refresh active list
-            setDeleted(prev => prev.filter(c => c.client_id !== clientId));
-            fetchClients();
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to restore client.');
-        } finally {
-            setRestoringId(null);
-        }
+        confirmAction({
+            title: 'Restore Client',
+            message: `Restore "${clientName}"?`,
+            variant: 'primary',
+            onConfirm: async () => {
+                setRestoringId(clientId);
+                try {
+                    await api.patch(`/clients/${clientId}/restore`);
+                    // Remove from deleted list, refresh active list
+                    setDeleted(prev => prev.filter(c => c.client_id !== clientId));
+                    fetchClients();
+                } catch (err) {
+                    alert(err.response?.data?.message || 'Failed to restore client.');
+                } finally {
+                    setRestoringId(null);
+                }
+            }
+        });
     }
 
     // ── Render ────────────────────────────────────────────────────────────────

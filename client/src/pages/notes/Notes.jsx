@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useConfirm } from '../../context/ConfirmContext';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
 export default function Notes() {
+    const confirmAction = useConfirm();
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -54,13 +56,19 @@ export default function Notes() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this note?')) return;
-        try {
-            await api.delete(`/notes/${id}`);
-            setNotes(notes.filter(n => n.note_id !== id));
-        } catch (err) {
-            alert('Failed to delete note');
-        }
+        confirmAction({
+            title: 'Delete Note',
+            message: 'Are you sure you want to delete this note?',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/notes/${id}`);
+                    setNotes(notes.filter(n => n.note_id !== id));
+                } catch (err) {
+                    alert('Failed to delete note');
+                }
+            }
+        });
     };
 
     return (
