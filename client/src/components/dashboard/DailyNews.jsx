@@ -49,7 +49,7 @@ export default function DailyNews() {
     return (
         <div className="card" style={{
             padding: 'var(--space-lg)',
-            marginBottom: 'var(--space-xl)',
+            marginBottom: 'var(--space-lg)',
             position: 'relative',
             overflow: 'hidden'
         }}>
@@ -57,19 +57,26 @@ export default function DailyNews() {
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, var(--color-gold), transparent)' }} />
 
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                marginBottom: 'var(--space-lg)', 
+                flexWrap: 'wrap', 
+                gap: '0.75rem' 
+            }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <span style={{ fontSize: '1.1rem' }}>🔥</span>
                     <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, color: 'var(--color-text)' }}>
                         Market Intelligence
                     </h3>
                     <span style={{
-                        fontSize: '0.65rem', fontWeight: 700, color: '#0B0B0D',
-                        background: 'var(--color-gold)', padding: '0.15rem 0.5rem',
-                        borderRadius: 'var(--radius-full)', textTransform: 'uppercase', letterSpacing: '0.06em'
+                        fontSize: '0.6rem', fontWeight: 800, color: '#000',
+                        background: 'var(--color-gold)', padding: '0.1rem 0.4rem',
+                        borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em'
                     }}>LIVE</span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>📅 {formattedDate}</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>📅 {formattedDate}</span>
             </div>
 
             {/* Articles */}
@@ -82,50 +89,63 @@ export default function DailyNews() {
                         rel="noreferrer"
                         style={{
                             display: 'flex', gap: 'var(--space-md)', alignItems: 'flex-start',
-                            padding: 'var(--space-md) 0',
+                            padding: '1.25rem 0',
                             borderBottom: idx < articles.length - 1 ? '1px solid var(--color-border)' : 'none',
-                            textDecoration: 'none', transition: 'background 0.15s', borderRadius: 'var(--radius-sm)'
+                            textDecoration: 'none', transition: 'all 0.2s'
                         }}
                         className="news-article-row"
                     >
                         {/* Index */}
                         <div style={{
-                            minWidth: 26, height: 26, borderRadius: '50%', flexShrink: 0, marginTop: 2,
+                            minWidth: 24, height: 24, borderRadius: '6px', flexShrink: 0, marginTop: 2,
                             background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-dim)'
+                            fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-text-muted)'
                         }}>{idx + 1}</div>
 
                         {/* Content */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                             {/* Source + Time */}
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--color-gold)', fontWeight: 600 }}>{item.source}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>🕐 {formatDate(item.pubDate)}</span>
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{item.source}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-dim)' }}>🕐 {formatDate(item.pubDate)}</span>
                             </div>
                             {/* Headline */}
-                            <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600, fontSize: '0.88rem', color: 'var(--color-text)', lineHeight: 1.45, wordBreak: 'break-word' }}>
+                            <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)', lineHeight: 1.5, wordBreak: 'break-word' }}>
                                 {item.title}
                             </p>
-                            {/* Summary snippet */}
+                            {/* Summary snippet (Hidden on mobile) */}
                             {item.summary && (
-                                <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-dim)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                <p className="hide-mobile" style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                     {item.summary}
                                 </p>
                             )}
+                            {/* More info button (Mobile only) */}
+                            <div className="show-mobile" style={{ marginTop: '0.5rem' }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 600 }}>More info →</span>
+                            </div>
                         </div>
 
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)', flexShrink: 0, marginTop: 4, alignSelf: 'flex-start' }}>→</span>
+                        <span className="news-arrow hide-mobile" style={{ fontSize: '0.75rem', color: 'var(--color-gold)', flexShrink: 0, marginTop: 4, alignSelf: 'flex-start', opacity: 0.5, transition: 'all 0.2s' }}>→</span>
                     </a>
                 ))}
             </div>
 
             {/* Footer */}
-            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
+            <div style={{ 
+                marginTop: 'var(--space-md)', 
+                paddingTop: 'var(--space-md)', 
+                borderTop: '1px solid var(--color-border)', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', 
+                gap: '0.75rem' 
+            }}>
+                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-dim)' }}>
                     Source: {data.source}
                 </span>
-                <span style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                <span className="hide-mobile" style={{ fontSize: '0.65rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
                     Refreshes every 30 min
                 </span>
             </div>
@@ -133,6 +153,17 @@ export default function DailyNews() {
             <style jsx="true">{`
                 .news-article-row:hover p:first-of-type {
                     color: var(--color-gold) !important;
+                }
+                .news-article-row:hover .news-arrow {
+                    transform: translateX(3px);
+                    opacity: 1 !important;
+                }
+                @media (max-width: 480px) {
+                    .news-article-row { padding: 1rem 0 !important; }
+                    .news-article-row p:first-of-type { 
+                        font-size: 0.85rem !important; 
+                        margin-bottom: 0.25rem !important;
+                    }
                 }
             `}</style>
         </div>

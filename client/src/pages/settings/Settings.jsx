@@ -93,6 +93,7 @@ export default function Settings() {
                         ))}
                     </div>
                 </section>
+
             </div>
         </div>
     );

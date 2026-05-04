@@ -248,7 +248,7 @@ export const getClientActivity = async (req, res) => {
     try {
         const adminId = req.user.id;
         const [rows] = await db.query(`
-      SELECT client_id, name, status, join_date
+      SELECT client_id, name, status, join_date, capital_invested
       FROM clients
       WHERE is_deleted = FALSE AND admin_id = ?
       ORDER BY client_id DESC

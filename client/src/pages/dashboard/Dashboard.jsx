@@ -12,6 +12,26 @@ function fmtDate(val) {
     return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
 }
 
+function fmtLakhs(val) {
+    if (val === null || val === undefined) return '—';
+    const num = Number(val);
+    const abs = Math.abs(num);
+    const sign = num >= 0 ? '+' : '-';
+    if (abs < 100000) {
+        return sign + '₹' + Math.round(abs / 1000) + 'k';
+    }
+    return sign + '₹' + (abs / 100000).toFixed(2) + 'L';
+}
+
+function fmtLakhsPlain(val) {
+    if (val === null || val === undefined) return '—';
+    const num = Number(val);
+    if (num < 100000) {
+        return '₹' + Math.round(num / 1000) + 'k';
+    }
+    return '₹' + (num / 100000).toFixed(2) + 'L';
+}
+
 // Icon components (inline SVG-like characters for stat cards)
 const STAT_ICONS = {
     'Total Clients': '👥',
@@ -28,6 +48,7 @@ const STAT_COLORS = {
 };
 
 export default function Dashboard() {
+    // ... rest of component
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -40,25 +61,12 @@ export default function Dashboard() {
     const [activityLoading, setActivityLoading] = useState(true);
     const [activityError, setActivityError] = useState(null);
 
-    const [chart1, setChart1] = useState(() => {
-        const saved = localStorage.getItem('dash_chart_1');
-        return saved ? JSON.parse(saved) : { symbol: '%5ENSEI', label: 'NIFTY 50', accentColor: '#D4AF37' };
-    });
-
-    const [chart2, setChart2] = useState(() => {
-        const saved = localStorage.getItem('dash_chart_2');
-        return saved ? JSON.parse(saved) : { symbol: '%5ENSEBANK', label: 'BANK NIFTY', accentColor: '#60A5FA' };
-    });
-
-    const updateChart1 = (data) => {
-        setChart1(data);
-        localStorage.setItem('dash_chart_1', JSON.stringify(data));
-    };
-
-    const updateChart2 = (data) => {
-        setChart2(data);
-        localStorage.setItem('dash_chart_2', JSON.stringify(data));
-    };
+    const FIXED_INDICES = [
+        { symbol: 'NSE:NIFTY', label: 'NIFTY 50', accentColor: '#D4AF37' },
+        { symbol: 'BSE:SENSEX', label: 'SENSEX', accentColor: '#60A5FA' },
+        { symbol: 'DJI', label: 'DOW JONES', accentColor: '#EF4444' },
+        { symbol: 'IXIC', label: 'NASDAQ', accentColor: '#34D399' },
+    ];
 
     useEffect(() => {
         api.get('/dashboard/summary')
@@ -80,10 +88,10 @@ export default function Dashboard() {
     const SUMMARY_CARDS = summary ? [
         { label: 'Total Clients', value: summary.totalClients },
         { label: 'Total Trades', value: summary.totalTrades },
-        { label: 'Total Capital', value: `₹${Number(summary.totalCapital).toLocaleString('en-IN')}` },
+        { label: 'Total Capital', value: fmtLakhsPlain(summary.totalCapital) },
         {
             label: 'Realised P&L',
-            value: `${summary.totalPnl >= 0 ? '+' : ''}₹${Number(summary.totalPnl).toLocaleString('en-IN')}`,
+            value: fmtLakhs(summary.totalPnl),
             pnl: summary.totalPnl,
         },
     ] : [];
@@ -91,11 +99,24 @@ export default function Dashboard() {
     return (
         <div className="page">
             {/* Header */}
-            <div className="page__header">
+            <div className="page__header" style={{ marginBottom: 'var(--space-md)' }}>
                 <div>
                     <h2 className="page__title">Dashboard</h2>
                     <p className="page__subtitle">Your portfolio at a glance</p>
                 </div>
+            </div>
+
+            {/* ── Market CMP Cards (TOP) ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-lg)' }}
+                className="market-overview-grid">
+                {FIXED_INDICES.map((c, i) => (
+                    <MarketChart
+                        key={`${c.symbol}-${i}`}
+                        symbol={c.symbol}
+                        label={c.label}
+                        accentColor={c.accentColor}
+                    />
+                ))}
             </div>
 
             <DailyNews />
@@ -159,25 +180,6 @@ export default function Dashboard() {
                 <Profitability summary={summary} />
             )}
 
-            {/* ── Market Overview (Lightweight Charts via backend proxy) ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}
-                className="market-overview-grid">
-                <MarketChart
-                    symbol={chart1.symbol}
-                    label={chart1.label}
-                    accentColor={chart1.accentColor}
-                    onSymbolChange={updateChart1}
-                    height={260}
-                />
-                <MarketChart
-                    symbol={chart2.symbol}
-                    label={chart2.label}
-                    accentColor={chart2.accentColor}
-                    onSymbolChange={updateChart2}
-                    height={260}
-                />
-            </div>
-
             {/* ── Sections Grid ── */}
             <div className="dashboard-sections">
                 {/* Recent Trades */}
@@ -207,10 +209,10 @@ export default function Dashboard() {
                                 <thead>
                                     <tr>
                                         <th>Symbol</th>
-                                        <th>Direction</th>
+                                        <th>Dir</th>
                                         <th>P&L</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
+                                        <th className="hide-col-mobile">Status</th>
+                                        <th className="hide-col-mobile">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -219,27 +221,28 @@ export default function Dashboard() {
                                         const pnlNeg = t.total_pnl < 0;
                                         return (
                                             <tr key={t.trade_id}>
-                                                <td style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.stock_name}</td>
+                                                <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
                                                 <td>
                                                     <span style={{
                                                         color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
-                                                        fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                                                        fontWeight: 600, fontSize: '0.7rem',
                                                     }}>
-                                                        {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
+                                                        {t.trade_type === 'LONG' ? '▲' : '▼'}
                                                     </span>
                                                 </td>
                                                 <td style={{
                                                     fontWeight: 600,
-                                                    color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'var(--color-text-muted)',
+                                                    fontSize: '0.8rem',
+                                                    color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'inherit',
                                                 }}>
-                                                    {t.status === 'OPEN' ? '—' : `${pnlPos ? '+' : ''}₹${Number(t.total_pnl).toLocaleString('en-IN')}`}
+                                                    {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
                                                 </td>
-                                                <td>
+                                                <td className="hide-col-mobile">
                                                     <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
                                                         {t.status}
                                                     </span>
                                                 </td>
-                                                <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
+                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
                                             </tr>
                                         );
                                     })}
@@ -275,22 +278,27 @@ export default function Dashboard() {
                             <table className="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Client</th>
-                                        <th>Status</th>
-                                        <th>Joined</th>
+                                        <th style={{ width: '40%' }}>Client</th>
+                                        <th style={{ width: '40%' }}>Capital</th>
+                                        <th style={{ width: '20%', textAlign: 'center' }}>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {clientActivity.map(c => (
                                         <tr key={c.client_id}>
-                                            <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{c.name}</td>
-                                            <td>
-                                                <span className={`badge ${c.status === 'ACTIVE' ? 'badge--green' :
-                                                    c.status === 'INACTIVE' ? 'badge--red' :
-                                                        'badge--yellow'
-                                                    }`}>{c.status}</span>
+                                            <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{c.name.split(' ')[0]}</td>
+                                            <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{fmtLakhsPlain(c.capital_invested)}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <div style={{
+                                                    width: '10px',
+                                                    height: '10px',
+                                                    borderRadius: '50%',
+                                                    display: 'inline-block',
+                                                    background: c.status === 'ACTIVE' ? 'var(--color-success)' :
+                                                                c.status === 'INACTIVE' ? 'var(--color-danger)' :
+                                                                'var(--color-warning)'
+                                                }} title={c.status} />
                                             </td>
-                                            <td style={{ color: 'var(--color-text-muted)' }}>{fmtDate(c.join_date)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

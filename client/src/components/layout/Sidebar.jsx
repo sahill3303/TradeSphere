@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: '⊞', key: 'dashboard' },
@@ -14,6 +15,16 @@ const navItems = [
 export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
     const { sidebarFeatures } = usePreferences();
+    const confirm = useConfirm();
+
+    const handleLogout = () => {
+        confirm({
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to end your session? You will need to sign in again to access your dashboard.',
+            variant: 'danger',
+            onConfirm: logout
+        });
+    };
 
     return (
         <>
@@ -25,7 +36,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Brand */}
                 <div className="sidebar__brand">
                     <div className="sidebar__logo">
-                        <img src="src\assets\TS2.png" alt="" />
+                        <img src="src/assets/TS2.png" alt="" />
 
                     </div>
                     <span className="sidebar__brand-name">TradeSphere</span>
@@ -78,9 +89,7 @@ export default function Sidebar({ isOpen, onClose }) {
                             <span className="sidebar__user-email">{user?.email ?? ''}</span>
                         </div>
                     </div>
-                    <button className="sidebar__logout" onClick={() => {
-                        if (window.confirm('Are you sure you want to log out?')) logout();
-                    }} aria-label="Logout">
+                    <button className="sidebar__logout" onClick={handleLogout} aria-label="Logout">
                         ⭳ Logout
                     </button>
                 </div>

@@ -38,13 +38,10 @@ export default function Profitability({ summary }) {
     const lossStartAngle = 360 - (lossPct / 100) * 180;
 
     return (
-        <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 'var(--space-lg)',
+        <div className="profitability-grid" style={{
             marginTop: 'var(--space-xl)',
             marginBottom: 'var(--space-xl)'
-        }} className="profitability-grid">
+        }}>
 
             {/* Gauge Card */}
             <div className="card" style={{
@@ -107,37 +104,24 @@ export default function Profitability({ summary }) {
                 </svg>
 
                 {/* Bottom stats */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    maxWidth: '200px',
-                    marginTop: 'var(--space-md)',
-                    paddingTop: 'var(--space-md)',
-                    borderTop: '1px solid var(--color-border)'
-                }}>
+                <div className="profitability-stats">
                     <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-success)' }}>{winPct.toFixed(0)}%</span>
+                        <span className="profitability-stat-value profitability-stat-value--win">{winPct.toFixed(0)}%</span>
                         <br />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Wins: {safeWins}</span>
+                        <span className="profitability-stat-label">Wins: {safeWins}</span>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-danger)' }}>{lossPct.toFixed(0)}%</span>
+                        <span className="profitability-stat-value profitability-stat-value--loss">{lossPct.toFixed(0)}%</span>
                         <br />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Losses: {safeLosses}</span>
+                        <span className="profitability-stat-label">Losses: {safeLosses}</span>
                     </div>
                 </div>
             </div>
 
             {/* Ratio Cards Grid */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gridTemplateRows: '1fr 1fr',
-                gap: 'var(--space-md)'
-            }}>
+            <div className="ratio-cards-grid">
                 {/* Average Win */}
-                <div className="card" style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -151,7 +135,7 @@ export default function Profitability({ summary }) {
                 </div>
 
                 {/* Win Ratio */}
-                <div className="card" style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -165,7 +149,7 @@ export default function Profitability({ summary }) {
                 </div>
 
                 {/* Average Loss */}
-                <div className="card" style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
@@ -179,7 +163,7 @@ export default function Profitability({ summary }) {
                 </div>
 
                 {/* Profit Factor */}
-                <div className="card" style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="20" x2="18" y2="10"></line>

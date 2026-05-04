@@ -179,6 +179,8 @@ export default function Watchlist() {
                 </div>
             </header>
 
+            <button className="fab show-mobile" onClick={() => setShowNewCategoryModal(true)} title="New Category">+</button>
+
             <div className="watchlist-content">
                 {/* Sidebar for Search */}
                 <div className="watchlist-sidebar">
@@ -230,7 +232,7 @@ export default function Watchlist() {
                 {/* Main Area */}
                 <div className="watchlist-main-wrapper">
                     <div className="watchlist-tabs-header">
-                        <div className="watchlist-tabs">
+                        <div className="watchlist-tabs tabs-wrap">
                             {categories.map(cat => (
                                 <button 
                                     key={cat.id}
@@ -240,18 +242,19 @@ export default function Watchlist() {
                                     {cat.name}
                                 </button>
                             ))}
-                            <button className="watchlist-tab watchlist-tab--add" onClick={() => setShowNewCategoryModal(true)}>
-                                + New Watchlist
+                            <button className="watchlist-tab watchlist-tab--add hide-mobile" onClick={() => setShowNewCategoryModal(true)}>
+                                + New
                             </button>
                         </div>
                         <div className="watchlist-tabs-actions">
-                            {lastUpdated && <span className="watchlist-last-updated">Last Updated: {lastUpdated}</span>}
+                            {lastUpdated && <span className="watchlist-last-updated hide-mobile">Last Updated: {lastUpdated}</span>}
                             <button 
                                 className={`btn ${isEditing ? 'btn--primary' : 'btn--secondary'}`}
                                 onClick={() => setIsEditing(!isEditing)}
                                 disabled={activeSymbols.length === 0}
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
                             >
-                                {isEditing ? 'Done' : 'Edit List'}
+                                {isEditing ? 'Done' : 'Edit'}
                             </button>
                         </div>
                     </div>
@@ -262,16 +265,15 @@ export default function Watchlist() {
                         ) : activeSymbols.length === 0 ? (
                             <div className="watchlist-placeholder">
                                 <div className="watchlist-placeholder-icon">📈</div>
-                                <p>No stocks in the <strong>{activeCategory}</strong> category.</p>
-                                <p className="text-sm mt-2 opacity-50">Search in the left panel to add some.</p>
+                                <p>No stocks in <strong>{activeCategory}</strong>.</p>
                             </div>
                         ) : (
                             <div className="watchlist-table-container">
                                 <table className="watchlist-table">
                                     <thead>
                                         <tr>
-                                            <th>Company Name</th>
-                                            <th>Symbol</th>
+                                            <th>Company</th>
+                                            <th className="hide-col-mobile">Symbol</th>
                                             <th className="text-right">LTP (₹)</th>
                                             {isEditing && <th className="text-right">Action</th>}
                                         </tr>
@@ -279,8 +281,8 @@ export default function Watchlist() {
                                     <tbody>
                                         {activeSymbols.map(item => (
                                             <tr key={item.id}>
-                                                <td className="font-medium">{item.name || item.symbol.split(':')[1]}</td>
-                                                <td className="text-xs text-zinc-500">{item.symbol}</td>
+                                                <td className="font-medium" style={{ fontSize: '0.85rem' }}>{item.name || item.symbol.split(':')[1]}</td>
+                                                <td className="text-xs text-zinc-500 hide-col-mobile">{item.symbol}</td>
                                                 <td className="text-right watchlist-ltp">
                                                     {pricesLoading ? (
                                                         <span className="pulsing-text">Fetching...</span>

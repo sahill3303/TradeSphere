@@ -9,13 +9,17 @@ import Button from '../../components/ui/Button';
 const STATUS_BADGE = { OPEN: 'badge--yellow', CLOSED: 'badge--green' };
 const MODE_COLOR = { LONG: 'var(--color-success)', SHORT: 'var(--color-danger)' };
 
-function fmt(n) {
-    if (n === null || n === undefined) return '—';
-    const num = Number(n);
-    return (num >= 0 ? '+' : '') + '₹' + Math.abs(num).toLocaleString();
+function fmtLakhs(val) {
+    if (val === null || val === undefined) return '—';
+    const num = Number(val);
+    const abs = Math.abs(num);
+    const sign = num >= 0 ? '+' : '-';
+    if (abs < 100000) {
+        return sign + '₹' + Math.round(abs / 1000) + 'k';
+    }
+    return sign + '₹' + (abs / 100000).toFixed(2) + 'L';
 }
 
-// Safe date: extracts DD/MM/YYYY from any date value without timezone issues
 function fmtDate(val) {
     if (!val) return null;
     const s = val instanceof Date ? val.toISOString() : String(val);
@@ -37,13 +41,12 @@ function TabBtn({ active, onClick, children }) {
     );
 }
 
-// Inline action button
 function ActionBtn({ onClick, disabled, color, children }) {
     return (
         <button onClick={onClick} disabled={disabled} style={{
             background: 'none', border: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            color, fontSize: 'var(--font-size-sm)', fontWeight: 500, padding: 0,
+            color, fontSize: '0.9rem', padding: 0,
             opacity: disabled ? 0.5 : 1,
         }}>{children}</button>
     );
@@ -55,21 +58,18 @@ export default function TradesList() {
 
     const [activeTab, setActiveTab] = useState('active');
 
-    // ── Active trades ─────────────────────────────────────────────────────────
     const [trades, setTrades] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [deletingId, setDeletingId] = useState(null);
 
-    // ── Deleted trades ────────────────────────────────────────────────────────
     const [deleted, setDeleted] = useState([]);
     const [deletedLoading, setDeletedLoading] = useState(false);
     const [deletedError, setDeletedError] = useState('');
     const [restoringId, setRestoringId] = useState(null);
     const [hardDeletingId, setHardDeletingId] = useState(null);
 
-    // ── Fetch ─────────────────────────────────────────────────────────────────
     const fetchTrades = useCallback(async () => {
         setLoading(true); setError('');
         try {
@@ -92,7 +92,6 @@ export default function TradesList() {
     useEffect(() => { fetchTrades(); }, [fetchTrades]);
     useEffect(() => { if (activeTab === 'deleted') fetchDeleted(); }, [activeTab, fetchDeleted]);
 
-    // ── Soft delete ───────────────────────────────────────────────────────────
     async function handleDelete(tradeId, stockName) {
         confirmAction({
             title: 'Delete Trade',
@@ -109,7 +108,6 @@ export default function TradesList() {
         });
     }
 
-    // ── Restore ───────────────────────────────────────────────────────────────
     async function handleRestore(tradeId, stockName) {
         confirmAction({
             title: 'Restore Trade',
@@ -127,10 +125,6 @@ export default function TradesList() {
         });
     }
 
-    //sample test comment
-
-
-    // ── Hard delete ───────────────────────────────────────────────────────────
     async function handleHardDelete(tradeId, stockName) {
         confirmAction({
             title: 'Permanent Delete',
@@ -152,20 +146,20 @@ export default function TradesList() {
             <div className="page__header">
                 <h2 className="page__title">Trades</h2>
                 {activeTab === 'active' && (
-                    <Button variant="primary" onClick={() => navigate('/trades/open')}>+ Open Trade</Button>
+                    <Button variant="primary" onClick={() => navigate('/trades/open')} className="hide-mobile">+ Open Trade</Button>
                 )}
             </div>
 
-            {/* Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-sm)' }}>
+            <button className="fab show-mobile" onClick={() => navigate('/trades/open')} title="Open Trade">+</button>
+
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-sm)', flexWrap: 'nowrap', overflowX: 'auto' }}>
                 <TabBtn active={activeTab === 'active'} onClick={() => setActiveTab('active')}>Active Trades</TabBtn>
                 <TabBtn active={activeTab === 'deleted'} onClick={() => setActiveTab('deleted')}>Deleted Trades</TabBtn>
             </div>
 
-            {/* ── ACTIVE TRADES ─────────────────────────────────────────────── */}
             {activeTab === 'active' && (
                 <>
-                    <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', marginBottom: 'var(--space-md)' }}>
                         {['', 'OPEN', 'CLOSED'].map(s => (
                             <button key={s} onClick={() => setStatusFilter(s)} style={{
                                 padding: '0.3rem 0.9rem', borderRadius: '999px',
@@ -183,7 +177,7 @@ export default function TradesList() {
 
                     {!loading && !error && trades.length === 0 && (
                         <Card className="empty-state">
-                            <p>No trades found. <Link to="/trades/open" style={{ color: 'var(--color-primary)' }}>Open your first trade →</Link></p>
+                            <p>No trades found.</p>
                         </Card>
                     )}
 
@@ -193,45 +187,36 @@ export default function TradesList() {
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Symbol</th>
-                                            <th>Direction</th>
-                                            <th>Mode</th>
-                                            <th>Entry ₹</th>
-                                            <th>Qty</th>
-                                            <th>P&L</th>
-                                            <th>Status</th>
-                                            <th>Open Date</th>
-                                            <th>Actions</th>
+                                            <th style={{ width: '35%' }}>Symbol</th>
+                                            <th style={{ width: '15%' }}>Dir</th>
+                                            <th style={{ width: '30%' }}>P&L</th>
+                                            <th style={{ width: '20%', textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {trades.map(t => (
                                             <tr key={t.trade_id}>
-                                                <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
-                                                <td>
-                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                                                        {t.trade_type === 'LONG' ? '▲' : '▼'} {t.trade_type}
+                                                <td style={{ fontWeight: 600, fontSize: '0.8rem', width: '35%' }}>{t.stock_name}</td>
+                                                <td style={{ width: '15%' }}>
+                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
+                                                        {t.trade_type === 'LONG' ? '▲' : '▼'}
                                                     </span>
                                                 </td>
-                                                <td><span className="badge badge--yellow" style={{ fontSize: '0.7rem' }}>{t.mode}</span></td>
-                                                <td>₹{Number(t.entry_price).toLocaleString()}</td>
-                                                <td>{t.quantity}</td>
                                                 <td style={{
                                                     fontWeight: 600,
+                                                    fontSize: '0.8rem',
+                                                    width: '30%',
                                                     color: t.total_pnl > 0 ? 'var(--color-success)'
                                                         : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
                                                  }}>
-                                                    {t.status === 'OPEN' ? '—' : fmt(t.total_pnl)}
+                                                    {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
                                                 </td>
-                                                <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
-                                                <td>{fmtDate(t.trade_date) ?? fmtDate(t.created_at) ?? '—'}</td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                        <Link to={`/trades/${t.trade_id}`} className="table-link">View</Link>
-                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
+                                                <td style={{ width: '20%' }}>
+                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                        <Link to={`/trades/${t.trade_id}`} className="table-link" title="View">👁️</Link>
                                                         <ActionBtn onClick={() => handleDelete(t.trade_id, t.stock_name)}
                                                             disabled={deletingId === t.trade_id} color="var(--color-danger)">
-                                                            {deletingId === t.trade_id ? 'Deleting…' : 'Delete'}
+                                                            {deletingId === t.trade_id ? '⏳' : '🗑️'}
                                                         </ActionBtn>
                                                     </div>
                                                 </td>
@@ -245,16 +230,13 @@ export default function TradesList() {
                 </>
             )}
 
-            {/* ── DELETED TRADES ────────────────────────────────────────────── */}
             {activeTab === 'deleted' && (
                 <>
                     {deletedLoading && <p className="status-text">Loading deleted trades…</p>}
                     {deletedError && <div className="alert alert--error">{deletedError}</div>}
-
                     {!deletedLoading && !deletedError && deleted.length === 0 && (
                         <Card className="empty-state"><p>No deleted trades.</p></Card>
                     )}
-
                     {!deletedLoading && !deletedError && deleted.length > 0 && (
                         <Card style={{ padding: 0, overflow: 'hidden' }}>
                             <div className="table-container">
@@ -262,31 +244,26 @@ export default function TradesList() {
                                     <thead>
                                         <tr>
                                             <th>Symbol</th>
-                                            <th>Status</th>
                                             <th>P&L</th>
-                                            <th>Deleted On</th>
-                                            <th>Actions</th>
+                                            <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {deleted.map(t => (
                                             <tr key={t.trade_id} style={{ opacity: 0.8 }}>
                                                 <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
-                                                <td><span className={`badge ${STATUS_BADGE[t.status] ?? ''}`}>{t.status}</span></td>
                                                 <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
-                                                    {fmt(t.total_pnl)}
+                                                    {fmtLakhs(t.total_pnl)}
                                                 </td>
-                                                <td>{fmtDate(t.deleted_at) ?? '—'}</td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
                                                         <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
                                                             disabled={restoringId === t.trade_id} color="var(--color-success)">
-                                                            {restoringId === t.trade_id ? 'Restoring…' : '↩ Restore'}
+                                                            {restoringId === t.trade_id ? '⏳' : 'Restore'}
                                                         </ActionBtn>
-                                                        <span style={{ color: 'var(--color-border)' }}>|</span>
                                                         <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
                                                             disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
-                                                            {hardDeletingId === t.trade_id ? 'Deleting…' : '🗑 Delete Forever'}
+                                                            {hardDeletingId === t.trade_id ? '⏳' : 'Delete'}
                                                         </ActionBtn>
                                                     </div>
                                                 </td>

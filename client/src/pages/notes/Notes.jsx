@@ -78,9 +78,12 @@ export default function Notes() {
                 <div className="page__subtitle">Manage your personal notes, to-do lists, SOPs, and reference sheets.</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 2fr', gap: 'var(--space-xl)', alignItems: 'start' }}>
+            {/* Mobile FAB */}
+            <button className="fab show-mobile" onClick={() => document.getElementById('title')?.focus()} title="Create Note">+</button>
+
+            <div className="grid-stack-mobile two-col">
                 {/* Creation Form */}
-                <Card style={{ position: 'sticky', top: '80px' }}>
+                <Card className="sticky-mobile-reset" style={{ position: 'sticky', top: '80px' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--space-md)' }}>+ Create Note</h3>
 
                     {formError && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{formError}</div>}

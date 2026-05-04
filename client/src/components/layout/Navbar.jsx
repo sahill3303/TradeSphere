@@ -36,7 +36,7 @@ export default function Navbar({ onMenuToggle }) {
                 >
                     {isDarkMode ? '☀️' : '🌙'}
                 </button>
-                <span style={{
+                <span className="hide-mobile" style={{
                     fontSize: '0.72rem',
                     color: 'var(--color-text-dim)',
                     background: 'var(--color-surface)',

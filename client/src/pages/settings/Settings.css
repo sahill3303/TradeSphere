@@ -182,3 +182,82 @@ input:checked + .settings-slider:before {
   background-color: #000;
   transform: translateX(20px);
 }
+
+/* Dashboard Indices Styles */
+.settings-indices-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.settings-index-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition);
+}
+
+.settings-index-item.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.index-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.index-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.index-toggle-btn {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+}
+
+.index-toggle-btn.add {
+  background: var(--color-primary);
+  color: #000;
+}
+
+.index-toggle-btn.add:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.index-toggle-btn.remove {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.index-toggle-btn.remove:hover {
+  background: var(--color-danger);
+  color: white;
+}
+
+.index-toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.suggestion-item:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
