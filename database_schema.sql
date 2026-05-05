@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `capital_summary` (
   `total_pnl` DECIMAL(15,2) DEFAULT 0.00,
   `deployed_capital` DECIMAL(15,2) DEFAULT 0.00
 );
-
+--Seed initial row
 -- Seed initial row for capital_summary
 INSERT IGNORE INTO `capital_summary` (`capital_id`, `total_capital`, `total_pnl`, `deployed_capital`) 
 VALUES (1, 0.00, 0.00, 0.00);
