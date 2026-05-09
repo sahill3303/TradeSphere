@@ -114,5 +114,3 @@ The database is designed with strict relational constraints to ensure data consi
 4. **Database**:
    - Import `database_schema.sql` into your MySQL instance.
 
----
-**Prepared by Antigravity AI for AJ Consultancy.**
