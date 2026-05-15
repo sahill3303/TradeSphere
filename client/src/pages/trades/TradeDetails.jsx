@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Pencil, Lock, CheckCircle, XCircle } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -41,6 +42,7 @@ export default function TradeDetails() {
     const [showExitForm, setShowExitForm] = useState(false);
     const [exitForm, setExitForm] = useState({
         exit_price: '',
+        quantity: '',
         exit_nifty_mood: 'NEUTRAL',
         exit_reason: '',
         exit_emotion: '',
@@ -49,6 +51,12 @@ export default function TradeDetails() {
     });
     const [exitSubmitting, setExitSubmitting] = useState(false);
     const [exitError, setExitError] = useState('');
+
+    // ── Edit form state ───────────────────────────────────────────────────────
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [editForm, setEditForm] = useState({});
+    const [editSubmitting, setEditSubmitting] = useState(false);
+    const [editError, setEditError] = useState('');
 
     useEffect(() => {
         api.get(`/trades/${id}`)
@@ -105,6 +113,7 @@ export default function TradeDetails() {
         try {
             const { data } = await api.patch(`/trades/${id}/exit`, {
                 exit_price: Number(exitForm.exit_price),
+                quantity: Number(exitForm.quantity) || trade.quantity,
                 exit_nifty_mood: exitForm.exit_nifty_mood,
                 exit_reason: exitForm.exit_reason,
                 exit_emotion: exitForm.exit_emotion,
@@ -112,10 +121,47 @@ export default function TradeDetails() {
                 exit_date: actualExitDate,
             });
             // Refresh trade data
-            setTrade(prev => ({ ...prev, status: 'CLOSED', total_pnl: data.total_pnl, ...exitForm, exit_date: actualExitDate, exit_price: Number(exitForm.exit_price) }));
+            setTrade(prev => ({ ...prev, status: 'CLOSED', total_pnl: data.total_pnl, quantity: data.quantity || prev.quantity, ...exitForm, exit_date: actualExitDate, exit_price: Number(exitForm.exit_price) }));
             setShowExitForm(false);
         } catch (err) { setExitError(err.response?.data?.message || 'Failed to exit trade.'); }
         finally { setExitSubmitting(false); }
+    }
+
+    // ── Edit trade ────────────────────────────────────────────────────────────
+    function openEditForm() {
+        setEditForm({
+            entry_price: trade.entry_price,
+            quantity: trade.quantity,
+            target: trade.target || '',
+            stop_loss: trade.stop_loss || '',
+            ...(trade.status === 'CLOSED' ? { exit_price: trade.exit_price } : {})
+        });
+        setShowEditForm(true);
+        setShowExitForm(false);
+    }
+
+    function handleEditChange(e) {
+        const { id: fid, value } = e.target;
+        setEditForm(prev => ({ ...prev, [fid]: value }));
+    }
+
+    async function handleEditSubmit(e) {
+        e.preventDefault();
+        setEditError('');
+        setEditSubmitting(true);
+        try {
+            await api.patch(`/trades/${id}`, {
+                entry_price: Number(editForm.entry_price),
+                quantity: Number(editForm.quantity),
+                target: editForm.target ? Number(editForm.target) : null,
+                stop_loss: editForm.stop_loss ? Number(editForm.stop_loss) : null,
+                ...(trade.status === 'CLOSED' && editForm.exit_price ? { exit_price: Number(editForm.exit_price) } : {})
+            });
+            const { data } = await api.get(`/trades/${id}`);
+            setTrade(data.trade);
+            setShowEditForm(false);
+        } catch (err) { setEditError(err.response?.data?.message || 'Failed to update trade.'); }
+        finally { setEditSubmitting(false); }
     }
 
     if (loading) return <div className="page"><p className="status-text">Loading trade…</p></div>;
@@ -129,12 +175,49 @@ export default function TradeDetails() {
                 <span className={`badge ${trade.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`} style={{ fontSize: '0.8rem' }}>
                     {trade.status}
                 </span>
+                <Button variant="secondary" onClick={() => showEditForm ? setShowEditForm(false) : openEditForm()}>
+                    {showEditForm ? 'Cancel Edit' : <><Pencil size={14} style={{marginRight: '6px'}} /> Edit</>}
+                </Button>
                 {trade.status === 'OPEN' && (
-                    <Button variant="danger" onClick={() => setShowExitForm(s => !s)}>
-                        {showExitForm ? 'Cancel Exit' : '🔒 Exit Trade'}
+                    <Button variant="danger" onClick={() => { 
+                        setShowExitForm(s => {
+                            if (!s) setExitForm(prev => ({ ...prev, quantity: trade.quantity }));
+                            return !s;
+                        }); 
+                        setShowEditForm(false); 
+                    }}>
+                        {showExitForm ? 'Cancel Exit' : <><Lock size={14} style={{marginRight: '6px'}} /> Exit Trade</>}
                     </Button>
                 )}
             </div>
+
+            {/* ── Edit form ────────────────────────────────────────────────── */}
+            {showEditForm && (
+                <Card style={{ borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)', marginBottom: 'var(--space-md)' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: 'var(--space-md)', color: 'var(--color-primary)' }}>Edit Trade Details</h3>
+                    {editError && <div className="alert alert--error">{editError}</div>}
+                    <form onSubmit={handleEditSubmit} noValidate>
+                        <div className="form-grid">
+                            <Input id="entry_price" label="Entry Price ₹" type="number"
+                                value={editForm.entry_price} onChange={handleEditChange} required />
+                            <Input id="quantity" label="Quantity" type="number"
+                                value={editForm.quantity} onChange={handleEditChange} required />
+                            <Input id="target" label="Target ₹" type="number"
+                                value={editForm.target} onChange={handleEditChange} />
+                            <Input id="stop_loss" label="Stop Loss ₹" type="number"
+                                value={editForm.stop_loss} onChange={handleEditChange} />
+                            {trade.status === 'CLOSED' && (
+                                <Input id="exit_price" label="Exit Price ₹" type="number"
+                                    value={editForm.exit_price} onChange={handleEditChange} required />
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
+                            <Button type="button" variant="secondary" onClick={() => setShowEditForm(false)} disabled={editSubmitting}>Cancel</Button>
+                            <Button type="submit" variant="primary" disabled={editSubmitting}>{editSubmitting ? 'Saving…' : 'Save Changes'}</Button>
+                        </div>
+                    </form>
+                </Card>
+            )}
 
             {/* ── Exit form ────────────────────────────────────────────────── */}
             {showExitForm && (
@@ -146,6 +229,9 @@ export default function TradeDetails() {
                             <Input id="exit_price" label="Exit Price ₹" type="number"
                                 value={exitForm.exit_price} onChange={handleExitChange}
                                 placeholder="0.00" required />
+                            <Input id="quantity" label="Exit Quantity" type="number"
+                                value={exitForm.quantity} onChange={handleExitChange}
+                                placeholder="Full quantity by default" required />
                             <Input id="exit_date" label="Exit Date" type="date"
                                 value={trade.mode === 'INTRADAY' && trade.trade_date ? new Date(trade.trade_date).toISOString().split('T')[0] : exitForm.exit_date} 
                                 onChange={handleExitChange} required 
@@ -194,7 +280,7 @@ export default function TradeDetails() {
                     border: `1px solid ${trade.total_pnl >= 0 ? '#86efac' : '#fca5a5'}`,
                     display: 'flex', alignItems: 'center', gap: 'var(--space-md)',
                 }}>
-                    <span style={{ fontSize: '1.75rem' }}>{trade.total_pnl >= 0 ? '✅' : '❌'}</span>
+                    {trade.total_pnl >= 0 ? <CheckCircle size={28} color="var(--color-success)" /> : <XCircle size={28} color="var(--color-danger)" />}
                     <div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Realised P&L</div>
                         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: pnlColor }}>

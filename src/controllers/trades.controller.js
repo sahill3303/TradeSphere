@@ -127,7 +127,8 @@ export const exitTrade = async (req, res) => {
             exit_reason,
             exit_emotion,
             conclusion,
-            exit_date
+            exit_date,
+            quantity: exitQuantity
         } = req.body;
 
         if (!exit_price) {
@@ -156,14 +157,15 @@ export const exitTrade = async (req, res) => {
             });
         }
 
-        const { trade_type, entry_price, quantity } = trade;
+        const { trade_type, entry_price } = trade;
+        const finalQuantity = exitQuantity ? Number(exitQuantity) : trade.quantity;
 
         let pnl = 0;
 
         if (trade_type === 'LONG') {
-            pnl = (exit_price - entry_price) * quantity;
+            pnl = (exit_price - entry_price) * finalQuantity;
         } else {
-            pnl = (entry_price - exit_price) * quantity;
+            pnl = (entry_price - exit_price) * finalQuantity;
         }
 
         pnl = Number(pnl.toFixed(2));
@@ -177,6 +179,7 @@ export const exitTrade = async (req, res) => {
                  conclusion = ?,
                  total_pnl = ?,
                  exit_date = ?,
+                 quantity = ?,
                  status = 'CLOSED',
                  closed_at = NOW()
              WHERE trade_id = ? AND admin_id = ?`,
@@ -188,6 +191,7 @@ export const exitTrade = async (req, res) => {
                 conclusion,
                 pnl,
                 exit_date || null,
+                finalQuantity,
                 trade_id,
                 req.user.id
             ]
@@ -195,7 +199,8 @@ export const exitTrade = async (req, res) => {
 
         res.json({
             message: "Trade closed successfully",
-            total_pnl: pnl
+            total_pnl: pnl,
+            quantity: finalQuantity
         });
 
     } catch (error) {
@@ -308,7 +313,7 @@ export const getTradeById = async (req, res) => {
     }
 };
 
-// 🔹 UPDATE TRADE (ONLY IF OPEN)
+// 🔹 UPDATE TRADE (OPEN OR CLOSED)
 export const updateTrade = async (req, res) => {
     try {
         const { trade_id } = req.params;
@@ -316,19 +321,13 @@ export const updateTrade = async (req, res) => {
 
         // Check trade exists
         const [[trade]] = await db.query(
-            `SELECT status FROM trades
+            `SELECT * FROM trades
              WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
             [trade_id, req.user.id]
         );
 
         if (!trade) {
             return res.status(404).json({ message: "Trade not found" });
-        }
-
-        if (trade.status !== 'OPEN') {
-            return res.status(400).json({
-                message: "Cannot edit a closed trade"
-            });
         }
 
         const allowedFields = [
@@ -343,16 +342,37 @@ export const updateTrade = async (req, res) => {
             "strategy",
             "conviction_level",
             "entry_nifty_mood",
-            "entry_notes"
+            "entry_notes",
+            "exit_price",
+            "exit_nifty_mood",
+            "exit_reason",
+            "exit_emotion",
+            "conclusion",
+            "exit_date"
         ];
 
         const fields = [];
         const values = [];
 
+        // Track changes for PNL recalculation
+        let needsPnlRecalc = false;
+        let newEntryPrice = trade.entry_price;
+        let newQuantity = trade.quantity;
+        let newExitPrice = trade.exit_price;
+        let newTradeType = trade.trade_type;
+
         for (let key of allowedFields) {
             if (updates[key] !== undefined) {
                 fields.push(`${key} = ?`);
                 values.push(updates[key]);
+                
+                if (key === 'entry_price') newEntryPrice = updates[key];
+                if (key === 'quantity') newQuantity = updates[key];
+                if (key === 'exit_price') newExitPrice = updates[key];
+                if (key === 'trade_type') newTradeType = updates[key];
+                if (['entry_price', 'quantity', 'exit_price', 'trade_type'].includes(key)) {
+                    needsPnlRecalc = true;
+                }
             }
         }
 
@@ -360,6 +380,18 @@ export const updateTrade = async (req, res) => {
             return res.status(400).json({
                 message: "No valid fields provided"
             });
+        }
+
+        if (trade.status === 'CLOSED' && needsPnlRecalc && newExitPrice) {
+            let pnl = 0;
+            if (newTradeType === 'LONG') {
+                pnl = (newExitPrice - newEntryPrice) * newQuantity;
+            } else {
+                pnl = (newEntryPrice - newExitPrice) * newQuantity;
+            }
+            pnl = Number(pnl.toFixed(2));
+            fields.push("total_pnl = ?");
+            values.push(pnl);
         }
 
         await db.query(

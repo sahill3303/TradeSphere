@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConfirm } from '../../context/ConfirmContext';
 import { Link } from 'react-router-dom';
+import { Eye, Pencil, Trash2, RotateCcw, Loader2 } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -24,11 +25,16 @@ const BLANK_FORM = {
 function fmtLakhs(val) {
     if (!val) return '—';
     const num = Number(val);
-    if (num < 100000) {
-        return `₹${Math.round(num / 1000)}k`;
+    const abs = Math.abs(num);
+    const sign = num >= 0 ? '' : '-';
+    if (abs < 1000) {
+        return sign + `₹${abs}`;
     }
-    const lakhs = num / 100000;
-    return `₹${lakhs.toFixed(2)}L`;
+    if (abs < 100000) {
+        return sign + `₹${(abs / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+    }
+    const lakhs = abs / 100000;
+    return sign + `₹${lakhs.toFixed(2)}L`;
 }
 
 function validate(form) {
@@ -284,11 +290,62 @@ export default function ClientsList() {
                                                 <td className="hide-col-mobile">{toDateInput(client.join_date)}</td>
                                                 <td style={{ width: '20%' }}>
                                                     <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                        <Link to={`/clients/${client.client_id}`} className="table-link" title="View">👁️</Link>
-                                                        <button onClick={() => openEditModal(client)} className="table-btn-icon" title="Edit">✏️</button>
-                                                        <button onClick={() => handleDelete(client.client_id, client.name)} disabled={deletingId === client.client_id} className="table-btn-icon danger" title="Delete">
-                                                            {deletingId === client.client_id ? '⏳' : '🗑️'}
+                                                        <Link to={`/clients/${client.client_id}`} className="table-btn-icon" title="View">
+                                                            <Eye size={16} />
+                                                        </Link>
+                                                        <button onClick={() => openEditModal(client)} className="table-btn-icon" title="Edit">
+                                                            <Pencil size={16} />
                                                         </button>
+                                                        <button onClick={() => handleDelete(client.client_id, client.name)} disabled={deletingId === client.client_id} className="table-btn-icon danger" title="Delete">
+                                                            {deletingId === client.client_id ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    )}
+                </>
+            )}
+
+            {activeTab === 'deleted' && (
+                <>
+                    {deletedLoading && <p className="status-text">Loading deleted clients…</p>}
+                    {deletedError && <div className="alert alert--error">{deletedError}</div>}
+
+                    {!deletedLoading && !deletedError && deleted.length === 0 && (
+                        <Card className="empty-state"><p>No deleted clients found.</p></Card>
+                    )}
+
+                    {!deletedLoading && !deletedError && deleted.length > 0 && (
+                        <Card style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Deleted At</th>
+                                            <th style={{ textAlign: 'right' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {deleted.map((client) => (
+                                            <tr key={client.client_id}>
+                                                <td>{client.name}</td>
+                                                <td>{new Date(client.deleted_at).toLocaleDateString()}</td>
+                                                <td style={{ width: '20%' }}>
+                                                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                        <ActionBtn onClick={() => handleRestore(client.client_id, client.name)}
+                                                            disabled={restoringId === client.client_id} color="var(--color-success)">
+                                                            {restoringId === client.client_id ? <Loader2 size={14} className="spin" /> : <><RotateCcw size={14} style={{marginRight: '4px'}} /> Restore</>}
+                                                        </ActionBtn>
+                                                        <ActionBtn onClick={() => handleHardDelete(client.client_id, client.name)}
+                                                            disabled={hardDeletingId === client.client_id} color="var(--color-danger)">
+                                                            {hardDeletingId === client.client_id ? <Loader2 size={14} className="spin" /> : <><Trash2 size={14} style={{marginRight: '4px'}} /> Delete</>}
+                                                        </ActionBtn>
                                                     </div>
                                                 </td>
                                             </tr>

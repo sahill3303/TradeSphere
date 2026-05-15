@@ -8,20 +8,17 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-    const [theme, setTheme] = useState('dark');
-    const [accentColor, setAccentColorState] = useState('gold');
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+    const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('accentColor') || 'gold');
     // token is only available after login; read it lazily
     const getToken = () => localStorage.getItem('token');
 
-    // When app loads, apply whatever is in localStorage as a fast initial paint
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        const savedColor = localStorage.getItem('accentColor') || 'gold';
-        setTheme(savedTheme);
-        setAccentColorState(savedColor);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.documentElement.setAttribute('data-color', savedColor);
-    }, []);
+    // Ensure DOM is updated immediately on first render if possible, 
+    // but effects will handle it. We can do it during initialization:
+    if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-color', accentColor);
+    }
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);

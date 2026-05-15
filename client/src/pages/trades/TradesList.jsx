@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConfirm } from '../../context/ConfirmContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, Trash2, RotateCcw } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -14,8 +15,11 @@ function fmtLakhs(val) {
     const num = Number(val);
     const abs = Math.abs(num);
     const sign = num >= 0 ? '+' : '-';
+    if (abs < 1000) {
+        return sign + '₹' + abs;
+    }
     if (abs < 100000) {
-        return sign + '₹' + Math.round(abs / 1000) + 'k';
+        return sign + '₹' + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     }
     return sign + '₹' + (abs / 100000).toFixed(2) + 'L';
 }
@@ -187,37 +191,52 @@ export default function TradesList() {
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th style={{ width: '35%' }}>Symbol</th>
-                                            <th style={{ width: '15%' }}>Dir</th>
-                                            <th style={{ width: '30%' }}>P&L</th>
-                                            <th style={{ width: '20%', textAlign: 'right' }}>Actions</th>
+                                            <th>Symbol</th>
+                                            <th>Dir</th>
+                                            <th className="hide-col-mobile">Entry</th>
+                                            <th className="hide-col-mobile">Qty</th>
+                                            <th className="hide-col-mobile">Status</th>
+                                            <th className="hide-col-mobile">Date</th>
+                                            <th>P&L</th>
+                                            <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {trades.map(t => (
                                             <tr key={t.trade_id}>
-                                                <td style={{ fontWeight: 600, fontSize: '0.8rem', width: '35%' }}>{t.stock_name}</td>
-                                                <td style={{ width: '15%' }}>
+                                                <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
+                                                <td>
                                                     <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
-                                                        {t.trade_type === 'LONG' ? '▲' : '▼'}
+                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
                                                     </span>
+                                                </td>
+                                                <td className="hide-col-mobile">₹{t.entry_price}</td>
+                                                <td className="hide-col-mobile">{t.quantity}</td>
+                                                <td className="hide-col-mobile">
+                                                    <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
+                                                        {t.status}
+                                                    </span>
+                                                </td>
+                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
+                                                    {fmtDate(t.created_at)}
                                                 </td>
                                                 <td style={{
                                                     fontWeight: 600,
                                                     fontSize: '0.8rem',
-                                                    width: '30%',
                                                     color: t.total_pnl > 0 ? 'var(--color-success)'
                                                         : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
                                                  }}>
                                                     {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
                                                 </td>
-                                                <td style={{ width: '20%' }}>
+                                                <td>
                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                        <Link to={`/trades/${t.trade_id}`} className="table-link" title="View">👁️</Link>
-                                                        <ActionBtn onClick={() => handleDelete(t.trade_id, t.stock_name)}
-                                                            disabled={deletingId === t.trade_id} color="var(--color-danger)">
-                                                            {deletingId === t.trade_id ? '⏳' : '🗑️'}
-                                                        </ActionBtn>
+                                                        <Link to={`/trades/${t.trade_id}`} className="table-btn-icon" title="View">
+                                                            <Eye size={16} />
+                                                        </Link>
+                                                        <button onClick={() => handleDelete(t.trade_id, t.stock_name)}
+                                                            disabled={deletingId === t.trade_id} className="table-btn-icon danger" title="Delete">
+                                                            {deletingId === t.trade_id ? '⏳' : <Trash2 size={16} />}
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -244,6 +263,8 @@ export default function TradesList() {
                                     <thead>
                                         <tr>
                                             <th>Symbol</th>
+                                            <th>Dir</th>
+                                            <th className="hide-col-mobile">Date</th>
                                             <th>P&L</th>
                                             <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
@@ -252,6 +273,14 @@ export default function TradesList() {
                                         {deleted.map(t => (
                                             <tr key={t.trade_id} style={{ opacity: 0.8 }}>
                                                 <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
+                                                <td>
+                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
+                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
+                                                    </span>
+                                                </td>
+                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
+                                                    {fmtDate(t.created_at)}
+                                                </td>
                                                 <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
                                                     {fmtLakhs(t.total_pnl)}
                                                 </td>
@@ -259,11 +288,11 @@ export default function TradesList() {
                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
                                                         <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
                                                             disabled={restoringId === t.trade_id} color="var(--color-success)">
-                                                            {restoringId === t.trade_id ? '⏳' : 'Restore'}
+                                                            {restoringId === t.trade_id ? '⏳' : <><RotateCcw size={14} style={{marginRight: '4px'}} /> Restore</>}
                                                         </ActionBtn>
                                                         <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
                                                             disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
-                                                            {hardDeletingId === t.trade_id ? '⏳' : 'Delete'}
+                                                            {hardDeletingId === t.trade_id ? '⏳' : <><Trash2 size={14} style={{marginRight: '4px'}} /> Delete</>}
                                                         </ActionBtn>
                                                     </div>
                                                 </td>

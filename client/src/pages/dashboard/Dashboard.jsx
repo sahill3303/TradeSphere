@@ -17,8 +17,11 @@ function fmtLakhs(val) {
     const num = Number(val);
     const abs = Math.abs(num);
     const sign = num >= 0 ? '+' : '-';
+    if (abs < 1000) {
+        return sign + '₹' + abs;
+    }
     if (abs < 100000) {
-        return sign + '₹' + Math.round(abs / 1000) + 'k';
+        return sign + '₹' + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     }
     return sign + '₹' + (abs / 100000).toFixed(2) + 'L';
 }
@@ -26,10 +29,14 @@ function fmtLakhs(val) {
 function fmtLakhsPlain(val) {
     if (val === null || val === undefined) return '—';
     const num = Number(val);
-    if (num < 100000) {
-        return '₹' + Math.round(num / 1000) + 'k';
+    const abs = Math.abs(num);
+    if (abs < 1000) {
+        return '₹' + abs;
     }
-    return '₹' + (num / 100000).toFixed(2) + 'L';
+    if (abs < 100000) {
+        return '₹' + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return '₹' + (abs / 100000).toFixed(2) + 'L';
 }
 
 // Icon components (inline SVG-like characters for stat cards)
@@ -227,7 +234,7 @@ export default function Dashboard() {
                                                         color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
                                                         fontWeight: 600, fontSize: '0.7rem',
                                                     }}>
-                                                        {t.trade_type === 'LONG' ? '▲' : '▼'}
+                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
                                                     </span>
                                                 </td>
                                                 <td style={{

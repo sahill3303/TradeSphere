@@ -60,7 +60,11 @@ export default function OpenTrade() {
         api.get('/clients')
            .then(res => {
                if (res.data?.data) {
-                   setAvailableClients(res.data.data.filter(c => c.status === 'ACTIVE'));
+                   const activeClients = res.data.data.filter(c => c.status === 'ACTIVE');
+                   setAvailableClients(activeClients);
+                   if (activeClients.length === 1) {
+                       setForm(prev => ({ ...prev, client_ids: [activeClients[0].client_id] }));
+                   }
                }
            })
            .catch(err => console.error("Failed to load clients", err));
