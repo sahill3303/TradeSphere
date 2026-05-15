@@ -5,7 +5,7 @@ import './Settings.css';
 
 export default function Settings() {
     const { toggleTheme, isDarkMode, accentColor, setAccentColor } = useTheme();
-    const { sidebarFeatures, toggleFeature } = usePreferences();
+    const { sidebarFeatures, toggleFeature, optionalFeatures, toggleOptionalFeature } = usePreferences();
 
     const colors = [
         { id: 'gold', hex: '#D4AF37', label: 'Classic Gold' },
@@ -91,6 +91,31 @@ export default function Settings() {
                                 </label>
                             </div>
                         ))}
+                    </div>
+                </section>
+
+                {/* Optional Features Section */}
+                <section className="settings-card">
+                    <div className="settings-card-header">
+                        <h3>✨ Optional Features</h3>
+                        <p>Toggle additional dashboard widgets and intelligence features.</p>
+                    </div>
+
+                    <div className="settings-features-list">
+                        <div className="settings-item">
+                            <div className="settings-item-info">
+                                <h4>🔥 Market Intelligence</h4>
+                                <p>Show live market news and sentiment on the dashboard.</p>
+                            </div>
+                            <label className="settings-switch">
+                                <input 
+                                    type="checkbox" 
+                                    checked={optionalFeatures?.marketIntelligence ?? true} 
+                                    onChange={() => toggleOptionalFeature('marketIntelligence')} 
+                                />
+                                <span className="settings-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </section>
 

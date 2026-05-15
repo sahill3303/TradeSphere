@@ -3,6 +3,7 @@ import api from '../../api/axios';
 import MarketChart from '../../components/ui/MarketChart';
 import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
+import { usePreferences } from '../../context/PreferencesContext';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -55,6 +56,7 @@ const STAT_COLORS = {
 };
 
 export default function Dashboard() {
+    const { optionalFeatures } = usePreferences();
     // ... rest of component
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -126,7 +128,8 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            <DailyNews />
+            {/* Daily Market News / Sentiment */}
+            {(optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
 
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
