@@ -175,3 +175,97 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* ── Elite Member Banner ── */
+.welcome-elite-banner {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-elite-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.06), transparent);
+    animation: elite-shimmer 3s ease infinite;
+}
+
+@keyframes elite-shimmer {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(50%); }
+}
+
+.welcome-elite-badge {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    background: linear-gradient(135deg, #D4AF37, #B8960C);
+    color: #0B0B0D;
+    border-radius: var(--radius-full);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.welcome-elite-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+}
+
+.welcome-elite-desc {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.welcome-elite-price {
+    color: var(--color-text-dim);
+    font-weight: 600;
+}
+
+.welcome-elite-perks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.welcome-elite-perks span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--color-gold);
+    gap: 0.3rem;
+}
+
+@media (max-width: 480px) {
+    .welcome-card {
+        padding: 1.5rem;
+    }
+    .welcome-elite-perks {
+        gap: 0.4rem;
+    }
+    .welcome-elite-perks span {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.55rem;
+    }
+}

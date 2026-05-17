@@ -68,6 +68,24 @@ export default function Welcome() {
                     <p>Let's set up your workspace in 30 seconds.</p>
                 </div>
 
+                {/* Elite Member Banner */}
+                <div className="welcome-elite-banner">
+                    <div className="welcome-elite-badge">👑 ELITE MEMBER</div>
+                    <h3 className="welcome-elite-title">
+                        You are our <span style={{ color: 'var(--color-gold)' }}>Elite Member!</span>
+                    </h3>
+                    <p className="welcome-elite-desc">
+                        Enjoy a <strong>free 1-month trial</strong> of all exclusive features — 
+                        a <span className="welcome-elite-price"><s>₹2,000</s></span> value, completely on us.
+                    </p>
+                    <div className="welcome-elite-perks">
+                        <span>✦ Unlimited Clients</span>
+                        <span>✦ AI Research</span>
+                        <span>✦ Real-time Watchlist</span>
+                        <span>✦ Advanced Analytics</span>
+                    </div>
+                </div>
+
                 {/* Step 1: Accent Color */}
                 <section className="welcome-section">
                     <h3>Choose your accent color</h3>

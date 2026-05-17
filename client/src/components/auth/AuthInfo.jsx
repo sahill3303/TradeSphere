@@ -21,10 +21,10 @@ const AuthInfo = () => {
                         </div>
                     </div>
                     <div className="auth-info__feature">
-                        <div className="auth-info__feature-icon">🧠</div>
+                        <div className="auth-info__feature-icon">📊</div>
                         <div className="auth-info__feature-text">
-                            <h3>AI-Powered Insights</h3>
-                            <p>Advanced algorithms analyze your trading patterns to provide personalized performance tips.</p>
+                            <h3>Client & Portfolio Management</h3>
+                            <p>Manage multiple clients, track capital invested, and monitor individual portfolio performance effortlessly.</p>
                         </div>
                     </div>
                     <div className="auth-info__feature">
@@ -34,6 +34,29 @@ const AuthInfo = () => {
                             <p>Your data is encrypted and stored securely. We prioritize your privacy above all else.</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Who is it for */}
+                <div className="auth-info__usecases">
+                    <h4 className="auth-info__usecases-title">Built for</h4>
+                    <div className="auth-info__usecases-list">
+                        <span className="auth-info__usecase-tag">📈 Traders</span>
+                        <span className="auth-info__usecase-tag">🤝 Consultants</span>
+                        <span className="auth-info__usecase-tag">💼 Portfolio Managers</span>
+                    </div>
+                </div>
+
+                {/* About & Copyright */}
+                <div className="auth-info__footer">
+                    <p className="auth-info__copyright">
+                        © 2026 <strong>Sahil Yadav</strong>. All rights reserved.
+                    </p>
+                    <p className="auth-info__credit">
+                        Made with ❤️ by{' '}
+                        <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">
+                            OneForge
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>

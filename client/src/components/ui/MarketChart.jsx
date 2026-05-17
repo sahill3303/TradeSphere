@@ -12,7 +12,8 @@ const SYMBOL_MAP = {
     'NSE:CNXIT': '%5ECNXIT',
     'BSE:SENSEX': '%5EBSESN',
     'DJI': '%5EDJI',
-    'IXIC': '%5EIXIC',
+    'IXIC': '%5ENDX', // Changed from ^IXIC to ^NDX (NASDAQ 100)
+    'NDX': '%5ENDX',
 };
 
 export default function MarketChart({ 
@@ -93,7 +94,11 @@ export default function MarketChart({
 
             <div className="cmp-card__body">
                 <h2 className="cmp-card__price">
-                    ₹{Number(priceData?.price || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    {['DJI', 'IXIC', 'NDX'].includes(initialSymbol) ? '$' : '₹'}
+                    {Number(priceData?.price || 0).toLocaleString(
+                        ['DJI', 'IXIC', 'NDX'].includes(initialSymbol) ? 'en-US' : 'en-IN', 
+                        { maximumFractionDigits: 2 }
+                    )}
                 </h2>
                 
                 <div className={`cmp-card__change ${isPositive ? 'cmp-card__change--pos' : 'cmp-card__change--neg'}`}>
