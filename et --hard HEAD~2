@@ -1,0 +1,80 @@
+[33m31cbd19[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m style: add spacious padding to auth footer credits and make sidebar logo background transparent
+[33m892d453[m feat: replace index cards with horizonal scrolling MarketMarquee, move personal stats to top, and place DailyNews in sidebar column
+[33m6cecf64[m style: change logo background to transparent
+[33ma96cd5e[m style: make mobile discover button a secondary outline style
+[33m696caa7[m fix: import TS2Logo in Register.jsx to fix page load crash
+[33mc8edab5[m feat: premium mobile UX overhaul, password eye toggle, bottom sheet modals, and elite badges
+[33med7df48[m added about section
+[33mcd4666b[m responsiveness, mobile UI improvement
+[33m11e3a8b[m Final Deployment Changes
+[33mf97f77b[m DID SOME DEPLOYMENT CONFIGS
+[33mb0ec83c[m ui updated with minor changes
+[33m9108526[m made the theme choose option permanent
+[33m12a29de[m updated the edit function in trade journal
+[33m8420fa8[m added database_schema documentation
+[33ma198e09[m edited documentation for viva purpose
+[33m4f398a5[m added documentation for viva purpose
+[33m0b07390[m testing the finalized project
+[33m0b14d42[m shifted to deployment, no progress yet
+[33m2ff3265[m shifted to deployment, but failed to connect to the database
+[33mfb65c62[m added about section in login/register page
+[33m7ebe171[m Big bug solved of multiple accounts multiple db
+[33m70b8b5e[m UI revamp with custom themes option
+[33mfa8be50[m custom watchlist feature updated
+[33m9fa222e[m errors resolving
+[33m2911496[m errors in watchlist
+[33mad91808[m Restructure Watchlist with Categories
+[33mb0dcc13[m Watchlist is now functional
+[33m58e01ee[m Watchlist selector not working
+[33md0198f7[m Too many requests from this IP
+[33m2a7155b[m Stock Search & Auto-Suggest feature
+[33m6720b2b[m Stock Search & Auto-Suggest feature
+[33md6957e3[m Stock Search & Auto-Suggest feature
+[33m34f6318[m  removed the profile section because it was giving errors
+[33md25a00b[m  added a comprehensive profile section
+[33mb03e6d8[m  error identified - will work on it tomorrow
+[33mdcc6c9c[m Support MYSQL_URL for multi-project database connection
+[33m965a952[m Database not connecting in deployment
+[33m314f619[m Add database diagnostics
+[33mbb449a1[m  Updated the registration and login controllers
+[33m6bef702[m improved the APIs
+[33m5e7b7cf[m fixed the database error
+[33m7b80df3[m Apply production hardening and connectivity fixes
+[33m4327744[m Working on the deployment code fix
+[33mb849284[m minor bugs fixed
+[33m6a7d59f[m minor bugs fixed
+[33m3a6a95c[m minor bugs fixed
+[33mef02c2d[m added AI-generated insights (text sections) inside the Research section
+[33m9575299[m new gemini key added to fix the chatbot
+[33mf4b50e6[m pre deployment fixing - chatbot not working
+[33m3e6b648[m pre deployment fixing - Production Audit & Hotfixes
+[33m81b7bf2[m deployment planning
+[33ma713e0a[m fixed the error of names in chart switcher e.g. Birlsoft not showing, BSOFT showing
+[33m06ab90c[m added chart swithcher in the two charts so the user can switch
+[33me76a4ed[m need to make some changes in dashboard.controller.js
+[33m68399ec[m reviewed the news controller.js
+[33m98e5ffa[m reviewed the features, AI enable, testing, some features added some removedd
+[33mc96450e[m Added multiple features - notes section, tradesphere AI, Top news
+[33m7257b6d[m Test Commit
+[33m3499f07[m Test Commit
+[33m81aa62e[m Added new comment in ClientsList.jsx
+[33m448587c[m Fix trades.routes.js
+[33m500f063[m Log message for auth controller loading
+[33m61d2382[m No changes made to Navbar component
+[33m5d2bc34[m Add index.txt with initial text content
+[33m8f6f016[m added nifty and bank nifty charts
+[33me083b3f[m completely ready with functionalities & UI redesign
+[33m3571d9b[m completely ready with functionalities
+[33m72d6f3f[m done with all the functionalities with all errors solved - can now start working on UI upgrade
+[33m777f9a4[m client edit - edit capital invested & date change not working
+[33m05aa1f4[m add client and edit client API added everything is working now
+[33m92cf8e1[m opentrade page frontend completed
+[33m2a3e3ee[m updated app.js for some bugs
+[33m95c2f3d[m updated AJ consulting
+[33mb17b930[m updated recent trades and dashboard APIs in frontend - Bacekend linking
+[33mf5b6ea4[m finally completed with the backend apis, now started working on frontend
+[33md50ce00[m changed the entire trades route and controller because of change in journal and trade strategy, after meeting with client to meet the requirements i had to rebuild the whole trade module with some simplification
+[33m5ac5f0c[m deleted few apis
+[33ma4183f1[m completed almost APIs will now create more 5-6 APIs like delete, edit, recently deleted, restore
+[33m1ac409c[m Added few APIs
+[33m57e4e5e[m completed APIs and verifyToken
