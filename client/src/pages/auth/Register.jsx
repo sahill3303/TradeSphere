@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
-import AJCLogo from '../../assets/AJC_Logo.png';
+import TS2Logo from '../../assets/TS2.png';
 
 export default function Register() {
     const { login } = useAuth();
