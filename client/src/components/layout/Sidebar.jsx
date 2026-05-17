@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
+import TS2Logo from '../../assets/TS2.png';
 
 const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: '⊞', key: 'dashboard' },
@@ -36,7 +37,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Brand */}
                 <div className="sidebar__brand">
                     <div className="sidebar__logo">
-                        <img src="src/assets/TS2.png" alt="" />
+                        <img src={TS2Logo} alt="TradeSphere Logo" />
 
                     </div>
                     <span className="sidebar__brand-name">TradeSphere</span>

@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
+import TS2Logo from '../../assets/TS2.png';
 
 export default function Login() {
     const { login } = useAuth();
@@ -50,7 +51,7 @@ export default function Login() {
                     {/* Logo */}
                     <div className="auth-card__logo">
                         <div className="auth-card__logo-mark">
-                            <img src="src/assets/TS2.png" alt="" />
+                            <img src={TS2Logo} alt="TradeSphere Logo" />
                         </div>
                         <span className="auth-card__logo-text">TradeSphere</span>
                     </div>

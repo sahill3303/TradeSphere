@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
+import AJCLogo from '../../assets/AJC_Logo.png';
 
 export default function Register() {
     const { login } = useAuth();
@@ -52,7 +53,7 @@ export default function Register() {
                 <div className="auth-card">
                     <div className="auth-card__logo">
                         <div className="auth-card__logo-mark">
-                            <img src="src/assets/AJC_Logo.png" alt="" />
+                            <img src={AJCLogo} alt="AJC Logo" />
                         </div>
                         <span className="auth-card__logo-text">TradeSphere</span>
                     </div>
