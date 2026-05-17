@@ -76,6 +76,31 @@ function TabBtn({ active, onClick, children }) {
     );
 }
 
+function ActionBtn({ color, onClick, disabled, children }) {
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: color,
+                background: 'transparent',
+                border: `1px solid ${color}`,
+                borderRadius: '6px',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                opacity: disabled ? 0.5 : 1,
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
 export default function ClientsList() {
     const confirmAction = useConfirm();
     const [activeTab, setActiveTab] = useState('active');
