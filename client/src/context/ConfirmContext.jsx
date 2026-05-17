@@ -41,24 +41,24 @@ export function ConfirmProvider({ children }) {
         <ConfirmContext.Provider value={{ confirmAction }}>
             {children}
             {confirmState.isOpen && (
-                <div className="floating-confirm-container">
-                    <div className={`floating-confirm floating-confirm--${confirmState.variant}`}>
-                        <div className="floating-confirm__header">
-                            <span className="floating-confirm__title">{confirmState.title}</span>
-                            <button className="floating-confirm__close" onClick={handleCancel}>✕</button>
+                <div className="bottom-sheet-overlay" onClick={handleCancel}>
+                    <div className={`bottom-sheet bottom-sheet--${confirmState.variant}`} onClick={e => e.stopPropagation()}>
+                        <div className="bottom-sheet__handle" />
+                        <div className="bottom-sheet__header">
+                            <span className="bottom-sheet__title">{confirmState.title}</span>
                         </div>
-                        <div className="floating-confirm__body">
+                        <div className="bottom-sheet__body">
                             <p>{confirmState.message}</p>
                         </div>
-                        <div className="floating-confirm__footer">
-                            <button className="floating-confirm__btn floating-confirm__btn--cancel" onClick={handleCancel}>
-                                Cancel
-                            </button>
+                        <div className="bottom-sheet__footer">
                             <button 
-                                className={`floating-confirm__btn floating-confirm__btn--${confirmState.variant}`} 
+                                className={`bottom-sheet__btn bottom-sheet__btn--${confirmState.variant}`} 
                                 onClick={handleConfirm}
                             >
                                 Confirm
+                            </button>
+                            <button className="bottom-sheet__btn bottom-sheet__btn--cancel" onClick={handleCancel}>
+                                Cancel
                             </button>
                         </div>
                     </div>

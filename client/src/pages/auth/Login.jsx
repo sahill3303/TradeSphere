@@ -68,7 +68,7 @@ export default function Login() {
                             type="email"
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="you@example.com"
+                            placeholder="Enter your email address"
                             required
                         />
                         <Input
@@ -77,7 +77,7 @@ export default function Login() {
                             type="password"
                             value={form.password}
                             onChange={handleChange}
-                            placeholder="••••••••"
+                            placeholder="Enter your password"
                             required
                         />
                         <Button
@@ -94,6 +94,11 @@ export default function Login() {
                         Don&apos;t have an account?{' '}
                         <Link to="/register">Register</Link>
                     </p>
+
+                    {/* Footer — visible on mobile only */}
+                    <div className="auth-card__mobile-footer show-mobile">
+                        <p>© 2026 Sahil Yadav · Made with ❤️ by <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">OneForge</a></p>
+                    </div>
                 </div>
             </div>
         </div>

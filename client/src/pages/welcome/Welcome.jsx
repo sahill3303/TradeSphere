@@ -117,7 +117,7 @@ export default function Welcome() {
                             >
                                 <span className="feature-icon">{f.icon}</span>
                                 <div>
-                                    <div className="feature-label">{f.label}</div>
+                                    <div className="feature-label">{f.label} <span className="feature-elite-tag">✦ ELITE</span></div>
                                     <div className="feature-desc">{f.desc}</div>
                                 </div>
                                 <span className="feature-check">

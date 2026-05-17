@@ -10,6 +10,7 @@ import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Welcome from './pages/welcome/Welcome';
+import AboutApp from './pages/about/AboutApp';
 
 // Protected pages
 import Dashboard from './pages/dashboard/Dashboard';
@@ -35,6 +36,7 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/welcome" element={<Welcome />} />
+                <Route path="/about" element={<AboutApp />} />
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>

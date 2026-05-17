@@ -1,62 +1,73 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AuthInfo = () => {
     return (
         <div className="auth-info">
             <div className="auth-info__content">
-                <div className="auth-info__badge">v2.4.0 Live</div>
-                <h1 className="auth-info__title">
-                    Master Your Trades with <span className="text-gold">TradeSphere</span>
-                </h1>
-                <p className="auth-info__description">
-                    The ultimate all-in-one ecosystem designed for modern traders. Stop juggling spreadsheets and start making data-driven decisions.
-                </p>
+                {/* Desktop view — full info */}
+                <div className="auth-info--desktop">
+                    <div className="auth-info__badge">v2.4.0 Live</div>
+                    <h1 className="auth-info__title">
+                        Master Your Trades with <span className="text-gold">TradeSphere</span>
+                    </h1>
+                    <p className="auth-info__description">
+                        The ultimate all-in-one ecosystem designed for modern traders. Stop juggling spreadsheets and start making data-driven decisions.
+                    </p>
 
-                <div className="auth-info__features">
-                    <div className="auth-info__feature">
-                        <div className="auth-info__feature-icon">🚀</div>
-                        <div className="auth-info__feature-text">
-                            <h3>All-in-One Dashboard</h3>
-                            <p>Track stocks, crypto, and commodities in a single unified view with real-time P&L.</p>
+                    <div className="auth-info__features">
+                        <div className="auth-info__feature">
+                            <div className="auth-info__feature-icon">🚀</div>
+                            <div className="auth-info__feature-text">
+                                <h3>All-in-One Dashboard</h3>
+                                <p>Track stocks, crypto, and commodities in a single unified view with real-time P&L.</p>
+                            </div>
+                        </div>
+                        <div className="auth-info__feature">
+                            <div className="auth-info__feature-icon">📊</div>
+                            <div className="auth-info__feature-text">
+                                <h3>Client & Portfolio Management</h3>
+                                <p>Manage multiple clients, track capital invested, and monitor individual portfolio performance effortlessly.</p>
+                            </div>
+                        </div>
+                        <div className="auth-info__feature">
+                            <div className="auth-info__feature-icon">🔒</div>
+                            <div className="auth-info__feature-text">
+                                <h3>Secure & Private</h3>
+                                <p>Your data is encrypted and stored securely. We prioritize your privacy above all else.</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="auth-info__feature">
-                        <div className="auth-info__feature-icon">📊</div>
-                        <div className="auth-info__feature-text">
-                            <h3>Client & Portfolio Management</h3>
-                            <p>Manage multiple clients, track capital invested, and monitor individual portfolio performance effortlessly.</p>
+
+                    {/* Who is it for */}
+                    <div className="auth-info__usecases">
+                        <h4 className="auth-info__usecases-title">Built for</h4>
+                        <div className="auth-info__usecases-list">
+                            <span className="auth-info__usecase-tag">📈 Traders</span>
+                            <span className="auth-info__usecase-tag">🤝 Consultants</span>
+                            <span className="auth-info__usecase-tag">💼 Portfolio Managers</span>
                         </div>
                     </div>
-                    <div className="auth-info__feature">
-                        <div className="auth-info__feature-icon">🔒</div>
-                        <div className="auth-info__feature-text">
-                            <h3>Secure & Private</h3>
-                            <p>Your data is encrypted and stored securely. We prioritize your privacy above all else.</p>
-                        </div>
+
+                    {/* About & Copyright */}
+                    <div className="auth-info__footer">
+                        <p className="auth-info__copyright">
+                            © 2026 <strong>Sahil Yadav</strong>. All rights reserved.
+                        </p>
+                        <p className="auth-info__credit">
+                            Made with ❤️ by{' '}
+                            <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">
+                                OneForge
+                            </a>
+                        </p>
                     </div>
                 </div>
 
-                {/* Who is it for */}
-                <div className="auth-info__usecases">
-                    <h4 className="auth-info__usecases-title">Built for</h4>
-                    <div className="auth-info__usecases-list">
-                        <span className="auth-info__usecase-tag">📈 Traders</span>
-                        <span className="auth-info__usecase-tag">🤝 Consultants</span>
-                        <span className="auth-info__usecase-tag">💼 Portfolio Managers</span>
-                    </div>
-                </div>
-
-                {/* About & Copyright */}
-                <div className="auth-info__footer">
-                    <p className="auth-info__copyright">
-                        © 2026 <strong>Sahil Yadav</strong>. All rights reserved.
-                    </p>
-                    <p className="auth-info__credit">
-                        Made with ❤️ by{' '}
-                        <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">
-                            OneForge
-                        </a>
-                    </p>
+                {/* Mobile view — compact, just the CTA button */}
+                <div className="auth-info--mobile">
+                    <Link to="/about" className="auth-info__about-btn">
+                        Discover TradeSphere →
+                    </Link>
                 </div>
             </div>
         </div>

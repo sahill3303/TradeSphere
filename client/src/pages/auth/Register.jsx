@@ -49,12 +49,11 @@ export default function Register() {
         <div className="auth-page">
             <div className="auth-container">
                 <AuthInfo />
-                
+
                 <div className="auth-card">
                     <div className="auth-card__logo">
                         <div className="auth-card__logo-mark">
-                            <img src={AJCLogo} alt="AJC Logo" />
-                        </div>
+                            <img src={TS2Logo} alt="TradeSphere Logo" />                        </div>
                         <span className="auth-card__logo-text">TradeSphere</span>
                     </div>
 
@@ -70,7 +69,7 @@ export default function Register() {
                             type="text"
                             value={form.name}
                             onChange={handleChange}
-                            placeholder="Rahul Sharma"
+                            placeholder="Enter your full name"
                             required
                         />
                         <Input
@@ -79,7 +78,7 @@ export default function Register() {
                             type="email"
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="you@example.com"
+                            placeholder="Enter your email address"
                             required
                         />
                         <Input
@@ -88,7 +87,7 @@ export default function Register() {
                             type="password"
                             value={form.password}
                             onChange={handleChange}
-                            placeholder="Min. 8 characters"
+                            placeholder="Create a strong password"
                             required
                         />
                         <Button
@@ -105,6 +104,11 @@ export default function Register() {
                         Already have an account?{' '}
                         <Link to="/login">Sign In</Link>
                     </p>
+
+                    {/* Footer — visible on mobile only */}
+                    <div className="auth-card__mobile-footer show-mobile">
+                        <p>© 2026 Sahil Yadav · Made with ❤️ by <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">OneForge</a></p>
+                    </div>
                 </div>
             </div>
         </div>
