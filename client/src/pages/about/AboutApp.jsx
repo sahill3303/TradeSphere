@@ -144,12 +144,7 @@ export default function AboutApp() {
                 <footer className="about-footer">
                     <div className="about-footer__divider" />
                     <p className="about-footer__copyright">© 2026 <strong>Sahil Yadav</strong>. All rights reserved.</p>
-                    <p className="about-footer__credit">
-                        Made with ❤️ by{' '}
-                        <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">
-                            OneForge
-                        </a>
-                    </p>
+
                 </footer>
             </div>
         </div>

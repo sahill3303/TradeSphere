@@ -1575,45 +1575,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   letter-spacing: 0.02em;
 }
 
-.auth-info__credit {
-  font-size: 0.72rem;
-  color: var(--color-text-dim);
-}
 
-.auth-info__credit a {
-  color: var(--color-gold);
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity var(--transition);
-}
-
-.auth-info__credit a:hover {
-  text-decoration: underline;
-  opacity: 0.85;
-}
-
-/* Auth card footer — OneForge credit on form side */
-.auth-card__footer {
-  margin-top: var(--space-lg);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border);
-  text-align: center;
-}
-
-.auth-card__credit {
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
-}
-
-.auth-card__credit a {
-  color: var(--color-gold);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.auth-card__credit a:hover {
-  text-decoration: underline;
-}
 
 /* Desktop/Mobile AuthInfo toggle */
 .auth-info--mobile {

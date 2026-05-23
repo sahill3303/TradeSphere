@@ -61,7 +61,7 @@ export default function Login() {
 
                     {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
 
-                    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    <form className="auth-form" onSubmit={handleSubmit} noValidate autoComplete="off">
                         <Input
                             id="email"
                             label="Email"
@@ -70,6 +70,7 @@ export default function Login() {
                             onChange={handleChange}
                             placeholder="Enter your email address"
                             required
+                            autoComplete="off"
                         />
                         <Input
                             id="password"
@@ -79,6 +80,7 @@ export default function Login() {
                             onChange={handleChange}
                             placeholder="Enter your password"
                             required
+                            autoComplete="new-password"
                         />
                         <Button
                             type="submit"
@@ -97,7 +99,7 @@ export default function Login() {
 
                     {/* Footer — visible on mobile only */}
                     <div className="auth-card__mobile-footer show-mobile">
-                        <p>© 2026 Sahil Yadav · Made with ❤️ by <a href="https://one-forge.vercel.app/" target="_blank" rel="noopener noreferrer">OneForge</a></p>
+                        <p>© 2026 Sahil Yadav</p>
                     </div>
                 </div>
             </div>

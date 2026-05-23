@@ -245,20 +245,7 @@
     margin-bottom: 0.25rem;
 }
 
-.about-footer__credit {
-    font-size: 0.78rem;
-    color: var(--color-text-dim);
-}
 
-.about-footer__credit a {
-    color: var(--color-gold);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.about-footer__credit a:hover {
-    text-decoration: underline;
-}
 
 /* Responsive */
 @media (max-width: 480px) {

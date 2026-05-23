@@ -15,6 +15,7 @@ export default function Input({
     placeholder = '',
     required = false,
     disabled = false,
+    autoComplete,
     style,
     className = '',
 }) {
@@ -38,6 +39,7 @@ export default function Input({
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
+                    autoComplete={autoComplete}
                     className={`form-input${error ? ' form-input--error' : ''}${disabled ? ' form-input--disabled' : ''}`}
                 />
                 {isPassword && (

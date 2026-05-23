@@ -17,7 +17,8 @@ CREATE TABLE `admins` (
   `preferences` json DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai
+_ci;
 
 DROP TABLE IF EXISTS `capital_summary`;
 CREATE TABLE `capital_summary` (
