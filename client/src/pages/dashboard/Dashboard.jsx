@@ -4,6 +4,7 @@ import MarketChart from '../../components/ui/MarketChart';
 import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
 import { usePreferences } from '../../context/PreferencesContext';
+import { useAuth } from '../../context/AuthContext';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -57,7 +58,9 @@ const STAT_COLORS = {
 
 export default function Dashboard() {
     const { optionalFeatures } = usePreferences();
-    // ... rest of component
+    const { user } = useAuth();
+    
+    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -78,6 +81,11 @@ export default function Dashboard() {
     ];
 
     useEffect(() => {
+        if (sessionStorage.getItem('justLoggedIn') === 'true') {
+            setShowWelcomeModal(true);
+            sessionStorage.removeItem('justLoggedIn');
+        }
+
         api.get('/dashboard/summary')
             .then(res => setSummary(res.data))
             .catch(() => setError('Failed to load summary.'))
@@ -317,6 +325,184 @@ export default function Dashboard() {
                     )}
                 </div>
             </div>
+
+            {showWelcomeModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 99999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '1.5rem',
+                    animation: 'modalFadeIn 0.3s ease-out'
+                }}>
+                    <div style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        backgroundColor: 'var(--color-surface)',
+                        border: '1px solid var(--color-gold)',
+                        borderRadius: 'var(--radius-xl)',
+                        padding: '3rem 2rem 2.5rem',
+                        boxShadow: '0 0 45px rgba(212, 175, 55, 0.3), var(--shadow-lg)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        position: 'relative',
+                        animation: 'modalZoomIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    }}>
+                        {/* Glow effect */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '-40px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '120px',
+                            height: '120px',
+                            background: 'var(--color-gold)',
+                            filter: 'blur(50px)',
+                            opacity: 0.25,
+                            pointerEvents: 'none'
+                        }} />
+
+                        {/* Emblem with Pulsing Golden Rings */}
+                        <div style={{ position: 'relative', marginBottom: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100px', width: '100px' }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '80px',
+                                height: '80px',
+                                borderRadius: '50%',
+                                border: '2px solid var(--color-gold)',
+                                animation: 'ringPulse 2s infinite ease-out'
+                            }} />
+                            <div style={{
+                                position: 'absolute',
+                                width: '110px',
+                                height: '110px',
+                                borderRadius: '50%',
+                                border: '1px solid var(--color-gold)',
+                                animation: 'ringPulse 2s infinite ease-out',
+                                animationDelay: '0.6s'
+                            }} />
+                            <div style={{
+                                width: '70px',
+                                height: '70px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '2.2rem',
+                                boxShadow: '0 0 20px rgba(212, 175, 55, 0.4)',
+                                animation: 'float 3.5s ease-in-out infinite',
+                                color: '#0B0B0D',
+                                zIndex: 2
+                            }}>👑</div>
+                        </div>
+
+                        {/* Title */}
+                        <h2 style={{
+                            fontFamily: 'var(--font-heading)',
+                            fontSize: '1.5rem',
+                            fontWeight: 800,
+                            color: 'var(--color-gold)',
+                            marginBottom: '0.35rem',
+                            letterSpacing: '-0.02em',
+                            animation: 'fadeInUp 0.5s ease-out both',
+                            animationDelay: '0.15s'
+                        }}>
+                            Welcome, {user?.name?.split(' ')[0] || 'Trader'}
+                        </h2>
+
+                        {/* Elite Badge */}
+                        <div style={{
+                            background: 'var(--color-gold-soft)',
+                            border: '1px solid rgba(212, 175, 55, 0.3)',
+                            padding: '0.35rem 0.95rem',
+                            borderRadius: '999px',
+                            color: 'var(--color-gold)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                            marginBottom: '1.25rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            animation: 'fadeInUp 0.5s ease-out both',
+                            animationDelay: '0.3s'
+                        }}>
+                            <span>✦</span> ELITE MEMBER ACCESS <span>✦</span>
+                        </div>
+
+                        {/* Punchy Subtitle */}
+                        <p style={{
+                            fontSize: '0.86rem',
+                            lineHeight: 1.5,
+                            color: 'var(--color-text-muted)',
+                            marginBottom: '2rem',
+                            fontWeight: 500,
+                            padding: '0 0.5rem',
+                            animation: 'fadeInUp 0.5s ease-out both',
+                            animationDelay: '0.45s'
+                        }}>
+                            Let's execute with discipline and dominate the markets today.
+                        </p>
+
+                        {/* Close button */}
+                        <button
+                            onClick={() => setShowWelcomeModal(false)}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))',
+                                color: '#0B0B0D',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 15px rgba(212, 175, 55, 0.25)',
+                                animation: 'fadeInUp 0.5s ease-out both',
+                                animationDelay: '0.6s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.08)'}
+                            onMouseOut={(e) => e.currentTarget.style.filter = 'none'}
+                        >
+                            Access Workspace →
+                        </button>
+                    </div>
+
+                    <style>{`
+                        @keyframes modalFadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        @keyframes modalZoomIn {
+                            from { transform: scale(0.9) translateY(15px); opacity: 0; }
+                            to { transform: scale(1) translateY(0); opacity: 1; }
+                        }
+                        @keyframes float {
+                            0% { transform: translateY(0px); }
+                            50% { transform: translateY(-6px); }
+                            100% { transform: translateY(0px); }
+                        }
+                        @keyframes ringPulse {
+                            0% { transform: scale(0.85); opacity: 0.6; }
+                            50% { transform: scale(1.1); opacity: 0.1; }
+                            100% { transform: scale(1.2); opacity: 0; }
+                        }
+                        @keyframes fadeInUp {
+                            from { opacity: 0; transform: translateY(15px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    `}</style>
+                </div>
+            )}
         </div>
     );
 }

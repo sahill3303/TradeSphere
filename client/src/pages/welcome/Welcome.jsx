@@ -50,9 +50,11 @@ export default function Welcome() {
             };
             await api.put('/auth/preferences', { preferences });
             if (updateUserPreferences) updateUserPreferences(preferences);
+            sessionStorage.setItem('justLoggedIn', 'true');
             navigate('/dashboard', { replace: true });
         } catch (err) {
             console.error('Failed to save preferences:', err);
+            sessionStorage.setItem('justLoggedIn', 'true');
             navigate('/dashboard', { replace: true });
         } finally {
             setSaving(false);

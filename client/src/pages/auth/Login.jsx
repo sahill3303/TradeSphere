@@ -34,6 +34,7 @@ export default function Login() {
             if (data.admin?.preferences) {
                 hydrateFromPreferences(data.admin.preferences);
             }
+            sessionStorage.setItem('justLoggedIn', 'true');
             navigate('/dashboard', { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

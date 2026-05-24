@@ -187,3 +187,57 @@ export const updatePreferences = async (req, res) => {
         res.status(500).json({ message: 'Save preferences error', error: error.message });
     }
 };
+
+/**
+ * CHANGE PASSWORD
+ */
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const adminId = req.user.id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current and new passwords are required' });
+        }
+
+        // Fetch current password hash
+        const [rows] = await db.query(
+            'SELECT password_hash FROM admins WHERE id = ?',
+            [adminId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const admin = rows[0];
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, admin.password_hash);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Incorrect current password' });
+        }
+
+        // Validate new password complexity: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ 
+                message: 'New password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@, $, !, %, *, ?, &).' 
+            });
+        }
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password in DB
+        await db.query(
+            'UPDATE admins SET password_hash = ? WHERE id = ?',
+            [passwordHash, adminId]
+        );
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('CHANGE PASSWORD ERROR:', err);
+        res.status(500).json({ message: 'Failed to update password', error: err.message });
+    }
+};
