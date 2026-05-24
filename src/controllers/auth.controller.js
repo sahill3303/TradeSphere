@@ -25,6 +25,20 @@ export const registerAdmin = async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email address format' });
+        }
+
+        // Password complexity validation: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ 
+                message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@, $, !, %, *, ?, &).' 
+            });
+        }
+
         const [existing] = await db.query(
             'SELECT id FROM admins WHERE email = ?',
             [email]

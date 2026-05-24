@@ -24,9 +24,8 @@ const AuthInfo = () => {
                     {/* About & Copyright */}
                     <div className="auth-info__footer">
                         <p className="auth-info__copyright">
-                            © 2026 <strong>Sahil Yadav</strong>. All rights reserved.
+                            © 2026 <strong>TradeSphere</strong>. All rights reserved.
                         </p>
-
                     </div>
                 </div>
 
