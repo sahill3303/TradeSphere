@@ -72,13 +72,13 @@ export default function Welcome() {
 
                 {/* Elite Member Banner */}
                 <div className="welcome-elite-banner">
-                    <div className="welcome-elite-badge">👑 ELITE MEMBER</div>
+                    <div className="welcome-elite-badge">👑 30-DAY FREE TRIAL</div>
                     <h3 className="welcome-elite-title">
-                        You are our <span style={{ color: 'var(--color-gold)' }}>Elite Member!</span>
+                        Premium Plan <span style={{ color: 'var(--color-gold)' }}>Activated!</span>
                     </h3>
                     <p className="welcome-elite-desc">
-                        Enjoy a <strong>free 1-month trial</strong> of all exclusive features — 
-                        a <span className="welcome-elite-price"><s>₹2,000</s></span> value, completely on us.
+                        Enjoy a <strong>free 30-day trial</strong> of all exclusive features — 
+                        worth <span className="welcome-elite-price">₹2,000</span> <span className="welcome-elite-price-free">Free</span>, completely on us.
                     </p>
                     <div className="welcome-elite-perks">
                         <span>✦ Unlimited Clients</span>

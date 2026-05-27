@@ -125,6 +125,12 @@ export default function SuperAdminDashboard() {
         fetchDetails();
     }, [selectedUser, detailsTab]);
 
+    const closeInspectModal = () => {
+        setSelectedUser(null);
+        setDetailsTab('clients');
+        setDetailsData(null);
+    };
+
     const handleFreezeToggle = async (user) => {
         const action = user.is_frozen ? 'unfreeze' : 'freeze';
         const description = user.is_frozen 
@@ -473,7 +479,7 @@ export default function SuperAdminDashboard() {
                                 🔎 Inspect Workspace: {selectedUser.name}
                             </h3>
                             <button
-                                onClick={() => setSelectedUser(null)}
+                                onClick={closeInspectModal}
                                 style={{
                                     background: 'none',
                                     border: 'none',
@@ -573,7 +579,10 @@ export default function SuperAdminDashboard() {
                             ].map(tab => (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setDetailsTab(tab.id)}
+                                    onClick={() => {
+                                        setDetailsTab(tab.id);
+                                        setDetailsData(null);
+                                    }}
                                     style={{
                                         padding: '0.65rem 1.25rem',
                                         border: 'none',
@@ -597,7 +606,7 @@ export default function SuperAdminDashboard() {
                             
                             {!detailsLoading && detailsData && (
                                 <>
-                                    {detailsTab === 'clients' && (
+                                    {detailsTab === 'clients' && Array.isArray(detailsData) && (
                                         <table className="data-table">
                                             <thead>
                                                 <tr>
@@ -639,7 +648,7 @@ export default function SuperAdminDashboard() {
                                         </table>
                                     )}
 
-                                    {detailsTab === 'trades' && (
+                                    {detailsTab === 'trades' && Array.isArray(detailsData) && (
                                         <table className="data-table">
                                             <thead>
                                                 <tr>
@@ -694,7 +703,7 @@ export default function SuperAdminDashboard() {
                                         </table>
                                     )}
 
-                                    {detailsTab === 'capital' && (
+                                    {detailsTab === 'capital' && detailsData && !Array.isArray(detailsData) && (
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-lg)', padding: 'var(--space-md) 0' }}>
                                             <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'var(--space-lg)' }}>
                                                 <span style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-gold)' }}>
