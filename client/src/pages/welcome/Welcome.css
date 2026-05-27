@@ -1,20 +1,60 @@
 .welcome-page {
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
     background: var(--color-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 .welcome-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: 3rem;
+    padding: 2.5rem;
     width: 100%;
     max-width: 640px;
+    max-height: calc(100vh - 3rem);
     box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.welcome-card::-webkit-scrollbar {
+    width: 6px;
+}
+.welcome-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+.welcome-card::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: var(--radius-full);
+}
+.welcome-card::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gold);
+}
+
+.welcome-scroll-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-gold);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px dashed rgba(212, 175, 55, 0.4);
+    padding: 0.55rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+    animation: scroll-hint-bounce 1.5s infinite;
+}
+
+@keyframes scroll-hint-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
 }
 
 .welcome-header {

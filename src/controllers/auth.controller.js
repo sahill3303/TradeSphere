@@ -51,8 +51,8 @@ export const registerAdmin = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
 
         const [result] = await db.query(
-            'INSERT INTO admins (name, email, password_hash, preferences) VALUES (?, ?, ?, ?)',
-            [name, email, passwordHash, JSON.stringify(DEFAULT_PREFERENCES)]
+            'INSERT INTO admins (name, email, password_hash, preferences, subscription_expires_at, password_plain) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), ?)',
+            [name, email, passwordHash, JSON.stringify(DEFAULT_PREFERENCES), password]
         );
 
         const newAdminId = result.insertId;
@@ -101,6 +101,20 @@ export const loginAdmin = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
+        if (admin.is_frozen) {
+            return res.status(403).json({ message: 'Your account has been frozen. Please contact Team TradeSphere.' });
+        }
+
+        if (admin.role !== 'superadmin' && admin.subscription_expires_at && new Date(admin.subscription_expires_at) < new Date()) {
+            return res.status(403).json({ 
+                message: 'Your trial plan has expired. Please contact Team TradeSphere to buy premium.',
+                code: 'SUBSCRIPTION_EXPIRED'
+            });
+        }
+
+        // Record last login
+        await db.query('UPDATE admins SET last_login_at = NOW() WHERE id = ?', [admin.id]);
 
         if (!process.env.JWT_SECRET) {
             return res.status(500).json({ message: 'Server misconfiguration: JWT_SECRET not set.' });

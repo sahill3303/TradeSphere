@@ -1,17 +1,16 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
  * ProtectedRoute
  *
- * Waits for session restore (loading) before deciding to redirect.
- * This prevents a flash-redirect to /login on hard refresh when
- * the user is actually authenticated (token valid, /me call pending).
+ * Checks authentication state and enforces role-based routing constraints.
  */
 export default function ProtectedRoute() {
-    const { token, loading } = useAuth();
+    const { token, user, loading } = useAuth();
+    const location = useLocation();
 
-    // While the /api/auth/me call is in-flight, render nothing (or a spinner).
+    // While the /api/auth/me call is in-flight, render a clean spinner.
     if (loading) {
         return (
             <div style={{
@@ -28,5 +27,19 @@ export default function ProtectedRoute() {
         );
     }
 
-    return token ? <Outlet /> : <Navigate to="/login" replace />;
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Redirect role-specific users trying to access unauthorized areas
+    if (user) {
+        if (user.role === 'superadmin' && location.pathname !== '/super-admin') {
+            return <Navigate to="/super-admin" replace />;
+        }
+        if (user.role !== 'superadmin' && location.pathname === '/super-admin') {
+            return <Navigate to="/dashboard" replace />;
+        }
+    }
+
+    return <Outlet />;
 }

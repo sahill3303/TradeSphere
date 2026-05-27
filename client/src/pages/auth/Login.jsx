@@ -14,7 +14,10 @@ export default function Login() {
     const navigate = useNavigate();
 
     const [form, setForm] = useState({ email: '', password: '' });
-    const [error, setError] = useState('');
+    const [error, setError] = useState(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        return searchParams.get('error') || '';
+    });
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) =>
@@ -35,7 +38,11 @@ export default function Login() {
                 hydrateFromPreferences(data.admin.preferences);
             }
             sessionStorage.setItem('justLoggedIn', 'true');
-            navigate('/dashboard', { replace: true });
+            if (data.admin?.role === 'superadmin') {
+                navigate('/super-admin', { replace: true });
+            } else {
+                navigate('/dashboard', { replace: true });
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {
@@ -60,7 +67,40 @@ export default function Login() {
                     <h2 className="auth-card__title">Welcome back</h2>
                     <p className="auth-card__subtitle">Sign in to your trading dashboard</p>
 
-                    {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
+                    {error && (
+                        <div className={`alert ${error.includes('expired') || error.includes('trial') ? 'alert--warning' : 'alert--error'}`} style={{ 
+                            marginBottom: 'var(--space-md)',
+                            border: (error.includes('expired') || error.includes('trial')) ? '1px solid var(--color-gold)' : '1px solid var(--color-danger)',
+                            background: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold-soft)' : 'var(--color-danger-soft)',
+                            color: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold)' : 'var(--color-danger)',
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)'
+                        }}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 700, marginBottom: '4px', fontSize: '0.85rem' }}>
+                                <span>{(error.includes('expired') || error.includes('trial')) ? '⚠️ Trial Expired' : '❌ Error'}</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>{error}</p>
+                            {(error.includes('expired') || error.includes('trial')) && (
+                                <a 
+                                    href="mailto:support@tradesphere.com?subject=TradeSphere Premium Activation Request"
+                                    style={{
+                                        display: 'inline-block',
+                                        marginTop: '0.65rem',
+                                        padding: '0.35rem 0.75rem',
+                                        background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))',
+                                        color: '#0B0B0D',
+                                        borderRadius: 'var(--radius-sm)',
+                                        fontSize: '0.72rem',
+                                        fontWeight: 700,
+                                        textDecoration: 'none',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    📧 Contact Team TradeSphere
+                                </a>
+                            )}
+                        </div>
+                    )}
 
                     <form className="auth-form" onSubmit={handleSubmit} noValidate autoComplete="off">
                         <Input

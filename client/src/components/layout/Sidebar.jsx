@@ -46,37 +46,54 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Navigation */}
                 <nav className="sidebar__nav" aria-label="Main navigation">
                     <ul className="sidebar__list">
-                        {navItems
-                            .filter(item => item.key === 'dashboard' || sidebarFeatures[item.key])
-                            .map(({ to, label, icon }) => (
-                            <li key={to} className="sidebar__item">
+                        {user?.role === 'superadmin' ? (
+                            <li className="sidebar__item">
                                 <NavLink
-                                    to={to}
+                                    to="/super-admin"
                                     onClick={onClose}
                                     className={({ isActive }) =>
                                         `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                                     }
                                 >
-                                    <span className="sidebar__icon">{icon}</span>
-                                    <span className="sidebar__label">{label}</span>
+                                    <span className="sidebar__icon">🛡️</span>
+                                    <span className="sidebar__label">Super Admin</span>
                                 </NavLink>
                             </li>
-                        ))}
+                        ) : (
+                            navItems
+                                .filter(item => item.key === 'dashboard' || sidebarFeatures[item.key])
+                                .map(({ to, label, icon }) => (
+                                <li key={to} className="sidebar__item">
+                                    <NavLink
+                                        to={to}
+                                        onClick={onClose}
+                                        className={({ isActive }) =>
+                                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                                        }
+                                    >
+                                        <span className="sidebar__icon">{icon}</span>
+                                        <span className="sidebar__label">{label}</span>
+                                    </NavLink>
+                                </li>
+                            ))
+                        )}
                     </ul>
                 </nav>
 
-                <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 1rem', marginBottom: '1rem' }}>
-                    <NavLink
-                        to="/settings"
-                        onClick={onClose}
-                        className={({ isActive }) =>
-                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
-                        }
-                    >
-                        <span className="sidebar__icon">⚙️</span>
-                        <span className="sidebar__label">Settings</span>
-                    </NavLink>
-                </div>
+                {user?.role !== 'superadmin' && (
+                    <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 1rem', marginBottom: '1rem' }}>
+                        <NavLink
+                            to="/settings"
+                            onClick={onClose}
+                            className={({ isActive }) =>
+                                `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                            }
+                        >
+                            <span className="sidebar__icon">⚙️</span>
+                            <span className="sidebar__label">Settings</span>
+                        </NavLink>
+                    </div>
+                )}
 
                 {/* User + Logout */}
                 <div className="sidebar__footer">

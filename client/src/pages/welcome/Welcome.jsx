@@ -88,6 +88,10 @@ export default function Welcome() {
                     </div>
                 </div>
 
+                <div className="welcome-scroll-hint">
+                    Scroll down to continue with configurations ⭣
+                </div>
+
                 {/* Step 1: Accent Color */}
                 <section className="welcome-section">
                     <h3>Choose your accent color</h3>

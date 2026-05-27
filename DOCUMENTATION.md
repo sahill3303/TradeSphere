@@ -3,6 +3,10 @@
 
 ---
 
+0auth
+nodemailer
+clerk
+
 ### 1. Project Introduction
 **TradeSphere** is a high-performance, premium web application designed for professional traders and consultants to track, analyze, and optimize trading activities. It provides a centralized dashboard for managing client investments, tracking individual trade performance (Open/Closed), and generating real-time financial insights. 
 

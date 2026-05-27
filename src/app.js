@@ -14,6 +14,7 @@ import botRoutes from './routes/bot.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import screenerRoutes from './routes/screener.routes.js';
 import watchlistRoutes from './routes/watchlist.routes.js';
+import superadminRoutes from './routes/superadmin.routes.js';
 import db from './config/db.js';
 
 const app = express();
@@ -64,6 +65,7 @@ app.use('/api/bot', botRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/superadmin', superadminRoutes);
 
 
 // testing route
