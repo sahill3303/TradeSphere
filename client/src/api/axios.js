@@ -33,9 +33,7 @@ api.interceptors.response.use(
         } else if (error.response?.status === 403) {
             const data = error.response.data;
             if (data?.code === 'SUBSCRIPTION_EXPIRED' || data?.message?.includes('expired') || data?.message?.includes('frozen')) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = `/login?error=${encodeURIComponent(data.message)}`;
+                window.location.reload();
             }
         }
         return Promise.reject(error);

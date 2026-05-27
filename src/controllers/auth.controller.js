@@ -102,17 +102,6 @@ export const loginAdmin = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        if (admin.is_frozen) {
-            return res.status(403).json({ message: 'Your account has been frozen. Please contact Team TradeSphere.' });
-        }
-
-        if (admin.role !== 'superadmin' && admin.subscription_expires_at && new Date(admin.subscription_expires_at) < new Date()) {
-            return res.status(403).json({ 
-                message: 'Your trial plan has expired. Please contact Team TradeSphere to buy premium.',
-                code: 'SUBSCRIPTION_EXPIRED'
-            });
-        }
-
         // Record last login
         await db.query('UPDATE admins SET last_login_at = NOW() WHERE id = ?', [admin.id]);
 
@@ -143,6 +132,8 @@ export const loginAdmin = async (req, res) => {
                 name: admin.name,
                 email: admin.email,
                 role: admin.role,
+                is_frozen: admin.is_frozen,
+                subscription_expires_at: admin.subscription_expires_at,
                 preferences
             }
         });
@@ -156,7 +147,7 @@ export const loginAdmin = async (req, res) => {
 export const getMe = async (req, res) => {
     try {
         const [rows] = await db.query(
-            'SELECT id, name, email, role, preferences FROM admins WHERE id = ?',
+            'SELECT id, name, email, role, preferences, is_frozen, subscription_expires_at FROM admins WHERE id = ?',
             [req.user.id]
         );
 

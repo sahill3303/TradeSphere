@@ -389,8 +389,8 @@ export default function SuperAdminDashboard() {
 
             {/* License Duration Update Modal */}
             {userToUpdate && (
-                <div style={{ ...modalOverlayStyle, zIndex: 1000 }}>
-                    <div style={modalContentStyle}>
+                <div className="superadmin-overlay" style={{ zIndex: 1000 }}>
+                    <div className="superadmin-modal-card superadmin-modal-card--small">
                         <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', marginBottom: 'var(--space-md)' }}>
                             📅 Adjust License Duration
                         </h3>
@@ -466,16 +466,8 @@ export default function SuperAdminDashboard() {
 
             {/* Inspect User Activity & Workspace Details Modal */}
             {selectedUser && (
-                <div style={modalOverlayStyle}>
-                    <div style={{ 
-                        ...modalContentStyle, 
-                        maxWidth: '900px', 
-                        width: '95%',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'var(--color-border) transparent'
-                    }}>
+                <div className="superadmin-overlay">
+                    <div className="superadmin-modal-card superadmin-modal-card--large">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                             <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', margin: 0 }}>
                                 🔎 Inspect Workspace: {selectedUser.name}
@@ -740,33 +732,69 @@ export default function SuperAdminDashboard() {
                     </div>
                 </div>
             )}
+
+            <style>{`
+                .superadmin-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background-color: rgba(0, 0, 0, 0.75);
+                    backdrop-filter: blur(8px);
+                    z-index: 999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1.5rem;
+                }
+
+                @media (max-width: 768px) {
+                    .superadmin-overlay {
+                        background-color: #0B0B0D !important;
+                        backdrop-filter: none !important;
+                        padding: 1rem;
+                        align-items: flex-start;
+                        overflow-y: auto;
+                    }
+                }
+
+                .superadmin-modal-card {
+                    width: 100%;
+                    background-color: var(--color-surface);
+                    border: 1px solid var(--color-border);
+                    border-radius: var(--radius-lg);
+                    padding: var(--space-xl);
+                    box-shadow: var(--shadow-lg);
+                    position: relative;
+                }
+
+                .superadmin-modal-card--small {
+                    max-width: 500px;
+                }
+
+                .superadmin-modal-card--large {
+                    max-width: 900px;
+                    width: 95%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                @media (max-width: 768px) {
+                    .superadmin-modal-card {
+                        margin-top: 1rem;
+                        margin-bottom: 1rem;
+                        max-height: calc(100vh - 2rem);
+                        overflow-y: auto;
+                    }
+                    .superadmin-modal-card--large {
+                        width: 100%;
+                        max-height: calc(100vh - 2rem);
+                    }
+                }
+            `}</style>
         </div>
     );
 }
 
 // Inline Styles
-const modalOverlayStyle = {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    backdropFilter: 'blur(8px)',
-    zIndex: 999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '1.5rem'
-};
-
-const modalContentStyle = {
-    width: '100%',
-    maxWidth: '500px',
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'var(--space-xl)',
-    boxShadow: 'var(--shadow-lg)',
-    position: 'relative'
-};
 
 const selectStyle = {
     width: '100%',

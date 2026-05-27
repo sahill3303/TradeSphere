@@ -327,33 +327,8 @@ export default function Dashboard() {
             </div>
 
             {showWelcomeModal && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    zIndex: 99999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '1.5rem',
-                    animation: 'modalFadeIn 0.3s ease-out'
-                }}>
-                    <div style={{
-                        width: '100%',
-                        maxWidth: '400px',
-                        backgroundColor: 'var(--color-surface)',
-                        border: '1px solid var(--color-gold)',
-                        borderRadius: 'var(--radius-xl)',
-                        padding: '3rem 2rem 2.5rem',
-                        boxShadow: '0 0 45px rgba(212, 175, 55, 0.3), var(--shadow-lg)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        position: 'relative',
-                        animation: 'modalZoomIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                    }}>
+                <div className="welcome-overlay">
+                    <div className="welcome-card">
                         {/* Glow effect */}
                         <div style={{
                             position: 'absolute',
@@ -478,6 +453,50 @@ export default function Dashboard() {
                     </div>
 
                     <style>{`
+                        .welcome-overlay {
+                            position: fixed;
+                            inset: 0;
+                            background-color: rgba(0, 0, 0, 0.85);
+                            backdrop-filter: blur(12px);
+                            z-index: 99999;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 1.5rem;
+                            animation: modalFadeIn 0.3s ease-out;
+                        }
+
+                        @media (max-width: 768px) {
+                            .welcome-overlay {
+                                background-color: #0B0B0D !important;
+                                backdrop-filter: none !important;
+                                padding: 1rem;
+                            }
+                        }
+
+                        .welcome-card {
+                            width: 100%;
+                            max-width: 400px;
+                            background-color: var(--color-surface);
+                            border: 1px solid var(--color-gold);
+                            border-radius: var(--radius-xl);
+                            padding: 3rem 2rem 2.5rem;
+                            box-shadow: 0 0 45px rgba(212, 175, 55, 0.3), var(--shadow-lg);
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            text-align: center;
+                            position: relative;
+                            animation: modalZoomIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        }
+
+                        @media (max-width: 768px) {
+                            .welcome-card {
+                                max-height: 90vh;
+                                overflow-y: auto;
+                            }
+                        }
+
                         @keyframes modalFadeIn {
                             from { opacity: 0; }
                             to { opacity: 1; }

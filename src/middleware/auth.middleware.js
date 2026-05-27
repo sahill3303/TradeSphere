@@ -24,15 +24,21 @@ export const verifyToken = async (req, res, next) => {
         }
         
         const admin = rows[0];
-        if (admin.is_frozen) {
-            return res.status(403).json({ message: 'Your account has been frozen. Please contact Team TradeSphere.' });
-        }
         
-        if (admin.role !== 'superadmin' && admin.subscription_expires_at && new Date(admin.subscription_expires_at) < new Date()) {
-            return res.status(403).json({ 
-                message: 'Your trial plan has expired. Please contact Team TradeSphere to buy premium.',
-                code: 'SUBSCRIPTION_EXPIRED'
-            });
+        // Skip frozen/expiry check ONLY for the '/api/auth/me' route
+        const isMeRoute = req.path === '/me' || req.originalUrl === '/api/auth/me';
+        
+        if (!isMeRoute) {
+            if (admin.is_frozen) {
+                return res.status(403).json({ message: 'Your account has been frozen. Please contact Team TradeSphere.' });
+            }
+            
+            if (admin.role !== 'superadmin' && admin.subscription_expires_at && new Date(admin.subscription_expires_at) < new Date()) {
+                return res.status(403).json({ 
+                    message: 'Your trial plan has expired. Please contact Team TradeSphere to buy premium.',
+                    code: 'SUBSCRIPTION_EXPIRED'
+                });
+            }
         }
         
         req.user = {
