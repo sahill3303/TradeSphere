@@ -143,7 +143,7 @@ export default function AboutApp() {
                 {/* Footer / Credits */}
                 <footer className="about-footer">
                     <div className="about-footer__divider" />
-                    <p className="about-footer__copyright">© 2026 <strong>Sahil Yadav</strong>. All rights reserved.</p>
+                    <p className="about-footer__copyright">© 2026 <strong>TradeSphere</strong>. All rights reserved.</p>
 
                 </footer>
             </div>

@@ -102,6 +102,33 @@ export default function Dashboard() {
             .finally(() => setActivityLoading(false));
     }, []);
 
+    // Prevent background scrolling when welcome modal is shown
+    useEffect(() => {
+        if (showWelcomeModal) {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            const contentEl = document.getElementById('main-content');
+            if (contentEl) {
+                contentEl.style.overflow = 'hidden';
+            }
+        } else {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+            const contentEl = document.getElementById('main-content');
+            if (contentEl) {
+                contentEl.style.overflow = '';
+            }
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+            const contentEl = document.getElementById('main-content');
+            if (contentEl) {
+                contentEl.style.overflow = '';
+            }
+        };
+    }, [showWelcomeModal]);
+
     const SUMMARY_CARDS = summary ? [
         { label: 'Total Clients', value: summary.totalClients },
         { label: 'Total Trades', value: summary.totalTrades },
@@ -455,7 +482,13 @@ export default function Dashboard() {
                     <style>{`
                         .welcome-overlay {
                             position: fixed;
-                            inset: 0;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            width: 100vw;
+                            height: 100vh;
+                            height: 100dvh;
                             background-color: rgba(0, 0, 0, 0.85);
                             backdrop-filter: blur(12px);
                             z-index: 99999;
@@ -471,6 +504,9 @@ export default function Dashboard() {
                                 background-color: #0B0B0D !important;
                                 backdrop-filter: none !important;
                                 padding: 1rem;
+                                width: 100vw;
+                                height: 100vh;
+                                height: 100dvh;
                             }
                         }
 

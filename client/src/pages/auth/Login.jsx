@@ -140,7 +140,7 @@ export default function Login() {
 
                     {/* Footer — visible on mobile only */}
                     <div className="auth-card__mobile-footer show-mobile">
-                        <p>© 2026 Sahil Yadav</p>
+                        <p>© 2026 TradeSphere</p>
                     </div>
                 </div>
             </div>
