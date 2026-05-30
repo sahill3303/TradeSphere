@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import TickerBar from './TickerBar';
 
 export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function Layout({ children }) {
             <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
             <div className="layout__main">
+                <TickerBar />
                 <Navbar onMenuToggle={toggleSidebar} />
                 <main className="layout__content" id="main-content">
                     {children}

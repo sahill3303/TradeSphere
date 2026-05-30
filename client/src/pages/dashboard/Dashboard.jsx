@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import MarketChart from '../../components/ui/MarketChart';
 import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
 import { usePreferences } from '../../context/PreferencesContext';
@@ -73,13 +72,6 @@ export default function Dashboard() {
     const [activityLoading, setActivityLoading] = useState(true);
     const [activityError, setActivityError] = useState(null);
 
-    const FIXED_INDICES = [
-        { symbol: 'NSE:NIFTY', label: 'NIFTY 50', accentColor: '#D4AF37' },
-        { symbol: 'BSE:SENSEX', label: 'SENSEX', accentColor: '#60A5FA' },
-        { symbol: 'DJI', label: 'DOW JONES', accentColor: '#EF4444' },
-        { symbol: 'IXIC', label: 'NASDAQ', accentColor: '#34D399' },
-    ];
-
     useEffect(() => {
         if (sessionStorage.getItem('justLoggedIn') === 'true') {
             setShowWelcomeModal(true);
@@ -150,18 +142,9 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* ── Market CMP Cards (TOP) ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-lg)' }}
-                className="market-overview-grid">
-                {FIXED_INDICES.map((c, i) => (
-                    <MarketChart
-                        key={`${c.symbol}-${i}`}
-                        symbol={c.symbol}
-                        label={c.label}
-                        accentColor={c.accentColor}
-                    />
-                ))}
-            </div>
+
+
+
 
             {/* Daily Market News / Sentiment */}
             {(optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
@@ -480,6 +463,8 @@ export default function Dashboard() {
                     </div>
 
                     <style>{`
+
+
                         .welcome-overlay {
                             position: fixed;
                             top: 0;
