@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
@@ -58,6 +59,7 @@ const STAT_COLORS = {
 export default function Dashboard() {
     const { optionalFeatures } = usePreferences();
     const { user } = useAuth();
+    const navigate = useNavigate();
     
     const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     const [summary, setSummary] = useState(null);
@@ -132,6 +134,12 @@ export default function Dashboard() {
         },
     ] : [];
 
+    const isBlankState = summary &&
+        summary.totalClients === 0 &&
+        summary.totalTrades === 0 &&
+        (summary.totalNotes || 0) === 0 &&
+        (summary.totalWatchlist || 0) === 0;
+
     return (
         <div className="page">
             {/* Header */}
@@ -145,8 +153,109 @@ export default function Dashboard() {
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
 
-            {/* ── Stat Cards ── */}
-            {!loading && !error && (
+            {/* ── Onboarding / Intro Guide for New Users ── */}
+            {!loading && !error && isBlankState && (
+                <div className="onboarding-guide">
+                    {/* Header Banner */}
+                    <div className="onboarding-hero">
+                        <div className="onboarding-hero__sparkle">✨</div>
+                        <h2>Get Started with TradeSphere</h2>
+                        <p>Welcome to your command center! Your dashboard analytics are currently empty. Complete these simple steps to set up your workspace and start tracking your performance.</p>
+                    </div>
+
+                    {/* Dashboard Metrics Explained */}
+                    <div className="onboarding-section">
+                        <h3>📊 Dashboard Metrics Explained</h3>
+                        <p className="onboarding-section__subtitle">These KPI cards will track your management metrics and automatically update as you log data:</p>
+                        
+                        <div className="onboarding-grid">
+                            <div className="onboarding-card">
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-gold)', background: 'var(--color-gold-soft)' }}>👥</div>
+                                <h4>Total Clients</h4>
+                                <p>Tracks the number of client portfolios you manage. Allows you to monitor active status, start dates, and individual P&L contributions.</p>
+                            </div>
+                            <div className="onboarding-card">
+                                <div className="onboarding-card__icon" style={{ color: '#60A5FA', background: 'rgba(96, 165, 250, 0.1)' }}>📈</div>
+                                <h4>Total Trades</h4>
+                                <p>Displays your aggregate trade volume. Logs active open positions and historical trades with details like ticker symbols, quantities, and direction.</p>
+                            </div>
+                            <div className="onboarding-card">
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-success)', background: 'var(--color-success-soft)' }}>💰</div>
+                                <h4>Total Capital</h4>
+                                <p>Aggregates the total active capital invested across all client portfolios. Keep track of cash balances and leverage indicators in one place.</p>
+                            </div>
+                            <div className="onboarding-card">
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-warning)', background: 'var(--color-warning-soft)' }}>📊</div>
+                                <h4>Realised P&L</h4>
+                                <p>Calculates the net closed position profit or loss. Automatically updates to show green highlights for profits and red highlights for losses.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Features & Actions */}
+                    <div className="onboarding-section">
+                        <h3>🚀 Core Platform Features</h3>
+                        <p className="onboarding-section__subtitle">Unlock full dashboard analytics by completing your first setup actions:</p>
+                        
+                        <div className="onboarding-actions-list">
+                            <div className="onboarding-action-row">
+                                <div className="onboarding-action-row__content">
+                                    <div className="onboarding-action-row__title">
+                                        <span className="onboarding-action-row__emoji">👥</span>
+                                        <h4>Add Your First Client</h4>
+                                    </div>
+                                    <p>Set up an investor profile to start tracking their initial capital, capital history, and dedicated portfolio statistics.</p>
+                                </div>
+                                <button className="onboarding-action-btn" onClick={() => navigate('/clients')}>
+                                    Go to Clients →
+                                </button>
+                            </div>
+
+                            <div className="onboarding-action-row">
+                                <div className="onboarding-action-row__content">
+                                    <div className="onboarding-action-row__title">
+                                        <span className="onboarding-action-row__emoji">📈</span>
+                                        <h4>Log a Live Trade</h4>
+                                    </div>
+                                    <p>Log a LONG or SHORT entry position. Keep track of shares/quantities, stop losses, and target entries.</p>
+                                </div>
+                                <button className="onboarding-action-btn" onClick={() => navigate('/trades/open')}>
+                                    Log Trade →
+                                </button>
+                            </div>
+
+                            <div className="onboarding-action-row">
+                                <div className="onboarding-action-row__content">
+                                    <div className="onboarding-action-row__title">
+                                        <span className="onboarding-action-row__emoji">📝</span>
+                                        <h4>Write a Journal Entry</h4>
+                                    </div>
+                                    <p>Document daily market analysis, setups, mistakes, or psychological updates in your secure private notebook.</p>
+                                </div>
+                                <button className="onboarding-action-btn" onClick={() => navigate('/notes')}>
+                                    Open Journal →
+                                </button>
+                            </div>
+
+                            <div className="onboarding-action-row">
+                                <div className="onboarding-action-row__content">
+                                    <div className="onboarding-action-row__title">
+                                        <span className="onboarding-action-row__emoji">📋</span>
+                                        <h4>Build your Watchlist</h4>
+                                    </div>
+                                    <p>Save symbols and track prices, daily changes, and charts integrated directly from Screener.in.</p>
+                                </div>
+                                <button className="onboarding-action-btn" onClick={() => navigate('/watchlist')}>
+                                    Set Watchlist →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Stat Cards (For Existing Users) ── */}
+            {!loading && !error && summary && !isBlankState && (
                 <div className="stats-grid">
                     {SUMMARY_CARDS.map(({ label, value, pnl }) => {
                         const accentColor = pnl !== undefined
@@ -197,140 +306,142 @@ export default function Dashboard() {
             )}
 
             {/* ── Profitability Gauge & Ratios ── */}
-            {!loading && !error && summary && (
+            {!loading && !error && summary && !isBlankState && (
                 <Profitability summary={summary} />
             )}
 
             {/* Daily Market News / Sentiment (Market Intelligence in between) */}
-            {(optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
+            {!loading && !error && summary && !isBlankState && (optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
 
             {/* ── Sections Grid ── */}
-            <div className="dashboard-sections">
-                {/* Recent Trades */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{
-                        padding: 'var(--space-md) var(--space-lg)',
-                        borderBottom: '1px solid var(--color-border)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    }}>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
-                            Recent Trades
-                        </h3>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
-                            Last 5
-                        </span>
-                    </div>
-
-                    {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
-                    {tradesError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{tradesError}</p>}
-                    {!tradesLoading && !tradesError && recentTrades.length === 0 && (
-                        <p className="placeholder-text">No recent trades.</p>
-                    )}
-
-                    {!tradesLoading && !tradesError && recentTrades.length > 0 && (
-                        <div className="table-container">
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Dir</th>
-                                        <th>P&L</th>
-                                        <th className="hide-col-mobile">Status</th>
-                                        <th className="hide-col-mobile">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentTrades.map(t => {
-                                        const pnlPos = t.total_pnl > 0;
-                                        const pnlNeg = t.total_pnl < 0;
-                                        return (
-                                            <tr key={t.trade_id}>
-                                                <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
-                                                <td>
-                                                    <span style={{
-                                                        color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
-                                                        fontWeight: 600, fontSize: '0.7rem',
-                                                    }}>
-                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
-                                                    </span>
-                                                </td>
-                                                <td style={{
-                                                    fontWeight: 600,
-                                                    fontSize: '0.8rem',
-                                                    color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'inherit',
-                                                }}>
-                                                    {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
-                                                </td>
-                                                <td className="hide-col-mobile">
-                                                    <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
-                                                        {t.status}
-                                                    </span>
-                                                </td>
-                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+            {!loading && !error && summary && !isBlankState && (
+                <div className="dashboard-sections">
+                    {/* Recent Trades */}
+                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                        <div style={{
+                            padding: 'var(--space-md) var(--space-lg)',
+                            borderBottom: '1px solid var(--color-border)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        }}>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                                Recent Trades
+                            </h3>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                                Last 5
+                            </span>
                         </div>
-                    )}
-                </div>
 
-                {/* Client Activity */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{
-                        padding: 'var(--space-md) var(--space-lg)',
-                        borderBottom: '1px solid var(--color-border)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    }}>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
-                            Client Activity
-                        </h3>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
-                            Last 5
-                        </span>
-                    </div>
+                        {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
+                        {tradesError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{tradesError}</p>}
+                        {!tradesLoading && !tradesError && recentTrades.length === 0 && (
+                            <p className="placeholder-text">No recent trades.</p>
+                        )}
 
-                    {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
-                    {activityError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{activityError}</p>}
-                    {!activityLoading && !activityError && clientActivity.length === 0 && (
-                        <p className="placeholder-text">No recent client activity.</p>
-                    )}
-
-                    {!activityLoading && !activityError && clientActivity.length > 0 && (
-                        <div className="table-container">
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '40%' }}>Client</th>
-                                        <th style={{ width: '40%' }}>Capital</th>
-                                        <th style={{ width: '20%', textAlign: 'center' }}>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {clientActivity.map(c => (
-                                        <tr key={c.client_id}>
-                                            <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{c.name.split(' ')[0]}</td>
-                                            <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{fmtLakhsPlain(c.capital_invested)}</td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <div style={{
-                                                    width: '10px',
-                                                    height: '10px',
-                                                    borderRadius: '50%',
-                                                    display: 'inline-block',
-                                                    background: c.status === 'ACTIVE' ? 'var(--color-success)' :
-                                                                c.status === 'INACTIVE' ? 'var(--color-danger)' :
-                                                                'var(--color-warning)'
-                                                }} title={c.status} />
-                                            </td>
+                        {!tradesLoading && !tradesError && recentTrades.length > 0 && (
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Symbol</th>
+                                            <th>Dir</th>
+                                            <th>P&L</th>
+                                            <th className="hide-col-mobile">Status</th>
+                                            <th className="hide-col-mobile">Date</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {recentTrades.map(t => {
+                                            const pnlPos = t.total_pnl > 0;
+                                            const pnlNeg = t.total_pnl < 0;
+                                            return (
+                                                <tr key={t.trade_id}>
+                                                    <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
+                                                    <td>
+                                                        <span style={{
+                                                            color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
+                                                            fontWeight: 600, fontSize: '0.7rem',
+                                                        }}>
+                                                            {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{
+                                                        fontWeight: 600,
+                                                        fontSize: '0.8rem',
+                                                        color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'inherit',
+                                                    }}>
+                                                        {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
+                                                    </td>
+                                                    <td className="hide-col-mobile">
+                                                        <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
+                                                            {t.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>{fmtDate(t.created_at)}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Client Activity */}
+                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                        <div style={{
+                            padding: 'var(--space-md) var(--space-lg)',
+                            borderBottom: '1px solid var(--color-border)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        }}>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                                Client Activity
+                            </h3>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                                Last 5
+                            </span>
                         </div>
-                    )}
+
+                        {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
+                        {activityError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{activityError}</p>}
+                        {!activityLoading && !activityError && clientActivity.length === 0 && (
+                            <p className="placeholder-text">No recent client activity.</p>
+                        )}
+
+                        {!activityLoading && !activityError && clientActivity.length > 0 && (
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style={{ width: '40%' }}>Client</th>
+                                            <th style={{ width: '40%' }}>Capital</th>
+                                            <th style={{ width: '20%', textAlign: 'center' }}>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {clientActivity.map(c => (
+                                            <tr key={c.client_id}>
+                                                <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{c.name.split(' ')[0]}</td>
+                                                <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{fmtLakhsPlain(c.capital_invested)}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <div style={{
+                                                        width: '10px',
+                                                        height: '10px',
+                                                        borderRadius: '50%',
+                                                        display: 'inline-block',
+                                                        background: c.status === 'ACTIVE' ? 'var(--color-success)' :
+                                                                    c.status === 'INACTIVE' ? 'var(--color-danger)' :
+                                                                    'var(--color-warning)'
+                                                    }} title={c.status} />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {showWelcomeModal && (
                 <div className="welcome-overlay">
@@ -539,6 +650,189 @@ export default function Dashboard() {
                     `}</style>
                 </div>
             )}
+            <style>{`
+                .onboarding-guide {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-xl);
+                    animation: fadeInUp 0.45s ease-out;
+                }
+
+                .onboarding-hero {
+                    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.02) 100%);
+                    border: 1px solid rgba(212, 175, 55, 0.25);
+                    border-radius: var(--radius-lg);
+                    padding: 2.5rem 2rem;
+                    text-align: center;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .onboarding-hero__sparkle {
+                    font-size: 2.2rem;
+                    margin-bottom: 0.75rem;
+                    animation: float 3.5s ease-in-out infinite;
+                }
+
+                .onboarding-hero h2 {
+                    font-family: var(--font-heading);
+                    font-size: 1.55rem;
+                    font-weight: 700;
+                    color: var(--color-gold);
+                    margin-bottom: 0.5rem;
+                    letter-spacing: -0.01em;
+                }
+
+                .onboarding-hero p {
+                    font-size: 0.88rem;
+                    color: var(--color-text-muted);
+                    max-width: 600px;
+                    margin: 0 auto;
+                    line-height: 1.6;
+                }
+
+                .onboarding-section {
+                    background: var(--color-surface);
+                    border: 1px solid var(--color-border);
+                    border-radius: var(--radius-lg);
+                    padding: 2.25rem 2rem;
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .onboarding-section h3 {
+                    font-family: var(--font-heading);
+                    font-size: 1.15rem;
+                    font-weight: 600;
+                    color: var(--color-text);
+                    margin-bottom: 0.35rem;
+                }
+
+                .onboarding-section__subtitle {
+                    font-size: 0.82rem;
+                    color: var(--color-text-dim);
+                    margin-bottom: 1.5rem;
+                }
+
+                .onboarding-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                    gap: var(--space-lg);
+                }
+
+                .onboarding-card {
+                    background: var(--color-surface-alt);
+                    border: 1px solid var(--color-border);
+                    border-radius: var(--radius-md);
+                    padding: 1.5rem;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.6rem;
+                    transition: transform var(--transition), border-color var(--transition);
+                }
+
+                .onboarding-card:hover {
+                    border-color: var(--color-gold);
+                    transform: translateY(-2px);
+                }
+
+                .onboarding-card__icon {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.25rem;
+                    margin-bottom: 0.25rem;
+                }
+
+                .onboarding-card h4 {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    color: var(--color-text);
+                    margin: 0;
+                }
+
+                .onboarding-card p {
+                    font-size: 0.8rem;
+                    color: var(--color-text-muted);
+                    line-height: 1.55;
+                    margin: 0;
+                }
+
+                .onboarding-actions-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-md);
+                }
+
+                .onboarding-action-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: var(--color-surface-alt);
+                    border: 1px solid var(--color-border);
+                    border-radius: var(--radius-md);
+                    padding: 1.25rem 1.5rem;
+                    gap: var(--space-lg);
+                    flex-wrap: wrap;
+                    transition: border-color var(--transition);
+                }
+
+                .onboarding-action-row:hover {
+                    border-color: var(--color-gold);
+                }
+
+                .onboarding-action-row__content {
+                    flex: 1;
+                    min-width: 250px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                }
+
+                .onboarding-action-row__title {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                }
+
+                .onboarding-action-row__title h4 {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    color: var(--color-text);
+                    margin: 0;
+                }
+
+                .onboarding-action-row__emoji {
+                    font-size: 1.1rem;
+                }
+
+                .onboarding-action-row p {
+                    font-size: 0.8rem;
+                    color: var(--color-text-muted);
+                    margin: 0;
+                    line-height: 1.45;
+                }
+
+                .onboarding-action-btn {
+                    background: none;
+                    border: 1px solid var(--color-border);
+                    color: var(--color-gold);
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    padding: 0.55rem 1.1rem;
+                    border-radius: var(--radius-sm);
+                    cursor: pointer;
+                    transition: all var(--transition);
+                    white-space: nowrap;
+                }
+
+                .onboarding-action-btn:hover {
+                    background: var(--color-gold-soft);
+                    border-color: var(--color-gold);
+                }
+            `}</style>
         </div>
     );
 }

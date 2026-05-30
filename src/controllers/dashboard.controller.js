@@ -36,6 +36,18 @@ export const getDashboardSummary = async (req, res) => {
             [adminId]
         );
 
+        // TOTAL JOURNAL/NOTE COUNT
+        const [[{ totalNotes }]] = await db.query(
+            `SELECT COUNT(*) AS totalNotes FROM reference_notes WHERE admin_id = ?`,
+            [adminId]
+        );
+
+        // TOTAL WATCHLIST SYMBOL COUNT
+        const [[{ totalWatchlist }]] = await db.query(
+            `SELECT COUNT(*) AS totalWatchlist FROM watchlist_symbols WHERE admin_id = ?`,
+            [adminId]
+        );
+
         // TRADE STATS (ONLY CLOSED — for profitability ratios)
         const [[stats]] = await db.query(
             `SELECT 
@@ -80,7 +92,9 @@ export const getDashboardSummary = async (req, res) => {
             winRate,
             avgWin,
             avgLoss,
-            profitFactor
+            profitFactor,
+            totalNotes: totalNotes || 0,
+            totalWatchlist: totalWatchlist || 0
         });
 
     } catch (error) {
