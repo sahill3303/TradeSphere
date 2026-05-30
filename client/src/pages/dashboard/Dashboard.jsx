@@ -142,13 +142,6 @@ export default function Dashboard() {
                 </div>
             </div>
 
-
-
-
-
-            {/* Daily Market News / Sentiment */}
-            {(optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
-
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
 
@@ -207,6 +200,9 @@ export default function Dashboard() {
             {!loading && !error && summary && (
                 <Profitability summary={summary} />
             )}
+
+            {/* Daily Market News / Sentiment (Market Intelligence in between) */}
+            {(optionalFeatures?.marketIntelligence ?? true) && <DailyNews />}
 
             {/* ── Sections Grid ── */}
             <div className="dashboard-sections">
