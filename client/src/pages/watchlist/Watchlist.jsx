@@ -132,6 +132,7 @@ export default function Watchlist() {
                 setSelectedForAdd(null);
                 setActiveCategory(category);
                 fetchData();
+                window.dispatchEvent(new Event('watchlist-updated'));
             }
         } catch (error) {
             console.error('Failed to add symbol', error);
@@ -146,7 +147,10 @@ export default function Watchlist() {
             onConfirm: async () => {
                 try {
                     const { data } = await api.delete(`/watchlist/${id}`);
-                    if (data.success) fetchData();
+                    if (data.success) {
+                        fetchData();
+                        window.dispatchEvent(new Event('watchlist-updated'));
+                    }
                 } catch (error) {
                     console.error('Failed to remove symbol', error);
                 }

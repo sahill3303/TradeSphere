@@ -22,8 +22,38 @@ export default function TickerBar() {
 
         const fetchAllPrices = async () => {
             try {
+                // 1. Fetch user's watchlist symbols
+                let watchlistItems = [];
+                try {
+                    const wlRes = await api.get('/watchlist');
+                    if (wlRes.data && wlRes.data.success) {
+                        watchlistItems = wlRes.data.data || [];
+                    }
+                } catch (wlErr) {
+                    console.error('Failed to fetch watchlist in ticker bar:', wlErr);
+                }
+
+                // 2. Map watchlist symbols to Yahoo format
+                const watchlistSymbols = watchlistItems.map(item => {
+                    const cleanSym = item.symbol.split(':').pop();
+                    return {
+                        label: cleanSym,
+                        yahoo: `${cleanSym}.NS`,
+                        prefix: '₹'
+                    };
+                });
+
+                // 3. Combine with default indices
+                const allSymbolsToFetch = [...TICKER_SYMBOLS];
+                watchlistSymbols.forEach(ws => {
+                    if (!allSymbolsToFetch.some(ts => ts.yahoo.toLowerCase() === ws.yahoo.toLowerCase())) {
+                        allSymbolsToFetch.push(ws);
+                    }
+                });
+
+                // 4. Fetch prices in parallel
                 const results = await Promise.all(
-                    TICKER_SYMBOLS.map(async (item) => {
+                    allSymbolsToFetch.map(async (item) => {
                         try {
                             const { data } = await api.get(`/dashboard/market-chart/${item.yahoo}?interval=1m&range=1d`);
                             const change = data.currentPrice - data.previousClose;
@@ -53,9 +83,16 @@ export default function TickerBar() {
         fetchAllPrices();
         const interval = setInterval(fetchAllPrices, 60000); // refresh every 1 min
 
+        // Listen for custom event when watchlist changes
+        const handleWatchlistUpdate = () => {
+            fetchAllPrices();
+        };
+        window.addEventListener('watchlist-updated', handleWatchlistUpdate);
+
         return () => {
             isMounted = false;
             clearInterval(interval);
+            window.removeEventListener('watchlist-updated', handleWatchlistUpdate);
         };
     }, []);
 
