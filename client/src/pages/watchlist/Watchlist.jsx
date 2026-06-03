@@ -16,7 +16,7 @@ export default function Watchlist() {
     const [isEditing, setIsEditing] = useState(false);
     const [prices, setPrices] = useState({});
     const [pricesLoading, setPricesLoading] = useState(false);
-    
+
     // New Category Modal
     const [showNewCategoryModal, setShowNewCategoryModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
@@ -34,7 +34,7 @@ export default function Watchlist() {
                 api.get('/watchlist/categories'),
                 api.get('/watchlist')
             ]);
-            
+
             if (catsRes.data.success) {
                 setCategories(catsRes.data.data);
                 if (catsRes.data.data.length > 0 && !activeCategory) {
@@ -85,10 +85,10 @@ export default function Watchlist() {
             const currentDate = new Date(current.created_at);
             return currentDate > latestDate ? currentDate : latestDate;
         }, new Date(0));
-        
-        return latest.toLocaleString('en-IN', { 
-            dateStyle: 'medium', 
-            timeStyle: 'short' 
+
+        return latest.toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
         });
     }, [activeSymbols]);
 
@@ -121,10 +121,10 @@ export default function Watchlist() {
     const confirmAddSymbol = async (category) => {
         if (!selectedForAdd) return;
         try {
-            const { data } = await api.post('/watchlist', { 
-                symbol: selectedForAdd.symbol, 
+            const { data } = await api.post('/watchlist', {
+                symbol: selectedForAdd.symbol,
                 name: selectedForAdd.name,
-                category 
+                category
             });
             if (data.success) {
                 setSearchQuery('');
@@ -135,7 +135,7 @@ export default function Watchlist() {
                 window.dispatchEvent(new Event('watchlist-updated'));
             }
         } catch (error) {
-            console.error('Failed to add symbol', error);
+            console.error('Failed to add the stock', error);
         }
     };
 
@@ -189,8 +189,8 @@ export default function Watchlist() {
                 {/* Sidebar for Search */}
                 <div className="watchlist-sidebar">
                     <div className="watchlist-search">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="Search company (e.g. Reliance)..."
                             value={searchQuery}
                             onChange={handleSearch}
@@ -209,7 +209,7 @@ export default function Watchlist() {
                                 ))}
                             </div>
                         )}
-                        
+
                         {/* Category Selection Modal/Overlay */}
                         {selectedForAdd && (
                             <div className="watchlist-add-modal">
@@ -226,7 +226,7 @@ export default function Watchlist() {
                             </div>
                         )}
                     </div>
-                    
+
                     <div className="watchlist-sidebar-info">
                         <div className="watchlist-sidebar-icon">🔍</div>
                         <p>Search for a stock above and select a category to add it to your watchlist.</p>
@@ -238,7 +238,7 @@ export default function Watchlist() {
                     <div className="watchlist-tabs-header">
                         <div className="watchlist-tabs tabs-wrap">
                             {categories.map(cat => (
-                                <button 
+                                <button
                                     key={cat.id}
                                     className={`watchlist-tab ${activeCategory === cat.name ? 'active' : ''}`}
                                     onClick={() => { setActiveCategory(cat.name); setIsEditing(false); }}
@@ -252,7 +252,7 @@ export default function Watchlist() {
                         </div>
                         <div className="watchlist-tabs-actions">
                             {lastUpdated && <span className="watchlist-last-updated hide-mobile">Last Updated: {lastUpdated}</span>}
-                            <button 
+                            <button
                                 className={`btn ${isEditing ? 'btn--primary' : 'btn--secondary'}`}
                                 onClick={() => setIsEditing(!isEditing)}
                                 disabled={activeSymbols.length === 0}
@@ -315,10 +315,10 @@ export default function Watchlist() {
                     <div className="modal-content">
                         <h3 className="mb-4">Create New Watchlist</h3>
                         <form onSubmit={createNewCategory}>
-                            <input 
-                                type="text" 
-                                className="form-input mb-4" 
-                                placeholder="Enter watchlist name..." 
+                            <input
+                                type="text"
+                                className="form-input mb-4"
+                                placeholder="Enter watchlist name..."
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
                                 autoFocus
