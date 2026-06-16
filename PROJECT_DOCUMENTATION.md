@@ -1,7 +1,7 @@
 # TradeSphere: Project Documentation
 
 ## 1. Project Overview
-**TradeSphere** is a premium, full-stack trading management system designed for **AJ Consultancy**. It provides a comprehensive suite of tools for tracking trades, managing client portfolios, monitoring capital deployment, and organizing market research via watchlists and reference notes.
+**TradeSphere** is a premium, full-stack trading management system designed for **AJ Consulting**. It provides a comprehensive suite of tools for tracking trades, managing client portfolios, monitoring capital deployment, and organizing market research via watchlists and reference notes.
 
 ### Tech Stack
 - **Frontend**: React.js with Vite, Tailwind CSS (Vanilla CSS for custom components), Framer Motion for animations.

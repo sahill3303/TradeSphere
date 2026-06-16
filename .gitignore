@@ -1,3 +1,2 @@
 node_modules
 .env
-#will need to include more files in this .gitignore

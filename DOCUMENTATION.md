@@ -1,16 +1,10 @@
 # TradeSphere — Professional Trading Journal & Analytics Platform
 ## Documentation for Project Viva / Technical Presentation
 
----
-
-0auth
-nodemailer
-clerk
-
 ### 1. Project Introduction
 **TradeSphere** is a high-performance, premium web application designed for professional traders and consultants to track, analyze, and optimize trading activities. It provides a centralized dashboard for managing client investments, tracking individual trade performance (Open/Closed), and generating real-time financial insights. 
 
-Built with a "Mobile-First" and "Premium-Aesthetics" philosophy, TradeSphere utilizes a sleek **Black & Gold** design system to provide an agency-grade user experience.
+TradeSphere utilizes a sleek **Black & Gold** design system to provide an agency-grade user experience.
 
 ---
 

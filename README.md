@@ -1,6 +1,6 @@
 # TradeSphere
 
-**TradeSphere** is a premium, AI-powered financial research and trade management platform. It was developed as a flagship project for **AJ Consultancy** to modernize trading operations and market analysis.
+**TradeSphere** is a premium, AI-powered financial research and trade management platform. It was developed as a flagship project for **AJ Consulting** to modernize trading operations and market analysis.
 
 ## 📄 Documentation
 

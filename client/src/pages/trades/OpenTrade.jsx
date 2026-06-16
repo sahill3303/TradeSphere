@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
@@ -56,6 +56,14 @@ export default function OpenTrade() {
     const [submitError, setSubmitError] = useState('');
     const [availableClients, setAvailableClients] = useState([]);
 
+    // Stock search autocomplete
+    const [stockSuggestions, setStockSuggestions] = useState([]);
+    const [isSearchingStock, setIsSearchingStock] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const stockSearchTimeout = useRef(null);
+    const stockInputRef = useRef(null);
+    const suggestionsRef = useRef(null);
+
     useEffect(() => {
         api.get('/clients')
            .then(res => {
@@ -70,10 +78,65 @@ export default function OpenTrade() {
            .catch(err => console.error("Failed to load clients", err));
     }, []);
 
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                stockInputRef.current && !stockInputRef.current.contains(e.target) &&
+                suggestionsRef.current && !suggestionsRef.current.contains(e.target)
+            ) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     function handleChange(e) {
         const { id, value } = e.target;
         setForm(prev => ({ ...prev, [id]: value }));
         if (errors[id]) setErrors(prev => ({ ...prev, [id]: '' }));
+    }
+
+    function handleStockInput(e) {
+        const value = e.target.value;
+        setForm(prev => ({ ...prev, stock_name: value }));
+        if (errors.stock_name) setErrors(prev => ({ ...prev, stock_name: '' }));
+
+        if (stockSearchTimeout.current) clearTimeout(stockSearchTimeout.current);
+
+        if (value.length < 2) {
+            setStockSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        stockSearchTimeout.current = setTimeout(async () => {
+            try {
+                setIsSearchingStock(true);
+                const { data } = await api.get(`/watchlist/search?q=${encodeURIComponent(value)}`);
+                if (data.success && data.data.length > 0) {
+                    setStockSuggestions(data.data);
+                    setShowSuggestions(true);
+                } else {
+                    setStockSuggestions([]);
+                    setShowSuggestions(false);
+                }
+            } catch (err) {
+                console.error('Stock search failed', err);
+            } finally {
+                setIsSearchingStock(false);
+            }
+        }, 400);
+    }
+
+    function handleSelectStock(suggestion) {
+        // Store the clean symbol (strip NSE: prefix for trade entry)
+        const cleanSymbol = suggestion.symbol ? suggestion.symbol.replace(/^[A-Z]+:/, '') : suggestion.symbol;
+        setForm(prev => ({ ...prev, stock_name: cleanSymbol }));
+        setStockSuggestions([]);
+        setShowSuggestions(false);
+        if (errors.stock_name) setErrors(prev => ({ ...prev, stock_name: '' }));
     }
 
     // Derived risk/reward preview
@@ -143,15 +206,47 @@ export default function OpenTrade() {
                                 Trade Setup
                             </h3>
                             <div className="form-grid">
-                                <Input
-                                    id="stock_name"
-                                    label="Stock Symbol"
-                                    value={form.stock_name}
-                                    onChange={handleChange}
-                                    placeholder="e.g. RELIANCE, NIFTY50"
-                                    error={errors.stock_name}
-                                    required
-                                />
+                                {/* Stock Symbol with Autocomplete */}
+                                <div className="form-group stock-autocomplete-wrapper" style={{ position: 'relative' }}>
+                                    <label htmlFor="stock_name" className="form-label">
+                                        Stock Symbol <span className="required-mark"> *</span>
+                                    </label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            ref={stockInputRef}
+                                            id="stock_name"
+                                            type="text"
+                                            value={form.stock_name}
+                                            onChange={handleStockInput}
+                                            onFocus={() => stockSuggestions.length > 0 && setShowSuggestions(true)}
+                                            placeholder="Search company or symbol..."
+                                            autoComplete="off"
+                                            className={`form-input${errors.stock_name ? ' form-input--error' : ''}`}
+                                            style={{ paddingRight: isSearchingStock ? '2.5rem' : undefined }}
+                                        />
+                                        {isSearchingStock && (
+                                            <div className="stock-search-spinner" />
+                                        )}
+                                    </div>
+                                    {errors.stock_name && <p className="form-error">{errors.stock_name}</p>}
+
+                                    {/* Suggestions Dropdown */}
+                                    {showSuggestions && stockSuggestions.length > 0 && (
+                                        <div ref={suggestionsRef} className="stock-suggestions-dropdown">
+                                            {stockSuggestions.map((s, i) => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    className="stock-suggestion-item"
+                                                    onMouseDown={(e) => { e.preventDefault(); handleSelectStock(s); }}
+                                                >
+                                                    <span className="stock-suggestion-name">{s.name}</span>
+                                                    <span className="stock-suggestion-symbol">{s.symbol}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="form-group">
                                     <label className="form-label">Mode</label>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
