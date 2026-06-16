@@ -1,9 +1,9 @@
 /* ============================================================
    TradeSphere — Black + Gold Trading Dashboard
-   Dark mode by default. Inter / Poppins typography.
+   Dark mode by default. Noto Sans typography.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 /* ──────────────────────────────────────────────────────────
    1. Design Tokens
@@ -56,8 +56,8 @@
   --space-2xl: 3rem;
 
   /* Typography */
-  --font-family: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Poppins', 'Inter', sans-serif;
+  --font-family: 'Noto Sans', system-ui, sans-serif;
+  --font-heading: 'Noto Sans', system-ui, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.9375rem;

@@ -89,7 +89,7 @@ export default function ProtectedRoute() {
                         justify-content: center;
                         z-index: 99999;
                         overflow-y: auto;
-                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;
                         padding: 1.5rem;
                         box-sizing: border-box;
                     }
@@ -166,7 +166,7 @@ export default function ProtectedRoute() {
                     }
 
                     .blocked-title {
-                        font-family: 'Poppins', sans-serif;
+                        font-family: 'Noto Sans', sans-serif;
                         font-size: 1.8rem;
                         font-weight: 700;
                         color: #FFFFFF;
