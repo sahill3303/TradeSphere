@@ -77,9 +77,7 @@ export default function Welcome() {
                         Premium Plan <span style={{ color: 'var(--color-gold)' }}>Activated!</span>
                     </h3>
                     <p className="welcome-elite-desc">
-                        Enjoy a <strong>free 30-day trial</strong> of all exclusive features — 
-                        worth <span className="welcome-elite-price">₹2,000</span> <span className="welcome-elite-price-free">Free</span>, completely on us.
-                    </p>
+                        Enjoy a <strong>free 30-day trial</strong> of all exclusive features </p>
                     <div className="welcome-elite-perks">
                         <span>✦ Unlimited Clients</span>
                         <span>✦ AI Research</span>
