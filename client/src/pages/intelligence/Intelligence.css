@@ -533,20 +533,104 @@
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .intel-page {
+    padding: 0 0.15rem var(--space-lg);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .intel-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+  }
+  .intel-page__subtitle {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+  .intel-refresh-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem;
+  }
+  
+  /* Pipeline Status Bar wrapping on mobile */
+  .intel-status-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.8rem;
+    padding: 0.8rem 1rem;
+    justify-content: flex-start;
+  }
+  .intel-pipeline-step {
+    flex-shrink: 1;
+  }
+  .intel-pipeline-arrow {
+    display: none; /* Hide arrows on mobile because steps wrap */
+  }
+  .intel-pipeline-step__label {
+    font-size: 0.62rem;
+  }
+  .intel-status-meta {
+    display: none;
+  }
+
+  /* Filter Bar - Horizontal touch scrolling for each group on mobile */
+  .intel-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .intel-filter-group {
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
+    padding-bottom: 0.35rem;
+    scrollbar-width: none; /* Hide scrollbars Firefox */
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-wrap: nowrap; /* Ensure pills scroll horizontally instead of wrapping */
+    gap: 0.45rem;
+  }
+  .intel-filter-group::-webkit-scrollbar {
+    display: none; /* Hide scrollbars Chrome/Safari */
+  }
+  .intel-filter-divider {
+    display: none; /* Hide vertical dividers on mobile */
+  }
+
+  /* Card layout */
   .analyst-breakdown {
     grid-template-columns: 1fr;
   }
   .analyst-sectors {
     grid-template-columns: 1fr;
   }
-  .intel-status-meta { display: none; }
-  .analyst-verdict-strip { gap: 0.4rem; }
-  .analyst-headline { font-size: 0.9rem; }
+  .analyst-verdict-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .analyst-headline {
+    font-size: 0.92rem;
+  }
+  .analyst-impact-gauge {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .analyst-impact-gauge__blocks {
+    font-size: 0.62rem;
+    letter-spacing: -0.01em;
+  }
 }
+
 @media (max-width: 480px) {
-  .intel-page { padding: var(--space-sm); }
-  .analyst-card__body { padding: 0.85rem; }
-  .analyst-card__header { padding: 0.65rem 0.85rem; }
-  .analyst-card__footer { padding: 0.45rem 0.85rem; }
-  .intel-filter-bar { gap: 0.4rem; }
+  .analyst-card__body {
+    padding: 0.85rem;
+  }
+  .analyst-card__header {
+    padding: 0.65rem 0.85rem;
+  }
+  .analyst-card__footer {
+    padding: 0.45rem 0.85rem;
+  }
 }
+
