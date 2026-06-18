@@ -5,12 +5,13 @@ import { useConfirm } from '../../context/ConfirmContext';
 import TS2Logo from '../../assets/TS2.png';
 
 const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: '⊞', key: 'dashboard' },
-    { to: '/watchlist', label: 'Watchlist', icon: '📈', key: 'watchlist' },
-    { to: '/clients', label: 'Clients', icon: '◎', key: 'clients' },
-    { to: '/trades', label: 'Trades', icon: '◈', key: 'trades' },
-    { to: '/analysis', label: 'Research', icon: '🔬', key: 'analysis' },
-    { to: '/notes', label: 'Notes', icon: '📝', key: 'notes' },
+    { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
+    { to: '/watchlist',    label: 'Watchlist',    icon: '📈', key: 'watchlist' },
+    { to: '/intelligence', label: 'Intelligence', icon: '⚡', key: 'intelligence', alwaysShow: true },
+    { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
+    { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
+    { to: '/analysis',     label: 'Research',     icon: '🔬', key: 'analysis' },
+    { to: '/notes',        label: 'Notes',        icon: '📝', key: 'notes' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -61,7 +62,7 @@ export default function Sidebar({ isOpen, onClose }) {
                             </li>
                         ) : (
                             navItems
-                                .filter(item => item.key === 'dashboard' || sidebarFeatures[item.key])
+                                .filter(item => item.alwaysShow || item.key === 'dashboard' || sidebarFeatures[item.key])
                                 .map(({ to, label, icon }) => (
                                 <li key={to} className="sidebar__item">
                                     <NavLink

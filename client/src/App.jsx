@@ -24,6 +24,7 @@ import Analysis from './pages/analysis/Analysis';
 import Watchlist from './pages/watchlist/Watchlist';
 import Settings from './pages/settings/Settings';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+import Intelligence from './pages/intelligence/Intelligence';
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
                   <Route path="/notes" element={<Layout><Notes /></Layout>} />
                   <Route path="/analysis" element={<Layout><Analysis /></Layout>} />
                   <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />
+                  <Route path="/intelligence" element={<Layout><Intelligence /></Layout>} />
                   <Route path="/settings" element={<Layout><Settings /></Layout>} />
                   <Route path="/super-admin" element={<Layout><SuperAdminDashboard /></Layout>} />
                 </Route>

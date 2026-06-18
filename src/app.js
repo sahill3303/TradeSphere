@@ -15,6 +15,8 @@ import newsRoutes from './routes/news.routes.js';
 import screenerRoutes from './routes/screener.routes.js';
 import watchlistRoutes from './routes/watchlist.routes.js';
 import superadminRoutes from './routes/superadmin.routes.js';
+import intelligenceRoutes from './routes/intelligence.routes.js';
+import { runPipeline, cleanupOldSignals } from './intelligence/pipeline/PipelineOrchestrator.js';
 import db from './config/db.js';
 
 const app = express();
@@ -70,7 +72,36 @@ app.use('/api/news', newsRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/intelligence', intelligenceRoutes);
 
+
+// ── Intelligence Pipeline Scheduler ────────────────────────────
+// Runs immediately on boot, then every 30 minutes
+(async () => {
+  try {
+    // Purge stale signals (>48h) on startup first
+    await cleanupOldSignals();
+    console.log('[Scheduler] Running initial intelligence pipeline...');
+    await runPipeline();
+    // Fetch new signals every 30 min
+    setInterval(() => {
+      runPipeline().catch(err => console.error('[Scheduler] Pipeline error:', err.message));
+    }, 30 * 60 * 1000); // 30 min
+    // Cleanup old signals (>48h) every 6 hours
+    setInterval(() => {
+      cleanupOldSignals().catch(err => console.error('[Cleanup] Error:', err.message));
+    }, 6 * 60 * 60 * 1000); // 6 hours
+  } catch (err) {
+    console.error('[Scheduler] Initial pipeline failed:', err.message);
+    // Still schedule future runs
+    setInterval(() => {
+      runPipeline().catch(e => console.error('[Scheduler] Pipeline error:', e.message));
+    }, 30 * 60 * 1000);
+    setInterval(() => {
+      cleanupOldSignals().catch(e => console.error('[Cleanup] Error:', e.message));
+    }, 6 * 60 * 60 * 1000);
+  }
+})();
 
 // testing route
 app.get('/api/test', async (req, res) => {
