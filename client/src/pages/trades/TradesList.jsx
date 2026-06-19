@@ -74,6 +74,33 @@ export default function TradesList() {
     const [restoringId, setRestoringId] = useState(null);
     const [hardDeletingId, setHardDeletingId] = useState(null);
 
+    const [prices, setPrices] = useState({});
+    const [pricesLoading, setPricesLoading] = useState(false);
+
+    useEffect(() => {
+        const openTrades = trades.filter(t => t.status === 'OPEN');
+        if (openTrades.length > 0) {
+            const uniqueSymbols = [...new Set(openTrades.map(t => t.stock_name))];
+            const fetchPrices = async () => {
+                setPricesLoading(true);
+                try {
+                    const symbolString = uniqueSymbols.join(',');
+                    const { data } = await api.get(`/watchlist/prices?symbols=${symbolString}`);
+                    if (data.success) {
+                        setPrices(data.data);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch prices for trades:', err);
+                } finally {
+                    setPricesLoading(false);
+                }
+            };
+            fetchPrices();
+        } else {
+            setPrices({});
+        }
+    }, [trades]);
+
     const fetchTrades = useCallback(async () => {
         setLoading(true); setError('');
         try {
@@ -195,6 +222,8 @@ export default function TradesList() {
                                             <th>Dir</th>
                                             <th className="hide-col-mobile">Entry</th>
                                             <th className="hide-col-mobile">Qty</th>
+                                            <th className="hide-col-mobile">CMP</th>
+                                            <th className="hide-col-mobile">Unrealized P&L</th>
                                             <th className="hide-col-mobile">Status</th>
                                             <th className="hide-col-mobile">Date</th>
                                             <th>P&L</th>
@@ -202,32 +231,83 @@ export default function TradesList() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {trades.map(t => (
-                                            <tr key={t.trade_id}>
-                                                <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
-                                                <td>
-                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
-                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
-                                                    </span>
-                                                </td>
-                                                <td className="hide-col-mobile">₹{t.entry_price}</td>
-                                                <td className="hide-col-mobile">{t.quantity}</td>
-                                                <td className="hide-col-mobile">
-                                                    <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
-                                                        {t.status}
-                                                    </span>
-                                                </td>
-                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
-                                                    {fmtDate(t.created_at)}
-                                                </td>
-                                                <td style={{
-                                                    fontWeight: 600,
-                                                    fontSize: '0.8rem',
-                                                    color: t.total_pnl > 0 ? 'var(--color-success)'
-                                                        : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
-                                                 }}>
-                                                    {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
-                                                </td>
+                                        {trades.map(t => {
+                                            const rawCmp = prices[t.stock_name];
+                                            const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
+                                            let unrealizedPnl = null;
+                                            if (t.status === 'OPEN' && cmpVal !== null && !isNaN(cmpVal)) {
+                                                if (t.trade_type === 'LONG') {
+                                                    unrealizedPnl = (cmpVal - t.entry_price) * t.quantity;
+                                                } else {
+                                                    unrealizedPnl = (t.entry_price - cmpVal) * t.quantity;
+                                                }
+                                                unrealizedPnl = Number(unrealizedPnl.toFixed(2));
+                                            }
+
+                                            return (
+                                                <tr key={t.trade_id}>
+                                                    <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
+                                                    <td>
+                                                        <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
+                                                            {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="hide-col-mobile">₹{t.entry_price}</td>
+                                                    <td className="hide-col-mobile">{t.quantity}</td>
+                                                    
+                                                    {/* CMP Column */}
+                                                    <td className="hide-col-mobile">
+                                                        {t.status === 'OPEN' ? (
+                                                            pricesLoading ? (
+                                                                <span className="pulsing-text">Fetching...</span>
+                                                            ) : cmpVal !== null && !isNaN(cmpVal) ? (
+                                                                `₹${cmpVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                            ) : rawCmp ? (
+                                                                `₹${rawCmp}`
+                                                            ) : (
+                                                                <span className="opacity-50">—</span>
+                                                            )
+                                                        ) : (
+                                                            '—'
+                                                        )}
+                                                    </td>
+                                                    
+                                                    {/* Unrealized P&L Column */}
+                                                    <td className="hide-col-mobile" style={{
+                                                        fontWeight: 600,
+                                                        fontSize: '0.8rem',
+                                                        color: unrealizedPnl > 0 ? 'var(--color-success)'
+                                                            : unrealizedPnl < 0 ? 'var(--color-danger)' : 'inherit'
+                                                    }}>
+                                                        {t.status === 'OPEN' ? (
+                                                            pricesLoading ? (
+                                                                <span className="pulsing-text">Fetching...</span>
+                                                            ) : unrealizedPnl !== null ? (
+                                                                fmtLakhs(unrealizedPnl)
+                                                            ) : (
+                                                                <span className="opacity-50">—</span>
+                                                            )
+                                                        ) : (
+                                                            '—'
+                                                        )}
+                                                    </td>
+
+                                                    <td className="hide-col-mobile">
+                                                        <span className={`badge ${t.status === 'OPEN' ? 'badge--yellow' : 'badge--green'}`}>
+                                                            {t.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
+                                                        {fmtDate(t.created_at)}
+                                                    </td>
+                                                    <td style={{
+                                                        fontWeight: 600,
+                                                        fontSize: '0.8rem',
+                                                        color: t.total_pnl > 0 ? 'var(--color-success)'
+                                                            : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
+                                                     }}>
+                                                        {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
+                                                    </td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
                                                         <Link to={`/trades/${t.trade_id}`} className="table-btn-icon" title="View">
@@ -240,7 +320,7 @@ export default function TradesList() {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )})}
                                     </tbody>
                                 </table>
                             </div>
