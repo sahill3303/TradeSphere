@@ -87,7 +87,11 @@ export default function TradesList() {
                     const symbolString = uniqueSymbols.join(',');
                     const { data } = await api.get(`/watchlist/prices?symbols=${symbolString}`);
                     if (data.success) {
-                        setPrices(data.data);
+                        const pricesFlat = {};
+                        for (const [k, v] of Object.entries(data.data)) {
+                            pricesFlat[k] = typeof v === 'object' ? v.price : v;
+                        }
+                        setPrices(pricesFlat);
                     }
                 } catch (err) {
                     console.error('Failed to fetch prices for trades:', err);

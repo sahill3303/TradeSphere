@@ -137,11 +137,49 @@ export const getPrices = async (req, res) => {
         await Promise.all(symbolArray.map(async (sym) => {
             try {
                 const cleanSymbol = sym.split(':').pop();
-                const response = await fetch(`https://www.screener.in/company/${cleanSymbol}/consolidated/`, {
+                
+                // Construct Yahoo Finance Symbol
+                // If it starts with %5E (like %5ENSEI) or ^, or has a suffix (.NS, .BO), keep it.
+                // Otherwise, append .NS for Indian stocks.
+                const isYahooFormatted = cleanSymbol.includes('.') || cleanSymbol.startsWith('^') || cleanSymbol.startsWith('%5E');
+                const yahooSym = isYahooFormatted ? cleanSymbol : `${cleanSymbol}.NS`;
+                
+                const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=1m&range=1d`;
+                const response = await fetch(yahooUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const json = await response.json();
+                    const meta = json?.chart?.result?.[0]?.meta;
+                    const regularPrice = meta?.regularMarketPrice;
+                    const previousClose = meta?.previousClose || meta?.chartPreviousClose;
+
+                    if (regularPrice != null) {
+                        if (previousClose != null && previousClose > 0) {
+                            const change = regularPrice - previousClose;
+                            const percentChange = (change / previousClose) * 100;
+                            priceMap[sym] = {
+                                price: regularPrice.toFixed(2),
+                                change: change.toFixed(2),
+                                percentChange: percentChange.toFixed(2)
+                            };
+                        } else {
+                            priceMap[sym] = { price: regularPrice.toFixed(2) };
+                        }
+                        return;
+                    }
+                }
+
+                // FALLBACK: Screener.in scraping
+                const screenerRes = await fetch(`https://www.screener.in/company/${cleanSymbol}/consolidated/`, {
                     headers: { 'User-Agent': 'Mozilla/5.0' }
                 });
 
-                if (!response.ok) {
+                if (!screenerRes.ok) {
                     const fallbackResponse = await fetch(`https://www.screener.in/company/${cleanSymbol}/`, {
                         headers: { 'User-Agent': 'Mozilla/5.0' }
                     });
@@ -149,14 +187,14 @@ export const getPrices = async (req, res) => {
                     const html = await fallbackResponse.text();
                     const $ = cheerio.load(html);
                     const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
-                    if (price) priceMap[sym] = price;
+                    if (price) priceMap[sym] = { price };
                     return;
                 }
 
-                const html = await response.text();
+                const html = await screenerRes.text();
                 const $ = cheerio.load(html);
                 const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
-                if (price) priceMap[sym] = price;
+                if (price) priceMap[sym] = { price };
             } catch (err) {
                 console.error(`Failed to fetch price for ${sym}:`, err.message);
             }

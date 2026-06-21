@@ -278,7 +278,7 @@ export default function Watchlist() {
                                         <tr>
                                             <th>Company</th>
                                             <th className="hide-col-mobile">Symbol</th>
-                                            <th className="text-right">LTP (₹)</th>
+                                            <th className="text-right">CMP</th>
                                             {isEditing && <th className="text-right">Action</th>}
                                         </tr>
                                     </thead>
@@ -291,7 +291,20 @@ export default function Watchlist() {
                                                     {pricesLoading ? (
                                                         <span className="pulsing-text">Fetching...</span>
                                                     ) : (
-                                                        prices[item.symbol] ? `₹${prices[item.symbol]}` : <span className="opacity-50">N/A</span>
+                                                        prices[item.symbol] ? (
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                                                                <span style={{ fontWeight: 600 }}>₹{prices[item.symbol].price}</span>
+                                                                {prices[item.symbol].percentChange && (
+                                                                    <span style={{ 
+                                                                        fontSize: '0.75rem', 
+                                                                        color: Number(prices[item.symbol].change) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' 
+                                                                    }}>
+                                                                        {Number(prices[item.symbol].change) >= 0 ? '▲' : '▼'} 
+                                                                        {Math.abs(prices[item.symbol].change)} ({Math.abs(prices[item.symbol].percentChange)}%)
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : <span className="opacity-50">N/A</span>
                                                     )}
                                                 </td>
                                                 {isEditing && (

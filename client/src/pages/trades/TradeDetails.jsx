@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Pencil, Lock, CheckCircle, XCircle } from 'lucide-react';
 import api from '../../api/axios';
@@ -57,6 +57,28 @@ export default function TradeDetails() {
     const [editForm, setEditForm] = useState({});
     const [editSubmitting, setEditSubmitting] = useState(false);
     const [editError, setEditError] = useState('');
+
+    // ── Stock autocomplete for edit form ──────────────────────────────────────
+    const [editStockSuggestions, setEditStockSuggestions] = useState([]);
+    const [editIsSearchingStock, setEditIsSearchingStock] = useState(false);
+    const [editShowSuggestions, setEditShowSuggestions] = useState(false);
+    const editStockSearchTimeout = useRef(null);
+    const editStockInputRef = useRef(null);
+    const editSuggestionsRef = useRef(null);
+
+    // Close edit suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                editStockInputRef.current && !editStockInputRef.current.contains(e.target) &&
+                editSuggestionsRef.current && !editSuggestionsRef.current.contains(e.target)
+            ) {
+                setEditShowSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         api.get(`/trades/${id}`)
@@ -130,14 +152,55 @@ export default function TradeDetails() {
     // ── Edit trade ────────────────────────────────────────────────────────────
     function openEditForm() {
         setEditForm({
+            stock_name: trade.stock_name || '',
             entry_price: trade.entry_price,
             quantity: trade.quantity,
             target: trade.target || '',
             stop_loss: trade.stop_loss || '',
             ...(trade.status === 'CLOSED' ? { exit_price: trade.exit_price } : {})
         });
+        setEditStockSuggestions([]);
+        setEditShowSuggestions(false);
         setShowEditForm(true);
         setShowExitForm(false);
+    }
+
+    function handleEditStockInput(e) {
+        const value = e.target.value;
+        setEditForm(prev => ({ ...prev, stock_name: value }));
+
+        if (editStockSearchTimeout.current) clearTimeout(editStockSearchTimeout.current);
+
+        if (value.length < 2) {
+            setEditStockSuggestions([]);
+            setEditShowSuggestions(false);
+            return;
+        }
+
+        editStockSearchTimeout.current = setTimeout(async () => {
+            try {
+                setEditIsSearchingStock(true);
+                const { data } = await api.get(`/watchlist/search?q=${encodeURIComponent(value)}`);
+                if (data.success && data.data.length > 0) {
+                    setEditStockSuggestions(data.data);
+                    setEditShowSuggestions(true);
+                } else {
+                    setEditStockSuggestions([]);
+                    setEditShowSuggestions(false);
+                }
+            } catch (err) {
+                console.error('Stock search failed', err);
+            } finally {
+                setEditIsSearchingStock(false);
+            }
+        }, 400);
+    }
+
+    function handleEditSelectStock(suggestion) {
+        const cleanSymbol = suggestion.symbol ? suggestion.symbol.replace(/^[A-Z]+:/, '') : suggestion.symbol;
+        setEditForm(prev => ({ ...prev, stock_name: cleanSymbol }));
+        setEditStockSuggestions([]);
+        setEditShowSuggestions(false);
     }
 
     function handleEditChange(e) {
@@ -151,6 +214,7 @@ export default function TradeDetails() {
         setEditSubmitting(true);
         try {
             await api.patch(`/trades/${id}`, {
+                ...(editForm.stock_name ? { stock_name: editForm.stock_name.trim().toUpperCase() } : {}),
                 entry_price: Number(editForm.entry_price),
                 quantity: Number(editForm.quantity),
                 target: editForm.target ? Number(editForm.target) : null,
@@ -198,6 +262,42 @@ export default function TradeDetails() {
                     {editError && <div className="alert alert--error">{editError}</div>}
                     <form onSubmit={handleEditSubmit} noValidate>
                         <div className="form-grid">
+                            {/* Stock Name with Autocomplete */}
+                            <div className="form-group stock-autocomplete-wrapper" style={{ position: 'relative', gridColumn: '1 / -1' }}>
+                                <label className="form-label">Stock Symbol</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        ref={editStockInputRef}
+                                        type="text"
+                                        value={editForm.stock_name || ''}
+                                        onChange={handleEditStockInput}
+                                        onFocus={() => editStockSuggestions.length > 0 && setEditShowSuggestions(true)}
+                                        placeholder="Search or type symbol..."
+                                        autoComplete="off"
+                                        className="form-input"
+                                        style={{ paddingRight: editIsSearchingStock ? '2.5rem' : undefined }}
+                                    />
+                                    {editIsSearchingStock && (
+                                        <div className="stock-search-spinner" />
+                                    )}
+                                </div>
+                                {/* Suggestions Dropdown */}
+                                {editShowSuggestions && editStockSuggestions.length > 0 && (
+                                    <div ref={editSuggestionsRef} className="stock-suggestions-dropdown">
+                                        {editStockSuggestions.map((s, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                className="stock-suggestion-item"
+                                                onMouseDown={(e) => { e.preventDefault(); handleEditSelectStock(s); }}
+                                            >
+                                                <span className="stock-suggestion-name">{s.name}</span>
+                                                <span className="stock-suggestion-symbol">{s.symbol}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <Input id="entry_price" label="Entry Price ₹" type="number"
                                 value={editForm.entry_price} onChange={handleEditChange} required />
                             <Input id="quantity" label="Quantity" type="number"

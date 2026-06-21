@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../../api/axios';
 
 // ─── Small reusable components ────────────────────────────────────────────────
@@ -36,14 +36,75 @@ function StockAnalysis() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        const sym = symbol.trim().toUpperCase();
-        if (!sym) return;
+    // Autocomplete state
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const searchTimeout = useRef(null);
+    const inputRef = useRef(null);
+    const suggestionsRef = useRef(null);
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                inputRef.current && !inputRef.current.contains(e.target) &&
+                suggestionsRef.current && !suggestionsRef.current.contains(e.target)
+            ) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    function handleSymbolInput(e) {
+        const value = e.target.value;
+        setSymbol(value.toUpperCase());
+
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+        if (value.length < 2) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        searchTimeout.current = setTimeout(async () => {
+            try {
+                setIsSearching(true);
+                const { data: res } = await api.get(`/watchlist/search?q=${encodeURIComponent(value)}`);
+                if (res.success && res.data.length > 0) {
+                    setSuggestions(res.data);
+                    setShowSuggestions(true);
+                } else {
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                }
+            } catch (err) {
+                console.error('Stock search failed', err);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 400);
+    }
+
+    function handleSelectSuggestion(s) {
+        const cleanSymbol = s.symbol ? s.symbol.replace(/^[A-Z]+:/, '') : s.symbol;
+        setSymbol(cleanSymbol.toUpperCase());
+        setSuggestions([]);
+        setShowSuggestions(false);
+        // Auto-trigger search after selecting
+        triggerSearch(cleanSymbol.toUpperCase());
+    }
+
+    const triggerSearch = async (sym) => {
+        const s = (sym || symbol).trim().toUpperCase();
+        if (!s) return;
         setLoading(true); setError(''); setData(null);
         try {
             const params = horizon ? `?horizon=${encodeURIComponent(horizon)}` : '';
-            const res = await api.get(`/screener/${sym}${params}`);
+            const res = await api.get(`/screener/${s}${params}`);
             if (res.data.success) setData(res.data.data);
             else setError(res.data.message || 'Failed to fetch data.');
         } catch (err) {
@@ -51,26 +112,60 @@ function StockAnalysis() {
         } finally { setLoading(false); }
     };
 
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        triggerSearch();
+    };
+
     const ai = data?.aiSummary;
 
     return (
         <div style={{ minWidth: 0, overflow: 'hidden' }}>
             {/* Search + Horizon */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 'var(--space-sm)', marginBottom: 'var(--space-xl)', alignItems: 'flex-end' }} className="analysis-form-grid">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 0 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 'var(--space-sm)', marginBottom: 'var(--space-xl)', alignItems: 'flex-end' }} className="analysis-form-grid">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 0, position: 'relative' }}>
                     <label style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Stock Symbol</label>
-                    <input
-                        type="text"
-                        value={symbol}
-                        onChange={e => setSymbol(e.target.value.toUpperCase())}
-                        placeholder="e.g. RELIANCE, HDFCBANK, BIRLASOFT"
-                        style={{
-                            width: '100%', boxSizing: 'border-box',
-                            padding: '0.68rem 1rem', background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-                            color: 'var(--color-text)', fontSize: '0.92rem', outline: 'none'
-                        }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={symbol}
+                            onChange={handleSymbolInput}
+                            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                            placeholder="e.g. RELIANCE, HDFCBANK, BIRLASOFT"
+                            autoComplete="off"
+                            style={{
+                                width: '100%', boxSizing: 'border-box',
+                                padding: '0.68rem 1rem', background: 'var(--color-surface)',
+                                border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+                                color: 'var(--color-text)', fontSize: '0.92rem', outline: 'none',
+                                paddingRight: isSearching ? '2.5rem' : '1rem',
+                            }}
+                        />
+                        {isSearching && (
+                            <div className="stock-search-spinner" style={{ top: '50%', transform: 'translateY(-50%)' }} />
+                        )}
+                    </div>
+                    {/* Suggestions Dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                        <div
+                            ref={suggestionsRef}
+                            className="stock-suggestions-dropdown"
+                            style={{ top: 'calc(100% + 4px)', zIndex: 100 }}
+                        >
+                            {suggestions.map((s, i) => (
+                                <button
+                                    key={i}
+                                    type="button"
+                                    className="stock-suggestion-item"
+                                    onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                                >
+                                    <span className="stock-suggestion-name">{s.name}</span>
+                                    <span className="stock-suggestion-symbol">{s.symbol}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
 
@@ -331,52 +426,362 @@ function StockAnalysis() {
 
 // ─── Notes Tab ────────────────────────────────────────────────────────────────
 function AnalysisNotes() {
-    const STORAGE_KEY = 'tradesphere_analysis_notes';
-    const [notes, setNotes] = useState(() => localStorage.getItem(STORAGE_KEY) || '');
-    const [saved, setSaved] = useState(false);
+    const STORAGE_KEY = 'tradesphere_analysis_notes_v2';
+    const [notes, setNotes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [prices, setPrices] = useState({});
+    const [pricesLoading, setPricesLoading] = useState(false);
 
-    const handleSave = useCallback(() => {
-        localStorage.setItem(STORAGE_KEY, notes);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+    // Form state
+    const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [formTitle, setFormTitle] = useState('');
+    const [formSymbol, setFormSymbol] = useState('');
+    const [formContent, setFormContent] = useState('');
+    const [formSaving, setFormSaving] = useState(false);
+
+    // Autocomplete for symbol in form
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const searchTimeout = useRef(null);
+    const inputRef = useRef(null);
+    const suggestionsRef = useRef(null);
+
+    const fetchNotes = async () => {
+        setLoading(true);
+        try {
+            const { data } = await api.get('/analysis-notes');
+            if (data.success) {
+                setNotes(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch notes from server', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const migrateLocalToBackend = async () => {
+        try {
+            const v2Stored = localStorage.getItem(STORAGE_KEY);
+            let localNotes = [];
+            
+            if (v2Stored) {
+                localNotes = JSON.parse(v2Stored);
+            } else {
+                const legacy = localStorage.getItem('tradesphere_analysis_notes');
+                if (legacy && legacy.trim()) {
+                    localNotes = [{
+                        title: 'Legacy Note',
+                        symbol: '',
+                        content: legacy,
+                        savedPrice: null,
+                        createdAt: new Date().toISOString()
+                    }];
+                }
+            }
+
+            if (localNotes.length > 0) {
+                console.log('Migrating local notes to backend...', localNotes);
+                const { data } = await api.post('/analysis-notes/bulk', { notes: localNotes });
+                if (data.success) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem('tradesphere_analysis_notes');
+                }
+            }
+        } catch (err) {
+            console.error('Migration failed:', err);
+        }
+    };
+
+    useEffect(() => {
+        const initNotes = async () => {
+            // First migrate if needed
+            await migrateLocalToBackend();
+            // Then fetch from server
+            await fetchNotes();
+        };
+        initNotes();
+    }, []);
+
+    // Fetch CMPs for all symbols in notes
+    useEffect(() => {
+        const uniqueSymbols = [...new Set(notes.map(n => n.symbol).filter(Boolean))];
+        if (uniqueSymbols.length > 0) {
+            fetchPrices(uniqueSymbols);
+        }
     }, [notes]);
 
-    // Ctrl+S to save
+    const fetchPrices = async (symbols) => {
+        setPricesLoading(true);
+        try {
+            const symbolString = symbols.join(',');
+            const { data } = await api.get(`/watchlist/prices?symbols=${symbolString}`);
+            if (data.success) {
+                const pricesFlat = {};
+                for (const [k, v] of Object.entries(data.data)) {
+                    pricesFlat[k] = typeof v === 'object' ? v.price : v;
+                }
+                setPrices(prev => ({ ...prev, ...pricesFlat }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch prices', error);
+        } finally {
+            setPricesLoading(false);
+        }
+    };
+
+    // Close suggestions
     useEffect(() => {
-        const handler = (e) => { if (e.ctrlKey && e.key === 's') { e.preventDefault(); handleSave(); } };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [handleSave]);
+        function handleClickOutside(e) {
+            if (
+                inputRef.current && !inputRef.current.contains(e.target) &&
+                suggestionsRef.current && !suggestionsRef.current.contains(e.target)
+            ) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSymbolInput = (e) => {
+        const value = e.target.value;
+        setFormSymbol(value.toUpperCase());
+
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+        if (value.length < 2) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        searchTimeout.current = setTimeout(async () => {
+            try {
+                setIsSearching(true);
+                const { data: res } = await api.get(`/watchlist/search?q=${encodeURIComponent(value)}`);
+                if (res.success && res.data.length > 0) {
+                    setSuggestions(res.data);
+                    setShowSuggestions(true);
+                } else {
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                }
+            } catch (err) {
+                console.error('Stock search failed', err);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 400);
+    };
+
+    const handleSelectSuggestion = (s) => {
+        const cleanSymbol = s.symbol ? s.symbol.replace(/^[A-Z]+:/, '') : s.symbol;
+        setFormSymbol(cleanSymbol.toUpperCase());
+        setSuggestions([]);
+        setShowSuggestions(false);
+    };
+
+    const handleSaveNote = async () => {
+        if (!formTitle.trim()) {
+            alert('Title is required');
+            return;
+        }
+        
+        setFormSaving(true);
+        let savedPrice = null;
+
+        if (formSymbol.trim()) {
+            try {
+                const { data } = await api.get(`/watchlist/prices?symbols=${formSymbol.trim().toUpperCase()}`);
+                if (data.success && data.data[formSymbol.trim().toUpperCase()]) {
+                    const priceData = data.data[formSymbol.trim().toUpperCase()];
+                    savedPrice = typeof priceData === 'object' ? priceData.price : priceData;
+                }
+            } catch (err) {
+                console.error('Failed to fetch price for note', err);
+            }
+        }
+
+        const payload = {
+            title: formTitle.trim(),
+            symbol: formSymbol.trim().toUpperCase(),
+            content: formContent.trim(),
+            savedPrice: savedPrice
+        };
+
+        try {
+            if (editingId) {
+                const { data } = await api.put(`/analysis-notes/${editingId}`, payload);
+                if (data.success) {
+                    setNotes(notes.map(n => n.id === editingId ? data.data : n));
+                }
+            } else {
+                const { data } = await api.post('/analysis-notes', payload);
+                if (data.success) {
+                    setNotes([data.data, ...notes]);
+                }
+            }
+
+            // Reset form
+            setFormTitle('');
+            setFormSymbol('');
+            setFormContent('');
+            setEditingId(null);
+            setShowForm(false);
+        } catch (error) {
+            console.error('Failed to save note', error);
+            alert('Failed to save note');
+        } finally {
+            setFormSaving(false);
+        }
+    };
+
+    const handleEdit = (note) => {
+        setFormTitle(note.title);
+        setFormSymbol(note.symbol || '');
+        setFormContent(note.content);
+        setEditingId(note.id);
+        setShowForm(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (confirm('Are you sure you want to delete this note?')) {
+            try {
+                const { data } = await api.delete(`/analysis-notes/${id}`);
+                if (data.success) {
+                    setNotes(notes.filter(n => n.id !== id));
+                }
+            } catch (error) {
+                console.error('Failed to delete note', error);
+                alert('Failed to delete note');
+            }
+        }
+    };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-                    📌 Write your analysis, trade thesis, price targets here. Saves locally in your browser. Press <kbd style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 4, padding: '0 4px', fontSize: '0.75rem' }}>Ctrl+S</kbd> to save.
+                    📌 Multiple chunked notes. Synced across your devices safely in the database.
                 </p>
-                <button onClick={handleSave} style={{
-                    padding: '0.5rem 1.2rem', background: saved ? 'var(--color-success)' : 'var(--color-gold)',
-                    color: '#0B0B0D', fontWeight: 700, fontSize: '0.85rem', border: 'none',
-                    borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.3s', whiteSpace: 'nowrap'
-                }}>
-                    {saved ? '✓ Saved!' : '💾 Save Notes'}
-                </button>
+                {!showForm && (
+                    <button onClick={() => {
+                        setFormTitle(''); setFormSymbol(''); setFormContent(''); setEditingId(null); setShowForm(true);
+                    }} style={{
+                        padding: '0.5rem 1.2rem', background: 'var(--color-gold)',
+                        color: '#0B0B0D', fontWeight: 700, fontSize: '0.85rem', border: 'none',
+                        borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.3s', whiteSpace: 'nowrap'
+                    }}>
+                        + New Note
+                    </button>
+                )}
             </div>
-            <textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder={`📌 BIRLASOFT — 5 Apr 2026\n\nHorizon: Swing (2–4 weeks)\nEntry Zone: ₹510–520\nStop Loss: ₹490\nTarget: ₹560\n\nThesis:\n- Consistent revenue growth in IT services\n- ROE improving YoY\n- FII interest increasing\n\nRisks:\n- Margin pressure from salary hikes\n- Slowdown in BFSI vertical...\n\n────────────────────────\n\n📌 RELIANCE — Analysis`}
-                style={{
-                    minHeight: '60vh', padding: '1.2rem',
-                    background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-md)', color: 'var(--color-text)',
-                    fontSize: '0.9rem', lineHeight: 1.8, resize: 'vertical',
-                    fontFamily: "'JetBrains Mono', 'Consolas', 'Courier New', monospace", outline: 'none'
-                }}
-            />
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'right' }}>
-                {notes.length.toLocaleString()} characters · Stored locally in your browser
-            </div>
+
+            {showForm ? (
+                <div className="card" style={{ padding: 'var(--space-lg)', border: '1px solid var(--color-gold)' }}>
+                    <h3 style={{ marginTop: 0, marginBottom: 'var(--space-md)', color: 'var(--color-gold)', fontSize: '1.1rem' }}>
+                        {editingId ? 'Edit Note' : 'Create New Note'}
+                    </h3>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Title *</label>
+                            <input 
+                                type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)}
+                                placeholder="e.g. Q3 Earnings Setup"
+                                style={{ width: '100%', padding: '0.6rem 0.8rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }}
+                            />
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Stock Symbol</label>
+                            <input 
+                                ref={inputRef}
+                                type="text" value={formSymbol} onChange={handleSymbolInput}
+                                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                                placeholder="Search symbol..." autoComplete="off"
+                                style={{ width: '100%', padding: '0.6rem 0.8rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)', paddingRight: isSearching ? '2.5rem' : '0.8rem' }}
+                            />
+                            {isSearching && <div className="stock-search-spinner" style={{ top: '65%', transform: 'translateY(-50%)' }} />}
+                            {/* Suggestions Dropdown */}
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div ref={suggestionsRef} className="stock-suggestions-dropdown" style={{ top: 'calc(100% + 4px)', zIndex: 100 }}>
+                                    {suggestions.map((s, i) => (
+                                        <button key={i} type="button" className="stock-suggestion-item" onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}>
+                                            <span className="stock-suggestion-name">{s.name}</span>
+                                            <span className="stock-suggestion-symbol">{s.symbol}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: 'var(--space-md)' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Description</label>
+                        <textarea 
+                            value={formContent} onChange={e => setFormContent(e.target.value)}
+                            placeholder="Write your analysis thesis here..."
+                            style={{ width: '100%', minHeight: '150px', padding: '0.8rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)' }}>
+                        <button type="button" onClick={() => setShowForm(false)} style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>Cancel</button>
+                        <button type="button" onClick={handleSaveNote} disabled={formSaving} style={{ padding: '0.5rem 1.2rem', background: 'var(--color-primary)', border: 'none', color: '#fff', fontWeight: 600, borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>
+                            {formSaving ? 'Saving...' : 'Save Note'}
+                        </button>
+                    </div>
+                </div>
+            ) : loading ? (
+                <div style={{ padding: 'var(--space-xl)', textAlign: 'center', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+                    <p style={{ color: 'var(--color-text-dim)', margin: 0 }}>Loading your notes...</p>
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gap: 'var(--space-md)', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                    {notes.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', padding: 'var(--space-xl)', textAlign: 'center', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+                            <p style={{ color: 'var(--color-text-dim)', margin: 0 }}>No notes created yet. Click "New Note" to get started.</p>
+                        </div>
+                    ) : notes.map(note => (
+                        <div key={note.id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: 'var(--space-md)', borderTop: '3px solid var(--color-gold)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-sm)' }}>
+                                <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--color-text)' }}>{note.title}</h4>
+                                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                    <button onClick={() => handleEdit(note)} style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '0.8rem', padding: '2px 5px' }}>Edit</button>
+                                    <button onClick={() => handleDelete(note.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '0.8rem', padding: '2px 5px' }}>Del</button>
+                                </div>
+                            </div>
+                            
+                            {note.symbol && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
+                                    <span style={{ padding: '0.2rem 0.5rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                                        {note.symbol}
+                                    </span>
+                                    {note.saved_price && (
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>
+                                            Saved @ ₹{note.saved_price}
+                                        </span>
+                                    )}
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: 'auto' }}>
+                                        CMP: {prices[note.symbol] ? <strong style={{ color: 'var(--color-success)' }}>₹{prices[note.symbol]}</strong> : (pricesLoading ? '...' : 'N/A')}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div style={{ flex: 1, fontSize: '0.88rem', color: 'var(--color-text-dim)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 'var(--space-sm)', overflowWrap: 'break-word' }}>
+                                {note.content}
+                            </div>
+                            
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'right', marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
+                                {new Date(note.created_at || note.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -415,8 +820,12 @@ export default function Analysis() {
                 ))}
             </div>
 
-            {activeTab === 'analysis' && <StockAnalysis />}
-            {activeTab === 'notes' && <AnalysisNotes />}
+            <div style={{ display: activeTab === 'analysis' ? 'block' : 'none' }}>
+                <StockAnalysis />
+            </div>
+            <div style={{ display: activeTab === 'notes' ? 'block' : 'none' }}>
+                <AnalysisNotes />
+            </div>
         </div>
     );
 }
