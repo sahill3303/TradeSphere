@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../../api/axios';
 import './Intelligence.css';
 
@@ -317,6 +317,18 @@ export default function Intelligence() {
   const [filterDir,  setFilterDir]  = useState('');
   const [filterTime, setFilterTime] = useState('');
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
+
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const searchTimeout = useRef(null);
+  const inputRef = useRef(null);
+  const suggestionsRef = useRef(null);
+
   const fetchFeed = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
@@ -348,6 +360,20 @@ export default function Intelligence() {
 
   useEffect(() => { fetchFeed(); }, [fetchFeed]);
 
+  // Close suggestions on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        inputRef.current && !inputRef.current.contains(e.target) &&
+        suggestionsRef.current && !suggestionsRef.current.contains(e.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const triggerPipeline = async () => {
     setRefreshing(true);
     try {
@@ -361,6 +387,75 @@ export default function Intelligence() {
   const lastRun = status?.last_run
     ? new Date(status.last_run).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
     : null;
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
+    }
+    
+    setIsSearching(true);
+    setSearchResults(null);
+    setError(null);
+    try {
+      const { data } = await api.get(`/intelligence/search?q=${encodeURIComponent(searchQuery)}`);
+      if (data.success) {
+        setSearchResults(data.data);
+      } else {
+        setError('Failed to fetch search results.');
+      }
+    } catch (err) {
+      setError('Error while searching intelligence.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults(null);
+    setSuggestions([]);
+  };
+
+  const handleSearchInput = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+    if (value.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        setIsFetchingSuggestions(true);
+        const { data: res } = await api.get(`/watchlist/search?q=${encodeURIComponent(value)}`);
+        if (res.success && res.data.length > 0) {
+          setSuggestions(res.data);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (err) {
+        console.error('Stock search failed', err);
+      } finally {
+        setIsFetchingSuggestions(false);
+      }
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (s) => {
+    const cleanSymbol = s.symbol ? s.symbol.replace(/^[A-Z]+:/, '') : s.symbol;
+    // We can search by name or symbol, name is usually better for Yahoo Search API
+    setSearchQuery(s.name);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
 
   return (
     <div className="page">
@@ -407,6 +502,46 @@ export default function Intelligence() {
               )}
             </div>
           )}
+        </div>
+
+        {/* ── Search Bar ── */}
+        <div style={{ marginBottom: 'var(--space-md)' }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                ref={inputRef}
+                type="text" 
+                placeholder="Search stocks, crude, indexes, commodities..." 
+                value={searchQuery}
+                onChange={handleSearchInput}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                autoComplete="off"
+                className="form-input"
+                style={{ width: '100%', paddingRight: isFetchingSuggestions ? '2.5rem' : '0.8rem' }}
+              />
+              {isFetchingSuggestions && <div className="stock-search-spinner" style={{ top: '50%', transform: 'translateY(-50%)' }} />}
+              
+              {/* Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div ref={suggestionsRef} className="stock-suggestions-dropdown" style={{ top: 'calc(100% + 4px)', zIndex: 100, width: '100%' }}>
+                  {suggestions.map((s, i) => (
+                    <button key={i} type="button" className="stock-suggestion-item" onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}>
+                      <span className="stock-suggestion-name">{s.name}</span>
+                      <span className="stock-suggestion-symbol">{s.symbol}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button type="submit" className="btn btn--primary" disabled={isSearching || !searchQuery.trim()}>
+              {isSearching ? 'Searching...' : 'Search'}
+            </button>
+            {searchResults !== null && (
+              <button type="button" className="btn btn--ghost" onClick={handleClearSearch} disabled={isSearching}>
+                Clear
+              </button>
+            )}
+          </form>
         </div>
 
         {/* ── Filters ── */}
@@ -463,7 +598,29 @@ export default function Intelligence() {
         )}
 
         {/* ── Feed ── */}
-        {loading ? (
+        {isSearching ? (
+          <div className="intel-empty">
+            <div className="intel-empty__icon" style={{ animation: 'pulse 1.5s infinite' }}>⏳</div>
+            <p className="intel-empty__title">Analysing Search Results</p>
+            <p className="intel-empty__sub">Fetching recent news and running it through the AI analyst pipeline...</p>
+          </div>
+        ) : searchResults !== null ? (
+          searchResults.length === 0 ? (
+            <div className="intel-empty">
+              <div className="intel-empty__icon">📡</div>
+              <p className="intel-empty__title">No recent news found for "{searchQuery}"</p>
+            </div>
+          ) : (
+            <div className="intel-feed">
+              <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-primary)', padding: '0.5rem' }}>
+                Found {searchResults.length} analyzed signals for "{searchQuery}"
+              </p>
+              {searchResults.map(item => (
+                <AnalystCard key={item.id} item={item} />
+              ))}
+            </div>
+          )
+        ) : loading ? (
           <div className="intel-loading">
             {[1,2,3].map(i => <SkeletonCard key={i} />)}
           </div>

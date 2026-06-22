@@ -1,5 +1,6 @@
 import express from 'express';
 import { verifyToken } from '../middleware/auth.middleware.js';
+import * as cheerio from 'cheerio';
 import {
     getDashboardSummary,
     getMonthlyPerformance,
@@ -26,6 +27,32 @@ router.get('/recent-trades', verifyToken, getRecentTrades);
 router.get('/market-chart/:symbol', verifyToken, async (req, res) => {
     try {
         const { symbol } = req.params;          // already URL-encoded by client
+
+        // Intercept GIFT NIFTY to scrape from Groww
+        if (symbol === 'GIFT_NIFTY') {
+            const growwRes = await fetch('https://groww.in/indices/global-indices/sgx-nifty', {
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+            if (growwRes.ok) {
+                const html = await growwRes.text();
+                const $ = cheerio.load(html);
+                const nextData = $('#__NEXT_DATA__').html();
+                if (nextData) {
+                    const match = nextData.match(/"priceData":\{"value":([0-9.]+),"open":([0-9.]+),"high":([0-9.]+),"low":([0-9.]+),"close":([0-9.]+)/);
+                    if (match) {
+                        return res.json({
+                            symbol: 'GIFTNIFTY',
+                            currency: 'INR',
+                            currentPrice: parseFloat(match[1]),
+                            previousClose: parseFloat(match[5]),
+                            candles: []
+                        });
+                    }
+                }
+            }
+            return res.status(500).json({ message: 'Failed to fetch GIFT Nifty' });
+        }
+
         const interval = req.query.interval || '5m';
         const range    = req.query.range    || '1d';
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}&includePrePost=false`;

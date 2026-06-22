@@ -3,11 +3,11 @@ import api from '../../api/axios';
 import './TickerBar.css';
 
 const TICKER_SYMBOLS = [
+    { label: 'GIFT NIFTY', yahoo: 'GIFT_NIFTY', prefix: '₹' },
     { label: 'NIFTY 50', yahoo: '%5ENSEI', prefix: '₹' },
     { label: 'SENSEX', yahoo: '%5EBSESN', prefix: '₹' },
     { label: 'NIFTY BANK', yahoo: '%5ENSEBANK', prefix: '₹' },
     { label: 'NIFTY IT', yahoo: '%5ECNXIT', prefix: '₹' },
-    { label: 'RELIANCE', yahoo: 'RELIANCE.NS', prefix: '₹' },
     { label: 'HDFC BANK', yahoo: 'HDFCBANK.NS', prefix: '₹' },
     { label: 'DOW JONES', yahoo: '%5EDJI', prefix: '$' },
     { label: 'NASDAQ', yahoo: '%5ENDX', prefix: '$' }

@@ -39,7 +39,7 @@ const SESSION_SEEN = new Set();
 
 // ── Pipeline: process a single raw signal ────────────────────
 
-async function processSignal(raw) {
+export async function processSignal(raw) {
   try {
     // Deduplication check
     if (raw.content_hash && SESSION_SEEN.has(raw.content_hash)) {
@@ -161,7 +161,7 @@ async function migrateSchema() {
   console.log('[Pipeline] Schema migration complete.');
 }
 
-async function persistSignal(signal) {
+export async function persistSignal(signal) {
   const sql = `
     INSERT INTO intelligence_feed
       (id, content_hash, source, display_name, source_weight, title, content, url,
@@ -493,7 +493,7 @@ function safeJSON(val) {
   return val || [];
 }
 
-function formatRow(row) {
+export function formatRow(row) {
   return {
     id:            row.id,
     published_at:  row.published_at,

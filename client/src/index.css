@@ -1267,14 +1267,56 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* ──────────────────────────────────────────────────────────
-   16. Auth Pages
+   16. Auth Pages & Animations
 ────────────────────────────────────────────────────────── */
+@keyframes panGrid {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+@keyframes orbFloat1 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20vw, 15vh) scale(1.2); }
+  66% { transform: translate(-15vw, 25vh) scale(0.8); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes orbFloat2 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-25vw, -20vh) scale(1.3); }
+  66% { transform: translate(15vw, -30vh) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes authPulseGlow {
+  0% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), 0 0 40px rgba(0, 0, 0, 0.8); }
+  50% { box-shadow: 0 0 50px rgba(212, 175, 55, 0.25), 0 0 80px rgba(0, 0, 0, 0.9); }
+  100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), 0 0 40px rgba(0, 0, 0, 0.8); }
+}
+
+@keyframes sweepGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes logoShine {
+  0% { filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.3)); }
+  50% { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.9)); }
+  100% { filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.3)); }
+}
+
 .auth-page {
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
+  background-color: #000000 !important; /* Enforce black theme */
+  background-image: 
+    linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: panGrid 15s linear infinite;
   position: relative;
   overflow: hidden;
 }
@@ -1286,47 +1328,71 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   max-height: 95vh;
   min-height: 600px;
   margin: var(--space-xl);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: #0B0B0D !important; /* Enforce dark theme inside */
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.5);
   position: relative;
   z-index: 10;
+  animation: authPulseGlow 4s infinite alternate ease-in-out;
+}
+
+/* Animated Golden Border wrapper effect inside auth-container */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  padding: 2px; /* Border thickness */
+  background: linear-gradient(45deg, #d4af37, #000, #d4af37, #000, #d4af37);
+  background-size: 300% 300%;
+  animation: sweepGlow 8s linear infinite;
+  -webkit-mask: 
+     linear-gradient(#fff 0 0) content-box, 
+     linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 20;
 }
 
 /* Background decoration */
 .auth-page::before {
   content: '';
   position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 40%;
-  aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  top: 10%;
+  left: 10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 60%);
+  filter: blur(60px);
   pointer-events: none;
+  animation: orbFloat1 20s infinite ease-in-out;
+  z-index: 1;
 }
 
 .auth-page::after {
   content: '';
   position: absolute;
-  bottom: -10%;
-  right: -10%;
-  width: 40%;
-  aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  bottom: 5%;
+  right: 5%;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
+  filter: blur(80px);
   pointer-events: none;
+  animation: orbFloat2 25s infinite ease-in-out reverse;
+  z-index: 1;
 }
 
 /* Info Section (Left Side) */
 .auth-info {
   flex: 1.2;
-  background: linear-gradient(135deg, #121214 0%, #0B0B0D 100%);
+  background: linear-gradient(135deg, #0B0B0D 0%, #000000 100%) !important;
   padding: 3.5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid rgba(212, 175, 55, 0.2) !important;
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1442,7 +1508,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Auth Card (Right Side) */
 .auth-card {
   flex: 1;
-  background: var(--color-surface);
+  background: #0B0B0D !important;
   padding: 3.5rem;
   display: flex;
   flex-direction: column;
@@ -1468,6 +1534,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: logoShine 4s infinite alternate;
 }
 
 .auth-card__logo-mark img {
@@ -1480,14 +1547,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-family: var(--font-heading);
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #d4af37 !important; /* Gold logo text */
 }
 
 .auth-card__title {
   font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #fff !important; /* White title text */
   margin-bottom: 0.35rem;
 }
 
