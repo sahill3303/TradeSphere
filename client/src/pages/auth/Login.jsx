@@ -7,15 +7,11 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
 import TS2Logo from '../../assets/TS2.png';
-import Preloader from '../../components/ui/Preloader';
 
 export default function Login() {
     const { login } = useAuth();
     const { hydrateFromPreferences } = useTheme();
     const navigate = useNavigate();
-
-    const [showPreloader, setShowPreloader] = useState(!sessionStorage.getItem('ts_preloader'));
-    const [startLoginAnim, setStartLoginAnim] = useState(!!sessionStorage.getItem('ts_preloader'));
 
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState(() => {
@@ -74,17 +70,6 @@ export default function Login() {
 
     return (
         <div className="auth-page">
-            {showPreloader && (
-                <Preloader 
-                    onStartSlide={() => {
-                        setStartLoginAnim(true);
-                        sessionStorage.setItem('ts_preloader', 'true');
-                    }} 
-                    onComplete={() => setShowPreloader(false)} 
-                />
-            )}
-
-            {startLoginAnim && (
             <div className="auth-container">
                 <AuthInfo />
                 
@@ -177,7 +162,6 @@ export default function Login() {
                     </div>
                 </div>
             </div>
-            )}
         </div>
     );
 }
