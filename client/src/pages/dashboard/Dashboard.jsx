@@ -187,7 +187,7 @@ export default function Dashboard() {
                             <div className="onboarding-card">
                                 <div className="onboarding-card__icon" style={{ color: 'var(--color-warning)', background: 'var(--color-warning-soft)' }}>📊</div>
                                 <h4>Realised P&L</h4>
-                                <p>Calculates the net closed position profit or loss. Automatically updates to show green highlights for profits and red highlights for losses.</p>
+                                <p>Calculates the net closed position profit or loss. Currently gross (without tax and interest), operating costs will be added in the future.</p>
                             </div>
                         </div>
                     </div>
@@ -256,38 +256,43 @@ export default function Dashboard() {
 
             {/* ── Stat Cards (For Existing Users) ── */}
             {!loading && !error && summary && !isBlankState && (
-                <div className="stats-grid">
-                    {SUMMARY_CARDS.map(({ label, value, pnl }) => {
-                        const accentColor = pnl !== undefined
-                            ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-                            : STAT_COLORS[label];
-                        return (
-                            <div key={label} className="stat-card" style={{ '--card-accent': accentColor }}>
-                                <div className="stat-card__icon" style={{
-                                    background: `${accentColor}18`,
-                                    border: `1px solid ${accentColor}30`,
-                                }}>
-                                    {STAT_ICONS[label]}
+                <>
+                    <div className="stats-grid">
+                        {SUMMARY_CARDS.map(({ label, value, pnl }) => {
+                            const accentColor = pnl !== undefined
+                                ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                                : STAT_COLORS[label];
+                            return (
+                                <div key={label} className="stat-card" style={{ '--card-accent': accentColor }}>
+                                    <div className="stat-card__icon" style={{
+                                        background: `${accentColor}18`,
+                                        border: `1px solid ${accentColor}30`,
+                                    }}>
+                                        {STAT_ICONS[label]}
+                                    </div>
+                                    <div className="stat-card__body">
+                                        <span className="stat-card__value" style={{
+                                            color: pnl !== undefined
+                                                ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                                                : 'var(--color-text)',
+                                        }}>{value}</span>
+                                        <span className="stat-card__label">{label}</span>
+                                    </div>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0, left: 0, right: 0,
+                                        height: 2,
+                                        background: `linear-gradient(90deg, ${accentColor}, transparent)`,
+                                        borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
+                                    }} />
                                 </div>
-                                <div className="stat-card__body">
-                                    <span className="stat-card__value" style={{
-                                        color: pnl !== undefined
-                                            ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-                                            : 'var(--color-text)',
-                                    }}>{value}</span>
-                                    <span className="stat-card__label">{label}</span>
-                                </div>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: 0, left: 0, right: 0,
-                                    height: 2,
-                                    background: `linear-gradient(90deg, ${accentColor}, transparent)`,
-                                    borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-                                }} />
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', marginRight: '0.25rem' }}>
+                        * Realised P&L is gross (without tax and interest). Operating costs will be added in the future.
+                    </div>
+                </>
             )}
 
             {/* Skeleton for loading */}
