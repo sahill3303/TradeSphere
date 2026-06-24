@@ -63,8 +63,13 @@ export default function Register() {
         setStrengthScore(finalScore);
     }, [form.password]);
 
-    const handleChange = (e) =>
-        setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
+    const handleChange = (e) => {
+        let val = e.target.value;
+        if (e.target.id === 'email' || e.target.id === 'password') {
+            val = val.replace(/\s/g, '');
+        }
+        setForm(prev => ({ ...prev, [e.target.id]: val }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();

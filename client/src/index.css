@@ -1306,6 +1306,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   100% { filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.3)); }
 }
 
+@keyframes authFadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes authFadeInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes authStagger {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatingLogo {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05); }
+  100% { transform: translateY(0px) scale(1); }
+}
+
+@keyframes inputGlowFocus {
+  0% { box-shadow: 0 0 0px rgba(212, 175, 55, 0.1); }
+  50% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+  100% { box-shadow: 0 0 0px rgba(212, 175, 55, 0.1); }
+}
+
+@keyframes submitBtnGlow {
+  0% { box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); }
+  50% { box-shadow: 0 4px 25px rgba(212, 175, 55, 0.6); }
+  100% { box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); }
+}
+
 .auth-page {
   height: 100vh;
   display: flex;
@@ -1363,10 +1396,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   left: 10%;
   width: 60vw;
   height: 60vw;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 60%);
-  filter: blur(60px);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 60%);
+  filter: blur(50px);
   pointer-events: none;
-  animation: orbFloat1 20s infinite ease-in-out;
+  animation: orbFloat1 12s infinite ease-in-out alternate;
   z-index: 1;
 }
 
@@ -1377,10 +1410,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   right: 5%;
   width: 70vw;
   height: 70vw;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
-  filter: blur(80px);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+  filter: blur(60px);
   pointer-events: none;
-  animation: orbFloat2 25s infinite ease-in-out reverse;
+  animation: orbFloat2 15s infinite ease-in-out alternate-reverse;
   z-index: 1;
 }
 
@@ -1396,6 +1429,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
+  opacity: 0;
+  animation: authFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .auth-info::before {
@@ -1518,6 +1553,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: none;
   border-radius: 0;
   box-shadow: none;
+  opacity: 0;
+  animation: authFadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.1s;
 }
 
 .auth-card__logo {
@@ -1525,6 +1563,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 2rem;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.auth-card__logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
 }
 
 .auth-card__logo-mark {
@@ -1534,7 +1578,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: logoShine 4s infinite alternate;
 }
 
 .auth-card__logo-mark img {
@@ -1568,6 +1611,32 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+.auth-form > * {
+  opacity: 0;
+  animation: authStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-form > *:nth-child(1) { animation-delay: 0.3s; }
+.auth-form > *:nth-child(2) { animation-delay: 0.4s; }
+.auth-form > *:nth-child(3) { animation-delay: 0.5s; }
+.auth-form > *:nth-child(4) { animation-delay: 0.6s; }
+.auth-form > *:nth-child(5) { animation-delay: 0.7s; }
+
+.auth-form .form-input:focus {
+  animation: inputGlowFocus 2s infinite alternate ease-in-out;
+  border-color: var(--color-gold);
+}
+
+.auth-form button[type="submit"] {
+  animation: authStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form button[type="submit"]:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 25px rgba(212, 175, 55, 0.6);
 }
 
 .auth-link {

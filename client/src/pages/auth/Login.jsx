@@ -7,11 +7,15 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
 import TS2Logo from '../../assets/TS2.png';
+import Preloader from '../../components/ui/Preloader';
 
 export default function Login() {
     const { login } = useAuth();
     const { hydrateFromPreferences } = useTheme();
     const navigate = useNavigate();
+
+    const [showPreloader, setShowPreloader] = useState(!sessionStorage.getItem('ts_preloader'));
+    const [startLoginAnim, setStartLoginAnim] = useState(!!sessionStorage.getItem('ts_preloader'));
 
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState(() => {
@@ -20,8 +24,13 @@ export default function Login() {
     });
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) =>
-        setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
+    const handleChange = (e) => {
+        let val = e.target.value;
+        if (e.target.id === 'email' || e.target.id === 'password') {
+            val = val.replace(/\s/g, '');
+        }
+        setForm(prev => ({ ...prev, [e.target.id]: val }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -44,7 +53,20 @@ export default function Login() {
                 navigate('/dashboard', { replace: true });
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            const errorCode = err.response?.data?.code;
+            const errorMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+            setError(errorMsg);
+            
+            if (errorCode === 'EMAIL_NOT_FOUND') {
+                // Keep password, clear email
+                setForm(prev => ({ ...prev, email: '' }));
+            } else if (errorCode === 'INVALID_PASSWORD') {
+                // Keep email, clear password
+                setForm(prev => ({ ...prev, password: '' }));
+            } else {
+                // Fallback: just clear password
+                setForm(prev => ({ ...prev, password: '' }));
+            }
         } finally {
             setLoading(false);
         }
@@ -52,6 +74,17 @@ export default function Login() {
 
     return (
         <div className="auth-page">
+            {showPreloader && (
+                <Preloader 
+                    onStartSlide={() => {
+                        setStartLoginAnim(true);
+                        sessionStorage.setItem('ts_preloader', 'true');
+                    }} 
+                    onComplete={() => setShowPreloader(false)} 
+                />
+            )}
+
+            {startLoginAnim && (
             <div className="auth-container">
                 <AuthInfo />
                 
@@ -144,6 +177,7 @@ export default function Login() {
                     </div>
                 </div>
             </div>
+            )}
         </div>
     );
 }

@@ -92,14 +92,14 @@ export const loginAdmin = async (req, res) => {
         );
 
         if (admins.length === 0) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Email not registered. Please register with us.', code: 'EMAIL_NOT_FOUND' });
         }
 
         const admin = admins[0];
 
         const isMatch = await bcrypt.compare(password, admin.password_hash);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Incorrect password. Please try again.', code: 'INVALID_PASSWORD' });
         }
 
         // Record last login
