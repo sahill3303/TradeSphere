@@ -236,7 +236,7 @@ export const getAllTrades = async (req, res) => {
         const [rows] = await db.query(
             `SELECT 
                 trade_id, stock_name, trade_type, mode, entry_price,
-                quantity, total_pnl, status, created_at, closed_at
+                quantity, total_pnl, status, created_at, closed_at, leverage, trade_date
              FROM trades t
              ${where}
              ORDER BY t.${sort} ${order}

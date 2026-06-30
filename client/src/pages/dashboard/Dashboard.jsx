@@ -74,6 +74,11 @@ export default function Dashboard() {
     const [activityLoading, setActivityLoading] = useState(true);
     const [activityError, setActivityError] = useState(null);
 
+    const [monthlyPerformance, setMonthlyPerformance] = useState([]);
+    const [monthlyLoading, setMonthlyLoading] = useState(true);
+    const [monthlyError, setMonthlyError] = useState(null);
+    const [hoveredMonth, setHoveredMonth] = useState(null);
+
     useEffect(() => {
         if (sessionStorage.getItem('justLoggedIn') === 'true') {
             setShowWelcomeModal(true);
@@ -94,6 +99,11 @@ export default function Dashboard() {
             .then(res => setClientActivity(res.data))
             .catch(() => setActivityError('Failed to load activity.'))
             .finally(() => setActivityLoading(false));
+
+        api.get('/dashboard/monthly-performance')
+            .then(res => setMonthlyPerformance(res.data))
+            .catch(() => setMonthlyError('Failed to load monthly performance.'))
+            .finally(() => setMonthlyLoading(false));
     }, []);
 
     // Prevent background scrolling when welcome modal is shown
@@ -313,6 +323,132 @@ export default function Dashboard() {
             {/* ── Profitability Gauge & Ratios ── */}
             {!loading && !error && summary && !isBlankState && (
                 <Profitability summary={summary} />
+            )}
+
+            {/* ── Monthly Performance Bar Chart ── */}
+            {!loading && !error && summary && !isBlankState && (
+                <div className="card" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                            Monthly Closing %
+                        </h3>
+                    </div>
+
+                    {monthlyLoading && <p className="status-text">Loading chart…</p>}
+                    {monthlyError && <p className="form-error">{monthlyError}</p>}
+                    {!monthlyLoading && !monthlyError && monthlyPerformance.length === 0 && (
+                        <p className="placeholder-text">No data available.</p>
+                    )}
+
+                    {!monthlyLoading && !monthlyError && monthlyPerformance.length > 0 && (() => {
+                        const maxAbs = Math.max(...monthlyPerformance.map(m => Math.abs(m.returnPercentage || 0)), 1);
+                        return (
+                            <div style={{ display: 'flex', height: '220px', position: 'relative', gap: '8px', padding: '30px 0' }}>
+                                {/* Zero Line */}
+                                <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--color-border)', zIndex: 0 }} />
+                                
+                                {monthlyPerformance.map(m => {
+                                    const val = m.returnPercentage || 0;
+                                    const isPositive = val >= 0;
+                                    const heightPct = (Math.abs(val) / maxAbs) * 45; // 45% is max half-height
+                                    
+                                    return (
+                                        <div 
+                                            key={m.month} 
+                                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: hoveredMonth === m.month ? 10 : 1 }}
+                                            onMouseEnter={() => setHoveredMonth(m.month)}
+                                            onMouseLeave={() => setHoveredMonth(null)}
+                                        >
+                                            {/* Tooltip */}
+                                            {hoveredMonth === m.month && m.stocks && m.stocks.length > 0 && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '100%',
+                                                    left: '50%',
+                                                    transform: 'translateX(-50%)',
+                                                    marginBottom: '15px',
+                                                    background: 'var(--color-surface-alt)',
+                                                    border: '1px solid var(--color-border)',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    padding: '12px',
+                                                    boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                                                    width: 'max-content',
+                                                    minWidth: '160px',
+                                                    maxWidth: '220px',
+                                                    pointerEvents: 'none',
+                                                    animation: 'fadeInUp 0.2s ease-out',
+                                                    zIndex: 20
+                                                }}>
+                                                    <h4 style={{ margin: '0 0 8px 0', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '6px' }}>
+                                                        {m.month} Contributions
+                                                    </h4>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {m.stocks.map((stk, idx) => (
+                                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                                                                <span style={{ color: 'var(--color-text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', paddingRight: '12px' }}>
+                                                                    {stk.stock_name}
+                                                                </span>
+                                                                <span style={{ 
+                                                                    color: stk.returnPercentage >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
+                                                                    fontWeight: 600
+                                                                }}>
+                                                                    {stk.returnPercentage > 0 ? '+' : ''}{stk.returnPercentage.toFixed(1)}%
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Top Half (Positive) */}
+                                            <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                                                {isPositive && val > 0 && (
+                                                    <div style={{
+                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`, 
+                                                        background: 'var(--color-success)',
+                                                        borderRadius: '4px 4px 0 0',
+                                                        position: 'relative',
+                                                        cursor: 'pointer',
+                                                        transition: 'filter 0.2s',
+                                                        filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
+                                                    }}>
+                                                         <span style={{ position: 'absolute', top: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-success)' }}>
+                                                             +{val.toFixed(1)}%
+                                                         </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Bottom Half (Negative) */}
+                                            <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                                {!isPositive && val < 0 && (
+                                                    <div style={{
+                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`, 
+                                                        background: 'var(--color-danger)',
+                                                        borderRadius: '0 0 4px 4px',
+                                                        position: 'relative',
+                                                        cursor: 'pointer',
+                                                        transition: 'filter 0.2s',
+                                                        filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
+                                                    }}>
+                                                         <span style={{ position: 'absolute', bottom: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-danger)' }}>
+                                                             {val.toFixed(1)}%
+                                                         </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Month Label */}
+                                            <span style={{ position: 'absolute', bottom: '-10px', fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>
+                                                {m.month}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        );
+                    })()}
+                </div>
             )}
 
             {/* Daily Market News / Sentiment (Market Intelligence in between) */}

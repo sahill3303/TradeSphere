@@ -226,11 +226,13 @@ export default function TradesList() {
                                             <th>Dir</th>
                                             <th className="hide-col-mobile">Entry</th>
                                             <th className="hide-col-mobile">Qty</th>
+                                            <th className="hide-col-mobile">Capital</th>
                                             <th className="hide-col-mobile">CMP</th>
                                             <th className="hide-col-mobile">Unrealized P&L</th>
                                             <th className="hide-col-mobile">Status</th>
-                                            <th className="hide-col-mobile">Date</th>
+                                            <th className="hide-col-mobile">Entry Date</th>
                                             <th>P&L</th>
+                                            <th>P&L %</th>
                                             <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
@@ -239,6 +241,12 @@ export default function TradesList() {
                                             const rawCmp = prices[t.stock_name];
                                             const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
                                             let unrealizedPnl = null;
+                                            let unrealizedPnlPct = null;
+                                            let realizedPnlPct = null;
+
+                                            const lev = t.leverage || 1;
+                                            const invested = (t.entry_price * t.quantity) / lev;
+
                                             if (t.status === 'OPEN' && cmpVal !== null && !isNaN(cmpVal)) {
                                                 if (t.trade_type === 'LONG') {
                                                     unrealizedPnl = (cmpVal - t.entry_price) * t.quantity;
@@ -246,6 +254,11 @@ export default function TradesList() {
                                                     unrealizedPnl = (t.entry_price - cmpVal) * t.quantity;
                                                 }
                                                 unrealizedPnl = Number(unrealizedPnl.toFixed(2));
+                                                unrealizedPnlPct = invested > 0 ? (unrealizedPnl / invested) * 100 : 0;
+                                            }
+
+                                            if (t.status === 'CLOSED') {
+                                                realizedPnlPct = invested > 0 ? (t.total_pnl / invested) * 100 : 0;
                                             }
 
                                             return (
@@ -258,6 +271,7 @@ export default function TradesList() {
                                                     </td>
                                                     <td className="hide-col-mobile">₹{t.entry_price}</td>
                                                     <td className="hide-col-mobile">{t.quantity}</td>
+                                                    <td className="hide-col-mobile">₹{((t.entry_price * t.quantity) / (t.leverage || 1)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                                                     
                                                     {/* CMP Column */}
                                                     <td className="hide-col-mobile">
@@ -302,7 +316,7 @@ export default function TradesList() {
                                                         </span>
                                                     </td>
                                                     <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
-                                                        {fmtDate(t.created_at)}
+                                                        {fmtDate(t.trade_date || t.created_at)}
                                                     </td>
                                                     <td style={{
                                                         fontWeight: 600,
@@ -311,6 +325,18 @@ export default function TradesList() {
                                                             : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
                                                      }}>
                                                         {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
+                                                    </td>
+                                                    <td style={{
+                                                        fontWeight: 600,
+                                                        fontSize: '0.8rem',
+                                                        color: t.status === 'OPEN' 
+                                                            ? (unrealizedPnlPct > 0 ? 'var(--color-success)' : unrealizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
+                                                            : (realizedPnlPct > 0 ? 'var(--color-success)' : realizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
+                                                     }}>
+                                                        {t.status === 'OPEN' 
+                                                            ? (unrealizedPnlPct !== null ? `${unrealizedPnlPct > 0 ? '+' : ''}${unrealizedPnlPct.toFixed(2)}%` : '—')
+                                                            : (realizedPnlPct !== null ? `${realizedPnlPct > 0 ? '+' : ''}${realizedPnlPct.toFixed(2)}%` : '—')
+                                                        }
                                                     </td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -348,8 +374,9 @@ export default function TradesList() {
                                         <tr>
                                             <th>Symbol</th>
                                             <th>Dir</th>
-                                            <th className="hide-col-mobile">Date</th>
+                                            <th className="hide-col-mobile">Entry Date</th>
                                             <th>P&L</th>
+                                            <th>P&L %</th>
                                             <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
@@ -363,10 +390,13 @@ export default function TradesList() {
                                                     </span>
                                                 </td>
                                                 <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
-                                                    {fmtDate(t.created_at)}
+                                                    {fmtDate(t.trade_date || t.created_at)}
                                                 </td>
                                                 <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
                                                     {fmtLakhs(t.total_pnl)}
+                                                </td>
+                                                <td style={{ fontWeight: 600, color: 'inherit' }}>
+                                                    —
                                                 </td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>

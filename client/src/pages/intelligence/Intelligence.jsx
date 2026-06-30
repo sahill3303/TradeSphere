@@ -77,7 +77,7 @@ function AnalystCard({ item }) {
 
   return (
     <article
-      className="analyst-card"
+      className={`analyst-card ${score >= 6 ? 'analyst-card--important' : ''}`}
       style={{ '--card-accent': dir.accent }}
     >
       {/* ── Header ── */}

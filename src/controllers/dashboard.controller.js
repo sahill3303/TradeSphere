@@ -112,26 +112,68 @@ export const getMonthlyPerformance = async (req, res) => {
 
         const [rows] = await db.query(`
             SELECT
-                DATE_FORMAT(closed_at, '%Y-%m') AS month_key,
-                DATE_FORMAT(closed_at, '%b') AS month,
-                SUM(CASE WHEN total_pnl > 0 THEN total_pnl ELSE 0 END) AS profit,
-                SUM(CASE WHEN total_pnl < 0 THEN total_pnl ELSE 0 END) AS loss
+                DATE_FORMAT(COALESCE(trade_date, created_at), '%Y-%m') AS month_key,
+                DATE_FORMAT(COALESCE(trade_date, created_at), '%b') AS month,
+                stock_name,
+                trade_type,
+                entry_price,
+                quantity,
+                leverage,
+                total_pnl
             FROM trades
             WHERE status = 'CLOSED'
               AND is_deleted = FALSE
               AND admin_id = ?
-              AND closed_at IS NOT NULL
-            GROUP BY DATE_FORMAT(closed_at, '%Y-%m'),
-                     DATE_FORMAT(closed_at, '%b')
-            ORDER BY month_key
+              AND entry_price > 0
+              AND quantity > 0
         `, [adminId]);
 
-        // remove month_key before sending to frontend
-        const formatted = rows.map(r => ({
-            month: r.month,
-            profit: r.profit,
-            loss: r.loss
-        }));
+        const monthMap = {};
+        for (const row of rows) {
+            // Calculate trade return percentage
+            const lev = row.leverage || 1;
+            const invested = (row.entry_price * row.quantity) / lev;
+            const tradePct = invested > 0 ? (row.total_pnl / invested) * 100 : 0;
+            
+            // For backward compatibility if any row had NULL trade_date and created_at
+            if (!row.month_key) continue;
+
+            if (!monthMap[row.month_key]) {
+                monthMap[row.month_key] = {
+                    month: row.month,
+                    profit: 0,
+                    loss: 0,
+                    returnPercentage: 0,
+                    stocks: {} // Use object map temporarily to aggregate same stock trades in a month
+                };
+            }
+            
+            monthMap[row.month_key].profit += row.total_pnl > 0 ? row.total_pnl : 0;
+            monthMap[row.month_key].loss += row.total_pnl < 0 ? row.total_pnl : 0;
+            monthMap[row.month_key].returnPercentage += tradePct;
+            
+            if (!monthMap[row.month_key].stocks[row.stock_name]) {
+                monthMap[row.month_key].stocks[row.stock_name] = 0;
+            }
+            monthMap[row.month_key].stocks[row.stock_name] += tradePct;
+        }
+
+        const formatted = Object.keys(monthMap).sort().map(mKey => {
+            const m = monthMap[mKey];
+            // Convert stock map back to array and sort
+            m.stocks = Object.keys(m.stocks).map(stk => ({
+                stock_name: stk,
+                returnPercentage: m.stocks[stk]
+            })).sort((a, b) => b.returnPercentage - a.returnPercentage);
+            
+            return {
+                month: m.month,
+                profit: m.profit,
+                loss: m.loss,
+                returnPercentage: Number(m.returnPercentage.toFixed(2)),
+                stocks: m.stocks
+            };
+        });
 
         res.json(formatted);
 

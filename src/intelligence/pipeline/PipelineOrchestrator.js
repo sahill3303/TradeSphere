@@ -414,6 +414,12 @@ export async function getFeed({ page = 1, limit = 20, category, direction, horiz
   let where  = 'is_published = 1';
   const params = [];
 
+  // Exclude routine low-impact stock news from the default feed
+  where += ` AND (primary_category != 'Corporate' OR COALESCE(impact_score, impact_strength, 0) >= 6)`;
+
+  // Exclude "Market Watch" noise
+  where += ` AND headline NOT LIKE 'Market Watch:%' AND title NOT LIKE 'Market Watch:%'`;
+
   if (category) { where += ' AND primary_category = ?';  params.push(category); }
   if (direction) { where += ' AND impact_direction = ?';  params.push(direction); }
   if (horizon)   { where += ' AND time_horizon = ?';      params.push(horizon); }
