@@ -15,10 +15,13 @@ function RatioCard({ label, value }) {
     );
 }
 
-function SectionCard({ title, children }) {
+function SectionCard({ title, action, children }) {
     return (
         <div className="card" style={{ padding: 'var(--space-lg)' }}>
-            <h3 style={{ margin: '0 0 var(--space-md) 0', fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text)' }}>{title}</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+                <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text)' }}>{title}</h3>
+                {action && <div>{action}</div>}
+            </div>
             {children}
         </div>
     );
@@ -43,6 +46,10 @@ function StockAnalysis() {
     const searchTimeout = useRef(null);
     const inputRef = useRef(null);
     const suggestionsRef = useRef(null);
+
+    // View toggles
+    const [resultsView, setResultsView] = useState('quarterly');
+    const [shareholdingView, setShareholdingView] = useState('quarterly');
 
     // Close suggestions when clicking outside
     useEffect(() => {
@@ -111,6 +118,7 @@ function StockAnalysis() {
             setError(err.response?.data?.message || 'Stock not found. Try the exact NSE/BSE symbol (e.g. BIRLASOFT or INFY).');
         } finally { setLoading(false); }
     };
+
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -313,14 +321,14 @@ function StockAnalysis() {
                     {/* Pros & Cons */}
                     {(data.pros?.length > 0 || data.cons?.length > 0) && (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                            <SectionCard title="✅ Pros (from Screener.in)">
+                            <SectionCard title="✅ Pros">
                                 {data.pros.map((p, i) => (
                                     <div key={i} style={{ fontSize: '0.83rem', color: 'var(--color-text)', marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', paddingBottom: '0.4rem', borderBottom: i < data.pros.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>+</span> {p}
                                     </div>
                                 ))}
                             </SectionCard>
-                            <SectionCard title="⚠ Cons (from Screener.in)">
+                            <SectionCard title="⚠ Cons">
                                 {data.cons.map((c, i) => (
                                     <div key={i} style={{ fontSize: '0.83rem', color: 'var(--color-text)', marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', paddingBottom: '0.4rem', borderBottom: i < data.cons.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                         <span style={{ color: 'var(--color-danger)', fontWeight: 700, flexShrink: 0 }}>–</span> {c}
@@ -330,84 +338,121 @@ function StockAnalysis() {
                         </div>
                     )}
 
-                    {/* Quarterly Results */}
-                    {data.quarterly?.rows?.length > 0 && (
-                        <SectionCard title="📅 Quarterly Results (₹ Cr)">
-                            <div className="table-container">
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            {data.quarterly.headers.map((h, i) => <th key={i}>{h}</th>)}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.quarterly.rows
-                                            .filter(row => !row[0].toLowerCase().includes('promoter'))
-                                            .map((row, i) => (
-                                                <tr key={i}>
-                                                    {row.map((cell, j) => (
-                                                        <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </SectionCard>
-                    )}
+                    {/* Results */}
+                    {(data.quarterly?.rows?.length > 0 || data.annual?.rows?.length > 0) && (() => {
+                        const resultsData = resultsView === 'quarterly' ? data.quarterly : data.annual;
+                        return (
+                            <SectionCard
+                                title={`📅 ${resultsView === 'quarterly' ? 'Quarterly' : 'Yearly'} Results (₹ Cr)`}
+                                action={
+                                    <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                                        <button onClick={() => setResultsView('quarterly')} style={{ background: resultsView === 'quarterly' ? 'var(--color-surface-alt)' : 'transparent', color: resultsView === 'quarterly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Quarterly</button>
+                                        <button onClick={() => setResultsView('yearly')} style={{ background: resultsView === 'yearly' ? 'var(--color-surface-alt)' : 'transparent', color: resultsView === 'yearly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Yearly</button>
+                                    </div>
+                                }
+                            >
+                                <div className="table-container">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                {resultsData?.headers?.map((h, i) => <th key={i}>{h}</th>)}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {resultsData?.rows
+                                                ?.filter(row => !row[0].toLowerCase().includes('promoter'))
+                                                .map((row, i) => (
+                                                    <tr key={i}>
+                                                        {row.map((cell, j) => (
+                                                            <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </SectionCard>
+                        )
+                    })()}
 
                     {/* Shareholding Section - Enhanced with AI Insights */}
-                    {data.shareholding?.rows?.length > 0 && (
-                        <SectionCard title="🏦 Shareholding Pattern Trends">
-                            {/* AI Insights on Shareholding */}
-                            {ai && ai.shareholdingAnalysis && (
-                                <div style={{ background: 'var(--color-surface-alt)', borderLeft: '3px solid var(--color-gold)', borderRadius: 'var(--radius-md)', padding: '0.8rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Institutional & Public Activity</div>
-                                    {ai.shareholdingAnalysis}
-                                </div>
-                            )}
+                    {data.shareholding?.rows?.length > 0 && (() => {
+                        let displayShareholding = data.shareholding;
 
-                            {/* Shareholding Trend Table */}
-                            <div className="table-container">
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            {data.shareholding.headers.map((h, i) => <th key={i}>{h}</th>)}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.shareholding.rows.map((row, i) => (
-                                            <tr key={i}>
-                                                {row.map((cell, j) => {
-                                                    let cellColor = j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)';
-                                                    
-                                                    // Highlight trends starting from the second data column (j > 1)
-                                                    // row[0] is the group name, row[1] is the first quarter
-                                                    if (j > 1) {
-                                                        const current = parseFloat(cell.replace(/[^0-9.]/g, ''));
-                                                        const prev = parseFloat(row[j-1].replace(/[^0-9.]/g, ''));
-                                                        if (!isNaN(current) && !isNaN(prev)) {
-                                                            if (current > prev) cellColor = '#4ade80'; // Green
-                                                            else if (current < prev) cellColor = '#f87171'; // Red
-                                                        }
-                                                    }
+                        if (shareholdingView === 'yearly') {
+                            const years = {};
+                            data.shareholding.headers.forEach((h, i) => {
+                                if (i === 0) return;
+                                const match = h.match(/([A-Za-z]+)\s+(\d{4})/);
+                                if (match) years[match[2]] = i;
+                                else {
+                                    const year = h.replace(/[^0-9]/g, '');
+                                    if (year.length >= 4) years[year.substring(year.length - 4)] = i;
+                                }
+                            });
+                            const indicesToKeep = [0, ...Object.values(years)];
+                            displayShareholding = {
+                                headers: indicesToKeep.map(i => data.shareholding.headers[i]),
+                                rows: data.shareholding.rows.map(row => indicesToKeep.map(i => row[i]))
+                            };
+                        }
 
-                                                    return (
-                                                        <td key={j} style={{ 
-                                                            fontWeight: j === 0 ? 600 : 400, 
-                                                            color: cellColor 
-                                                        }}>
-                                                            {cell}
-                                                        </td>
-                                                    );
-                                                })}
+                        return (
+                            <SectionCard
+                                title="🏦 Shareholding Pattern Trends"
+                                action={
+                                    <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                                        <button onClick={() => setShareholdingView('quarterly')} style={{ background: shareholdingView === 'quarterly' ? 'var(--color-surface-alt)' : 'transparent', color: shareholdingView === 'quarterly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Quarterly</button>
+                                        <button onClick={() => setShareholdingView('yearly')} style={{ background: shareholdingView === 'yearly' ? 'var(--color-surface-alt)' : 'transparent', color: shareholdingView === 'yearly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Yearly</button>
+                                    </div>
+                                }
+                            >
+                                {/* AI Insights on Shareholding */}
+                                {ai && ai.shareholdingAnalysis && (
+                                    <div style={{ background: 'var(--color-surface-alt)', borderLeft: '3px solid var(--color-gold)', borderRadius: 'var(--radius-md)', padding: '0.8rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                                        <div style={{ fontSize: '0.68rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Institutional & Public Activity</div>
+                                        {ai.shareholdingAnalysis}
+                                    </div>
+                                )}
+
+                                {/* Shareholding Trend Table */}
+                                <div className="table-container">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                {displayShareholding.headers.map((h, i) => <th key={i}>{h}</th>)}
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </SectionCard>
-                    )}
+                                        </thead>
+                                        <tbody>
+                                            {displayShareholding.rows.map((row, i) => (
+                                                <tr key={i}>
+                                                    {row.map((cell, j) => {
+                                                        let cellColor = j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)';
+
+                                                        // Highlight trends starting from the second data column (j > 1)
+                                                        if (j > 1) {
+                                                            const current = parseFloat(cell.replace(/[^0-9.]/g, ''));
+                                                            const prev = parseFloat(row[j - 1].replace(/[^0-9.]/g, ''));
+                                                            if (!isNaN(current) && !isNaN(prev)) {
+                                                                if (current > prev) cellColor = '#4ade80'; // Green
+                                                                else if (current < prev) cellColor = '#f87171'; // Red
+                                                            }
+                                                        }
+
+                                                        return (
+                                                            <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: cellColor }}>
+                                                                {cell}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </SectionCard>
+                        )
+                    })()}
 
                     <a href={data.screenerUrl} target="_blank" rel="noreferrer"
                         style={{ fontSize: '0.82rem', color: 'var(--color-gold)', alignSelf: 'flex-start', textDecoration: 'none' }}>
@@ -466,7 +511,7 @@ function AnalysisNotes() {
         try {
             const v2Stored = localStorage.getItem(STORAGE_KEY);
             let localNotes = [];
-            
+
             if (v2Stored) {
                 localNotes = JSON.parse(v2Stored);
             } else {
@@ -589,7 +634,7 @@ function AnalysisNotes() {
             alert('Title is required');
             return;
         }
-        
+
         setFormSaving(true);
         let savedPrice = null;
 
@@ -685,11 +730,11 @@ function AnalysisNotes() {
                     <h3 style={{ marginTop: 0, marginBottom: 'var(--space-md)', color: 'var(--color-gold)', fontSize: '1.1rem' }}>
                         {editingId ? 'Edit Note' : 'Create New Note'}
                     </h3>
-                    
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Title *</label>
-                            <input 
+                            <input
                                 type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)}
                                 placeholder="e.g. Q3 Earnings Setup"
                                 style={{ width: '100%', padding: '0.6rem 0.8rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }}
@@ -697,7 +742,7 @@ function AnalysisNotes() {
                         </div>
                         <div style={{ position: 'relative' }}>
                             <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Stock Symbol</label>
-                            <input 
+                            <input
                                 ref={inputRef}
                                 type="text" value={formSymbol} onChange={handleSymbolInput}
                                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -718,10 +763,10 @@ function AnalysisNotes() {
                             )}
                         </div>
                     </div>
-                    
+
                     <div style={{ marginBottom: 'var(--space-md)' }}>
                         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-dim)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Description</label>
-                        <textarea 
+                        <textarea
                             value={formContent} onChange={e => setFormContent(e.target.value)}
                             placeholder="Write your analysis thesis here..."
                             style={{ width: '100%', minHeight: '150px', padding: '0.8rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }}
@@ -754,7 +799,7 @@ function AnalysisNotes() {
                                     <button onClick={() => handleDelete(note.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '0.8rem', padding: '2px 5px' }}>Del</button>
                                 </div>
                             </div>
-                            
+
                             {note.symbol && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
                                     <span style={{ padding: '0.2rem 0.5rem', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)' }}>
@@ -774,7 +819,7 @@ function AnalysisNotes() {
                             <div style={{ flex: 1, fontSize: '0.88rem', color: 'var(--color-text-dim)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 'var(--space-sm)', overflowWrap: 'break-word' }}>
                                 {note.content}
                             </div>
-                            
+
                             <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'right', marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
                                 {new Date(note.created_at || note.createdAt).toLocaleString()}
                             </div>

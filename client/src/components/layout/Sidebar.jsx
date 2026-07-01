@@ -82,7 +82,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 </nav>
 
                 {user?.role !== 'superadmin' && (
-                    <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 1rem', marginBottom: '1rem' }}>
+                    <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 0.75rem', marginBottom: '1rem' }}>
                         <NavLink
                             to="/settings"
                             onClick={onClose}

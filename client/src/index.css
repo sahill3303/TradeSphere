@@ -1839,12 +1839,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* Important for width percentages */
 }
 
 .data-table th, .data-table td {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 

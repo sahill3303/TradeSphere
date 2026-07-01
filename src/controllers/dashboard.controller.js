@@ -144,6 +144,8 @@ export const getMonthlyPerformance = async (req, res) => {
                     profit: 0,
                     loss: 0,
                     returnPercentage: 0,
+                    totalInvested: 0,
+                    tradeCount: 0,
                     stocks: {} // Use object map temporarily to aggregate same stock trades in a month
                 };
             }
@@ -151,6 +153,8 @@ export const getMonthlyPerformance = async (req, res) => {
             monthMap[row.month_key].profit += row.total_pnl > 0 ? row.total_pnl : 0;
             monthMap[row.month_key].loss += row.total_pnl < 0 ? row.total_pnl : 0;
             monthMap[row.month_key].returnPercentage += tradePct;
+            monthMap[row.month_key].totalInvested += invested;
+            monthMap[row.month_key].tradeCount += 1;
             
             if (!monthMap[row.month_key].stocks[row.stock_name]) {
                 monthMap[row.month_key].stocks[row.stock_name] = 0;
@@ -171,6 +175,7 @@ export const getMonthlyPerformance = async (req, res) => {
                 profit: m.profit,
                 loss: m.loss,
                 returnPercentage: Number(m.returnPercentage.toFixed(2)),
+                averageCapital: m.tradeCount > 0 ? Number((m.totalInvested / m.tradeCount).toFixed(2)) : 0,
                 stocks: m.stocks
             };
         });
@@ -237,5 +242,3 @@ export const getRecentTrades = async (req, res) => {
         });
     }
 };
-
-// need to make some changes in dashboard controller

@@ -118,7 +118,7 @@ export default function Settings() {
     ];
 
     return (
-        <div className="settings-page">
+        <div className="page settings-page">
             <header className="settings-header">
                 <h2>Configurations</h2>
                 <p>Manage your preferences, security credentials, and interface options.</p>

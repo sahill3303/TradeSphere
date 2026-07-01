@@ -258,6 +258,8 @@ export default function Dashboard() {
                                 <button className="onboarding-action-btn" onClick={() => navigate('/watchlist')}>
                                     Set Watchlist →
                                 </button>
+                                {/* Empty placeholder to balance spacing */}
+                                <div style={{ width: '40px' }} />
                             </div>
                         </div>
                     </div>
@@ -396,6 +398,12 @@ export default function Dashboard() {
                                                                 </span>
                                                             </div>
                                                         ))}
+                                                        {m.averageCapital > 0 && (
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid var(--color-border)' }}>
+                                                                <span style={{ color: 'var(--color-text-dim)' }}>Avg Capital:</span>
+                                                                <span style={{ fontWeight: 600 }}>₹{m.averageCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
