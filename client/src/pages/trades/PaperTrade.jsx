@@ -28,6 +28,7 @@ export default function PaperTrade() {
     });
     const [trades, setTrades] = useState([]);
     const [prices, setPrices] = useState({});
+    const [priceDetails, setPriceDetails] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('TRADING'); // 'TRADING' | 'INVESTMENT' | 'CLOSED' | 'ALL'
@@ -111,6 +112,7 @@ export default function PaperTrade() {
                         pricesFlat[k] = typeof v === 'object' ? Number(v.price) : Number(v);
                     }
                     setPrices(pricesFlat);
+                    setPriceDetails(data.data);
                 }
             } catch (err) {
                 console.error('Failed to fetch live quotes for paper trades:', err);
@@ -869,8 +871,10 @@ export default function PaperTrade() {
                                                             <div style={{ fontWeight: 800, color: prices[t.stock_name] ? '#38bdf8' : '#e2e8f0' }}>
                                                                 ₹{cmp.toFixed(2)}
                                                             </div>
-                                                            {prices[t.stock_name] && (
-                                                                <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>● Live Quote</span>
+                                                            {priceDetails[t.stock_name] && typeof priceDetails[t.stock_name] === 'object' && priceDetails[t.stock_name].percentChange !== undefined && (
+                                                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: Number(priceDetails[t.stock_name].change) >= 0 ? '#10b981' : '#ef4444' }}>
+                                                                    {Number(priceDetails[t.stock_name].change) >= 0 ? '▲' : '▼'} {Math.abs(priceDetails[t.stock_name].percentChange)}%
+                                                                </span>
                                                             )}
                                                         </td>
                                                         <td>
