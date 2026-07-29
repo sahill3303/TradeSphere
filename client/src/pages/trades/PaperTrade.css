@@ -678,17 +678,111 @@
 }
 
 @media (max-width: 768px) {
+    .paper-trade-container {
+        padding: 1rem 0.75rem;
+    }
     .paper-trade-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 1.25rem;
-        padding: 1.5rem;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+    .paper-trade-title {
+        font-size: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .header-action-group {
+        flex-direction: column;
+        width: 100%;
+        align-items: stretch;
+    }
+    .btn-paper-action {
+        width: 100%;
+        justify-content: center;
+    }
+    .workspace-section {
+        padding: 1rem;
     }
     .workspace-nav-bar {
         flex-direction: column;
         align-items: stretch;
+        gap: 1rem;
+    }
+    .tab-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    .paper-tab-btn {
+        width: 100%;
+        justify-content: center;
     }
     .horizon-radio-group {
         flex-direction: column;
+    }
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+    .paper-modal-box {
+        padding: 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+    .modal-footer button {
+        width: 100%;
+    }
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+    }
+    .asset-metrics {
+        grid-template-columns: 1fr;
+    }
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Convert table to cards on mobile */
+    .paper-table thead {
+        display: none;
+    }
+    .paper-table, .paper-table tbody, .paper-table tr, .paper-table td {
+        display: block;
+        width: 100%;
+    }
+    .paper-table tr {
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    .paper-table td {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
+    .paper-table td:last-child {
+        border-bottom: none;
+        justify-content: center;
+        padding-top: 1rem;
+    }
+    .paper-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--color-text-dim, #94a3b8);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        text-align: left;
+        flex-shrink: 0;
+        margin-right: 1rem;
+    }
+    .symbol-badge-cell,
+    .symbol-type-tag {
+        align-items: flex-end;
     }
 }

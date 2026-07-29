@@ -821,7 +821,7 @@ export default function PaperTrade() {
 
                                         return (
                                             <tr key={t.trade_id}>
-                                                <td>
+                                                <td data-label="Stock Symbol">
                                                     <div className="symbol-badge-cell">
                                                         <span className="symbol-ticker">{t.stock_name}</span>
                                                         <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
@@ -829,7 +829,7 @@ export default function PaperTrade() {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Category">
                                                     <div 
                                                         className={`symbol-type-tag ${t.holding_type === 'INVESTMENT' ? 'tag-investment' : 'tag-trading'}`}
                                                         style={{ cursor: t.status === 'OPEN' ? 'pointer' : 'default', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
@@ -840,34 +840,34 @@ export default function PaperTrade() {
                                                         {t.status === 'OPEN' && <span style={{ fontSize: '0.8rem', opacity: 0.8 }} title="Click to Switch Category">⇄</span>}
                                                     </div>
                                                 </td>
-                                                <td style={{ fontWeight: 600, color: '#f8fafc' }}>
+                                                <td data-label="Entry Price" style={{ fontWeight: 600, color: '#f8fafc' }}>
                                                     ₹{Number(t.entry_price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                 </td>
-                                                <td>
+                                                <td data-label="Qty & Cost">
                                                     <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{t.quantity} qty</div>
                                                     <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{formatCurrency(cost)}</div>
                                                 </td>
 
                                                 {activeTab === 'CLOSED' || t.status === 'CLOSED' ? (
                                                     <>
-                                                        <td style={{ fontWeight: 700, color: '#38bdf8' }}>
+                                                        <td data-label="Exit Price" style={{ fontWeight: 700, color: '#38bdf8' }}>
                                                             ₹{Number(t.exit_price || 0).toFixed(2)}
                                                         </td>
-                                                        <td style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                                                        <td data-label="Exit Date" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
                                                             {t.exit_date ? new Date(t.exit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Realized P&L">
                                                             <span className={`pnl-badge ${isPos ? 'pnl-positive' : 'pnl-negative'}`} style={{ display: 'inline-block', fontSize: '0.9rem', fontWeight: 800 }}>
                                                                 {isPos ? '+' : ''}{formatCurrency(pnl)} ({isPos ? '+' : ''}{pnlPct.toFixed(2)}%)
                                                             </span>
                                                         </td>
-                                                        <td style={{ fontSize: '0.85rem', color: '#cbd5e1', maxWidth: '200px' }}>
+                                                        <td data-label="Exit Reason" style={{ fontSize: '0.85rem', color: '#cbd5e1', maxWidth: '200px' }}>
                                                             {t.exit_reason || 'Manual closure'}
                                                         </td>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <td>
+                                                        <td data-label="Current Price (CMP)">
                                                             <div style={{ fontWeight: 800, color: prices[t.stock_name] ? '#38bdf8' : '#e2e8f0' }}>
                                                                 ₹{cmp.toFixed(2)}
                                                             </div>
@@ -877,7 +877,7 @@ export default function PaperTrade() {
                                                                 </span>
                                                             )}
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Live Unrealized P&L">
                                                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: isPos ? '#34d399' : '#f87171' }}>
                                                                 {isPos ? '+' : ''}{formatCurrency(pnl)}
                                                             </div>
@@ -885,18 +885,18 @@ export default function PaperTrade() {
                                                                 ({isPos ? '+' : ''}{pnlPct.toFixed(2)}%)
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Target & Stop">
                                                             <div style={{ fontSize: '0.82rem', color: '#34d399' }}>Tgt: {t.target ? `₹${Number(t.target).toFixed(2)}` : '—'}</div>
                                                             <div style={{ fontSize: '0.82rem', color: '#f87171' }}>SL: {t.stop_loss ? `₹${Number(t.stop_loss).toFixed(2)}` : '—'}</div>
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Strategy / Conviction">
                                                             <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }}>{t.strategy || 'Conviction'}</div>
                                                             <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>{t.conviction_level || 'Normal'} Conviction</div>
                                                         </td>
                                                     </>
                                                 )}
 
-                                                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                                <td data-label="Actions" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem' }}>
                                                         {t.status === 'OPEN' && (
                                                             <>
