@@ -17,6 +17,7 @@ import watchlistRoutes from './routes/watchlist.routes.js';
 import superadminRoutes from './routes/superadmin.routes.js';
 import intelligenceRoutes from './routes/intelligence.routes.js';
 import analysisNotesRoutes from './routes/analysisNotes.routes.js';
+import paperTradeRoutes from './routes/paperTrade.routes.js';
 import { runPipeline, cleanupOldSignals } from './intelligence/pipeline/PipelineOrchestrator.js';
 import db from './config/db.js';
 
@@ -75,6 +76,8 @@ app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/intelligence', intelligenceRoutes);
 app.use('/api/analysis-notes', analysisNotesRoutes);
+app.use('/api/paper-trades', paperTradeRoutes);
+
 
 
 // ── Intelligence Pipeline Scheduler ────────────────────────────

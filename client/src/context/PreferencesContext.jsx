@@ -12,6 +12,7 @@ const DEFAULT_FEATURES = {
     watchlist: true,
     clients: true,
     trades: true,
+    paperTrade: true,
     analysis: true,
     notes: true
 };
@@ -36,7 +37,7 @@ export function PreferencesProvider({ children }) {
 
     useEffect(() => {
         if (user?.preferences?.sidebarFeatures) {
-            setSidebarFeatures(user.preferences.sidebarFeatures);
+            setSidebarFeatures({ ...DEFAULT_FEATURES, ...user.preferences.sidebarFeatures });
         } else {
             setSidebarFeatures(DEFAULT_FEATURES);
         }

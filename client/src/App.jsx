@@ -19,6 +19,7 @@ import ClientDetails from './pages/clients/ClientDetails';
 import TradesList from './pages/trades/TradesList';
 import TradeDetails from './pages/trades/TradeDetails';
 import OpenTrade from './pages/trades/OpenTrade';
+import PaperTrade from './pages/trades/PaperTrade';
 import Notes from './pages/notes/Notes';
 import Analysis from './pages/analysis/Analysis';
 import Watchlist from './pages/watchlist/Watchlist';
@@ -48,6 +49,7 @@ export default function App() {
                   <Route path="/trades" element={<Layout><TradesList /></Layout>} />
                   <Route path="/trades/open" element={<Layout><OpenTrade /></Layout>} />
                   <Route path="/trades/:id" element={<Layout><TradeDetails /></Layout>} />
+                  <Route path="/paper-trade" element={<Layout><PaperTrade /></Layout>} />
                   <Route path="/notes" element={<Layout><Notes /></Layout>} />
                   <Route path="/analysis" element={<Layout><Analysis /></Layout>} />
                   <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />

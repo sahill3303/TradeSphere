@@ -113,6 +113,7 @@ export default function Settings() {
         { id: 'watchlist', label: 'Watchlist', icon: '📈', desc: 'Track your customized stock lists and prices.' },
         { id: 'clients', label: 'Clients', icon: '◎', desc: 'Manage client portfolios and onboarding.' },
         { id: 'trades', label: 'Trades', icon: '◈', desc: 'Log and monitor active or past trades.' },
+        { id: 'paperTrade', label: 'Paper Trading', icon: '💼', desc: 'Simulated trading journal & long-term conviction portfolio.' },
         { id: 'analysis', label: 'Research', icon: '🔬', desc: 'Perform AI-driven stock research and analysis.' },
         { id: 'notes', label: 'Notes', icon: '📝', desc: 'Keep a personal trading journal.' },
     ];

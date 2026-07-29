@@ -10,6 +10,7 @@ const navItems = [
     { to: '/intelligence', label: 'Intelligence', icon: '⚡', key: 'intelligence', alwaysShow: true },
     { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
     { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
+    { to: '/paper-trade',  label: 'Paper Trading',icon: '💼', key: 'paperTrade' },
     { to: '/analysis',     label: 'Research',     icon: '🔬', key: 'analysis' },
     { to: '/notes',        label: 'Notes',        icon: '📝', key: 'notes' },
 ];
@@ -62,7 +63,7 @@ export default function Sidebar({ isOpen, onClose }) {
                             </li>
                         ) : (
                             navItems
-                                .filter(item => item.alwaysShow || item.key === 'dashboard' || sidebarFeatures[item.key])
+                                .filter(item => item.alwaysShow || item.key === 'dashboard' || (sidebarFeatures?.[item.key] ?? true))
                                 .map(({ to, label, icon }) => (
                                 <li key={to} className="sidebar__item">
                                     <NavLink
