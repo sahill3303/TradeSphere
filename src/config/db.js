@@ -7,7 +7,12 @@ let db;
 // Support both single URL connection and individual variables
 // This is significantly more robust for cloud deployments like Railway
 if (process.env.MYSQL_URL || process.env.DATABASE_URL) {
-    const connectionString = process.env.MYSQL_URL || process.env.DATABASE_URL;
+    let connectionString = process.env.MYSQL_URL || process.env.DATABASE_URL;
+    if (connectionString.includes('?')) {
+        connectionString += '&timezone=%2B05%3A30&dateStrings=true';
+    } else {
+        connectionString += '?timezone=%2B05%3A30&dateStrings=true';
+    }
     db = mysql.createPool(connectionString);
     console.log('DEBUG: Connecting using database URL');
 } else {
@@ -20,7 +25,9 @@ if (process.env.MYSQL_URL || process.env.DATABASE_URL) {
         // Production cloud databases like Railway often require SSL
         ssl: (process.env.MYSQL_PUBLIC_URL || (process.env.DB_HOST && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1'))
             ? { minVersion: 'TLSv1.2', rejectUnauthorized: true }
-            : false
+            : false,
+        timezone: '+05:30',
+        dateStrings: true
     };
 
     console.log('DEBUG: Database Configuration:');

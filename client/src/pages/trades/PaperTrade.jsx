@@ -228,7 +228,7 @@ export default function PaperTrade() {
     const handleOrderSubmit = async (e) => {
         e.preventDefault();
         if (!orderForm.stock_name || !orderForm.entry_price || !orderForm.quantity) {
-            alert('Please provide Symbol, Entry Price, and Quantity.');
+            confirm({ title: 'Validation Error', message: 'Please provide Symbol, Entry Price, and Quantity.', variant: 'warning', alertOnly: true });
             return;
         }
         setSubmitting(true);
@@ -251,7 +251,7 @@ export default function PaperTrade() {
                 fetchData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to open paper trade position');
+            confirm({ title: 'Error', message: err.response?.data?.message || 'Failed to open paper trade position', variant: 'danger', alertOnly: true });
         } finally {
             setSubmitting(false);
         }
@@ -269,7 +269,7 @@ export default function PaperTrade() {
                 fetchData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to close paper trade');
+            confirm({ title: 'Error', message: err.response?.data?.message || 'Failed to close paper trade', variant: 'danger', alertOnly: true });
         } finally {
             setSubmitting(false);
         }
@@ -285,8 +285,8 @@ export default function PaperTrade() {
                 try {
                     await api.delete(`/paper-trades/${t.trade_id}`);
                     fetchData();
-                } catch (err) {
-                    alert('Failed to delete paper trade');
+                } catch {
+                    confirm({ title: 'Error', message: 'Failed to delete paper trade', variant: 'danger', alertOnly: true });
                 }
             }
         });
@@ -299,7 +299,7 @@ export default function PaperTrade() {
             await api.patch(`/paper-trades/${trade.trade_id}/category`, { holding_type: newType });
             setTrades(prev => prev.map(t => t.trade_id === trade.trade_id ? { ...t, holding_type: newType } : t));
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to switch position category');
+            confirm({ title: 'Error', message: err.response?.data?.message || 'Failed to switch position category', variant: 'danger', alertOnly: true });
         }
     };
 

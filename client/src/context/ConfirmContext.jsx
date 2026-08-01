@@ -10,9 +10,10 @@ export function ConfirmProvider({ children }) {
         onConfirm: null,
         onCancel: null,
         variant: 'danger', // 'danger' | 'primary' | 'warning'
+        alertOnly: false,
     });
 
-    const confirmAction = useCallback(({ title, message, onConfirm, onCancel, variant = 'danger' }) => {
+    const confirmAction = useCallback(({ title, message, onConfirm, onCancel, variant = 'danger', alertOnly = false }) => {
         setConfirmState({
             isOpen: true,
             title,
@@ -20,6 +21,7 @@ export function ConfirmProvider({ children }) {
             onConfirm,
             onCancel,
             variant,
+            alertOnly
         });
     }, []);
 
@@ -55,11 +57,13 @@ export function ConfirmProvider({ children }) {
                                 className={`bottom-sheet__btn bottom-sheet__btn--${confirmState.variant}`} 
                                 onClick={handleConfirm}
                             >
-                                Confirm
+                                {confirmState.alertOnly ? 'OK' : 'Confirm'}
                             </button>
-                            <button className="bottom-sheet__btn bottom-sheet__btn--cancel" onClick={handleCancel}>
-                                Cancel
-                            </button>
+                            {!confirmState.alertOnly && (
+                                <button className="bottom-sheet__btn bottom-sheet__btn--cancel" onClick={handleCancel}>
+                                    Cancel
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

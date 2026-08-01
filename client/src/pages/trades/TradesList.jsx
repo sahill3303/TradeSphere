@@ -5,6 +5,8 @@ import { Eye, Trash2, RotateCcw } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useMemo } from 'react';
+import './PaperTrade.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const STATUS_BADGE = { OPEN: 'badge--yellow', CLOSED: 'badge--green' };
@@ -67,6 +69,8 @@ export default function TradesList() {
     const [error, setError] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [deletingId, setDeletingId] = useState(null);
+    const [clientTotalCapital, setClientTotalCapital] = useState(0);
+    const [dashboardStats, setDashboardStats] = useState(null);
 
     const [deleted, setDeleted] = useState([]);
     const [deletedLoading, setDeletedLoading] = useState(false);
@@ -105,12 +109,76 @@ export default function TradesList() {
         }
     }, [trades]);
 
+    const liveMetrics = useMemo(() => {
+        let activeInvested = 0;
+        let totalUnrealizedPnl = 0;
+        let totalRealizedPnl = 0;
+        let totalClosedCost = 0;
+        let openTradesCount = 0;
+        let closedTradesCount = 0;
+
+        trades.forEach(t => {
+            const lev = t.leverage || 1;
+            const invested = (t.entry_price * t.quantity) / lev;
+            
+            if (t.status === 'OPEN') {
+                openTradesCount++;
+                activeInvested += invested;
+                
+                const rawCmp = prices[t.stock_name];
+                const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
+                
+                if (cmpVal !== null && !isNaN(cmpVal)) {
+                    let pnl = 0;
+                    if (t.trade_type === 'LONG') {
+                        pnl = (cmpVal - t.entry_price) * t.quantity;
+                    } else {
+                        pnl = (t.entry_price - cmpVal) * t.quantity;
+                    }
+                    totalUnrealizedPnl += pnl;
+                }
+            } else if (t.status === 'CLOSED') {
+                closedTradesCount++;
+                totalClosedCost += invested;
+                if (t.total_pnl !== undefined && t.total_pnl !== null) {
+                    totalRealizedPnl += Number(t.total_pnl);
+                }
+            }
+        });
+
+        const unrealizedPnlPct = clientTotalCapital > 0 ? (totalUnrealizedPnl / clientTotalCapital) * 100 : (activeInvested > 0 ? (totalUnrealizedPnl / activeInvested) * 100 : 0);
+        const realizedPnlPct = clientTotalCapital > 0 ? (totalRealizedPnl / clientTotalCapital) * 100 : (totalClosedCost > 0 ? (totalRealizedPnl / totalClosedCost) * 100 : 0);
+
+        return {
+            activeInvested,
+            totalUnrealizedPnl,
+            unrealizedPnlPct,
+            totalRealizedPnl,
+            realizedPnlPct,
+            openTradesCount,
+            closedTradesCount,
+            totalClosedCost
+        };
+    }, [trades, prices]);
+
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null || isNaN(val)) return '₹0';
+        return `₹${Number(val).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+    };
+
     const fetchTrades = useCallback(async () => {
         setLoading(true); setError('');
         try {
             const params = statusFilter ? `?status=${statusFilter}&limit=50` : '?limit=50';
-            const { data } = await api.get(`/trades${params}`);
-            setTrades(data.trades);
+            const [{ data: tradesData }, { data: summaryData }] = await Promise.all([
+                api.get(`/trades${params}`),
+                api.get('/dashboard/summary').catch(() => ({ data: { totalCapital: 0 } }))
+            ]);
+            setTrades(tradesData.trades);
+            if (summaryData) {
+                setClientTotalCapital(Number(summaryData.totalCapital || 0));
+                setDashboardStats(summaryData);
+            }
         } catch { setError('Failed to load trades.'); }
         finally { setLoading(false); }
     }, [statusFilter]);
@@ -137,7 +205,7 @@ export default function TradesList() {
                 try {
                     await api.delete(`/trades/${tradeId}`);
                     setTrades(prev => prev.filter(t => t.trade_id !== tradeId));
-                } catch (err) { alert(err.response?.data?.message || 'Delete failed.'); }
+                } catch (err) { confirmAction({ title: 'Error', message: err.response?.data?.message || 'Delete failed.', variant: 'danger', alertOnly: true }); }
                 finally { setDeletingId(null); }
             }
         });
@@ -154,7 +222,7 @@ export default function TradesList() {
                     await api.patch(`/trades/${tradeId}/restore`);
                     setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
                     fetchTrades();
-                } catch (err) { alert(err.response?.data?.message || 'Restore failed.'); }
+                } catch (err) { confirmAction({ title: 'Error', message: err.response?.data?.message || 'Restore failed.', variant: 'danger', alertOnly: true }); }
                 finally { setRestoringId(null); }
             }
         });
@@ -170,7 +238,7 @@ export default function TradesList() {
                 try {
                     await api.delete(`/trades/${tradeId}/permanent`);
                     setDeleted(prev => prev.filter(t => t.trade_id !== tradeId));
-                } catch (err) { alert(err.response?.data?.message || 'Hard delete failed.'); }
+                } catch (err) { confirmAction({ title: 'Error', message: err.response?.data?.message || 'Hard delete failed.', variant: 'danger', alertOnly: true }); }
                 finally { setHardDeletingId(null); }
             }
         });
@@ -191,6 +259,85 @@ export default function TradesList() {
                 <TabBtn active={activeTab === 'active'} onClick={() => setActiveTab('active')}>Active Trades</TabBtn>
                 <TabBtn active={activeTab === 'deleted'} onClick={() => setActiveTab('deleted')}>Deleted Trades</TabBtn>
             </div>
+
+            {/* Top Summary KPI Cards */}
+            {activeTab === 'active' && !loading && trades.length > 0 && (
+                <div className="kpi-grid" style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+                    {/* Card 1: Invested Capital */}
+                    <div className="kpi-card">
+                        <div>
+                            <div className="kpi-header">
+                                <span className="kpi-label">Deployed Capital (Open)</span>
+                                <span className="kpi-icon">📈</span>
+                            </div>
+                            <div className="kpi-value">{formatCurrency(liveMetrics.activeInvested)}</div>
+                        </div>
+                        <div className="kpi-subtext">
+                            <span>{liveMetrics.openTradesCount} Active Open Positions</span>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Live Unrealized Performance */}
+                    <div className="kpi-card">
+                        <div>
+                            <div className="kpi-header">
+                                <span className="kpi-label">Live Unrealized P&L</span>
+                                <span className="kpi-icon">⚡</span>
+                            </div>
+                            <div 
+                                className="kpi-value" 
+                                style={{ color: liveMetrics.totalUnrealizedPnl > 0 ? '#34d399' : liveMetrics.totalUnrealizedPnl < 0 ? '#f87171' : '#cbd5e1', display: 'flex', alignItems: 'baseline', gap: '0.6rem', flexWrap: 'wrap' }}
+                            >
+                                <span>{liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.totalUnrealizedPnl)}</span>
+                                {liveMetrics.activeInvested > 0 && (
+                                    <span style={{ fontSize: '1.15rem', fontWeight: 800, background: liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', padding: '0.15rem 0.6rem', borderRadius: '8px', border: `1px solid ${liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
+                                        {liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{liveMetrics.unrealizedPnlPct.toFixed(2)}%
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="kpi-subtext" style={{ marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                            <span className="pnl-badge" style={{ fontWeight: 700, color: liveMetrics.totalRealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
+                                Realized: {liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.totalRealizedPnl)} {liveMetrics.totalClosedCost > 0 ? `(${liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}${liveMetrics.realizedPnlPct.toFixed(2)}%)` : ''}
+                            </span>
+                            <span style={{ marginLeft: '0.5rem' }}>({liveMetrics.closedTradesCount} Closed)</span>
+                        </div>
+                    </div>
+                    {/* Card 3: Win Ratio */}
+                    <div className="kpi-card">
+                        <div>
+                            <div className="kpi-header">
+                                <span className="kpi-label">Win Ratio</span>
+                                <span className="kpi-icon">🎯</span>
+                            </div>
+                            <div className="kpi-value" style={{ color: dashboardStats?.winRate >= 50 ? '#34d399' : (dashboardStats?.winRate > 0 ? '#f87171' : 'inherit') }}>
+                                {dashboardStats ? dashboardStats.winRate : 0}%
+                            </div>
+                        </div>
+                        <div className="kpi-subtext">
+                            <span>{dashboardStats?.wins || 0}W - {dashboardStats?.losses || 0}L (Closed Trades)</span>
+                        </div>
+                    </div>
+
+                    {/* Card 4: Average R:R */}
+                    <div className="kpi-card">
+                        <div>
+                            <div className="kpi-header">
+                                <span className="kpi-label">Average R:R</span>
+                                <span className="kpi-icon">⚖️</span>
+                            </div>
+                            <div className="kpi-value">
+                                {dashboardStats && dashboardStats.avgLoss < 0 
+                                    ? `1 : ${Math.abs(dashboardStats.avgWin / dashboardStats.avgLoss).toFixed(2)}` 
+                                    : (dashboardStats?.avgWin > 0 ? 'Infinity' : '1 : 0.00')}
+                            </div>
+                        </div>
+                        <div className="kpi-subtext">
+                            <span style={{ color: '#34d399' }}>Avg Win: {formatCurrency(dashboardStats?.avgWin || 0)}</span> | <span style={{ color: '#f87171' }}>Avg Loss: {formatCurrency(dashboardStats?.avgLoss || 0)}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {activeTab === 'active' && (
                 <>

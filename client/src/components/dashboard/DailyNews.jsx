@@ -21,10 +21,15 @@ const TONE_CONFIG = {
   Update: { label: '⚪ UPDATE', color: '#9CA3AF' },
 };
 
-function formatTime(isoStr) {
-  if (!isoStr) return '';
+function formatTime(dateStr) {
+  if (!dateStr) return '';
   try {
-    const d = new Date(isoStr);
+    // If it's a raw MySQL date string like "YYYY-MM-DD HH:MM:SS", replace space with 'T'
+    // so Safari and other browsers reliably parse it as LOCAL time.
+    const safeStr = String(dateStr).includes(' ') && !String(dateStr).includes('T')
+      ? String(dateStr).replace(' ', 'T')
+      : dateStr;
+    const d = new Date(safeStr);
     let h = d.getHours(), ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
     const m = String(d.getMinutes()).padStart(2, '0');
@@ -110,7 +115,10 @@ function LegacyCard({ item, idx }) {
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     try {
-      const d = new Date(dateStr);
+      const safeStr = String(dateStr).includes(' ') && !String(dateStr).includes('T')
+        ? String(dateStr).replace(' ', 'T')
+        : dateStr;
+      const d = new Date(safeStr);
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       let h = d.getHours(), ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12 || 12;
