@@ -409,10 +409,10 @@ export async function runPipeline() {
 
 // ── Get processed feed from DB ───────────────────────────────
 
-export async function getFeed({ page = 1, limit = 20, category, direction, horizon, timing, minScore = 0 } = {}) {
+export async function getFeed({ page = 1, limit = 20, category, direction, horizon, timing, minScore = 0, prioritizeSymbols } = {}) {
   const offset = (page - 1) * limit;
   let where  = 'is_published = 1';
-  const params = [];
+  const whereParams = [];
 
   // Exclude routine low-impact stock news from the default feed
   where += ` AND (primary_category != 'Corporate' OR COALESCE(impact_score, impact_strength, 0) >= 6)`;
@@ -420,23 +420,37 @@ export async function getFeed({ page = 1, limit = 20, category, direction, horiz
   // Exclude "Market Watch" noise
   where += ` AND headline NOT LIKE 'Market Watch:%' AND title NOT LIKE 'Market Watch:%'`;
 
-  if (category) { where += ' AND primary_category = ?';  params.push(category); }
-  if (direction) { where += ' AND impact_direction = ?';  params.push(direction); }
-  if (horizon)   { where += ' AND time_horizon = ?';      params.push(horizon); }
-  if (timing)    { where += ' AND effect_timing = ?';     params.push(timing); }
-  if (minScore > 0) { where += ' AND credibility_score >= ?'; params.push(minScore); }
+  if (category) { where += ' AND primary_category = ?';  whereParams.push(category); }
+  if (direction) { where += ' AND impact_direction = ?';  whereParams.push(direction); }
+  if (horizon)   { where += ' AND time_horizon = ?';      whereParams.push(horizon); }
+  if (timing)    { where += ' AND effect_timing = ?';     whereParams.push(timing); }
+  if (minScore > 0) { where += ' AND credibility_score >= ?'; whereParams.push(minScore); }
+
+  let orderBy = 'published_at DESC';
+  const orderParams = [];
+  if (prioritizeSymbols) {
+    const symbols = prioritizeSymbols.split(',').map(s => s.trim()).filter(Boolean);
+    if (symbols.length > 0) {
+      // Build a CASE WHEN ... THEN 1 ELSE 0 END to prioritize these symbols
+      const likeConditions = symbols.map(sym => `ticker_symbols LIKE ? OR affected_instruments LIKE ?`).join(' OR ');
+      symbols.forEach(sym => {
+        orderParams.push(`%${sym}%`, `%${sym}%`);
+      });
+      orderBy = `(CASE WHEN ${likeConditions} THEN 1 ELSE 0 END) DESC, published_at DESC`;
+    }
+  }
 
 
   const countSql = `SELECT COUNT(*) AS total FROM intelligence_feed WHERE ${where}`;
   const dataSql  = `
     SELECT * FROM intelligence_feed
     WHERE ${where}
-    ORDER BY published_at DESC
+    ORDER BY ${orderBy}
     LIMIT ? OFFSET ?
   `;
 
-  const [[countRow]] = await db.query(countSql, params);
-  const [rows]       = await db.query(dataSql, [...params, limit, offset]);
+  const [[countRow]] = await db.query(countSql, whereParams);
+  const [rows]       = await db.query(dataSql, [...whereParams, ...orderParams, limit, offset]);
 
   return {
     total: countRow.total,

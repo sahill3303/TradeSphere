@@ -5,6 +5,7 @@ import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useAuth } from '../../context/AuthContext';
+import '../trades/PaperTrade.css';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
 function fmtDate(val) {
@@ -269,34 +270,45 @@ export default function Dashboard() {
             {/* ── Stat Cards (For Existing Users) ── */}
             {!loading && !error && summary && !isBlankState && (
                 <>
-                    <div className="stats-grid">
+                    <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
                         {SUMMARY_CARDS.map(({ label, value, pnl }) => {
-                            const accentColor = pnl !== undefined
-                                ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-                                : STAT_COLORS[label];
+                            let valueStyle = {};
+                            if (pnl !== undefined) {
+                                valueStyle = { color: pnl >= 0 ? '#34d399' : '#f87171' };
+                            } else if (label === 'Total Capital') {
+                                valueStyle = { color: 'var(--color-gold)' };
+                            } else if (label === 'Total Trades') {
+                                valueStyle = { color: '#60A5FA' };
+                            }
+
+                            const iconMap = {
+                                'Total Clients': '👥',
+                                'Total Trades': '📈',
+                                'Total Capital': '💰',
+                                'Realised P&L': '📊'
+                            };
+
+                            const subtextMap = {
+                                'Total Clients': 'Active managed accounts',
+                                'Total Trades': 'Total active & past trades',
+                                'Total Capital': 'Aggregate managed funds',
+                                'Realised P&L': 'Aggregate gross closed P&L'
+                            };
+
                             return (
-                                <div key={label} className="stat-card" style={{ '--card-accent': accentColor }}>
-                                    <div className="stat-card__icon" style={{
-                                        background: `${accentColor}18`,
-                                        border: `1px solid ${accentColor}30`,
-                                    }}>
-                                        {STAT_ICONS[label]}
+                                <div key={label} className="kpi-card">
+                                    <div>
+                                        <div className="kpi-header">
+                                            <span className="kpi-label">{label}</span>
+                                            <span className="kpi-icon">{iconMap[label] || '📊'}</span>
+                                        </div>
+                                        <div className="kpi-value" style={valueStyle}>
+                                            {value}
+                                        </div>
                                     </div>
-                                    <div className="stat-card__body">
-                                        <span className="stat-card__value" style={{
-                                            color: pnl !== undefined
-                                                ? (pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-                                                : 'var(--color-text)',
-                                        }}>{value}</span>
-                                        <span className="stat-card__label">{label}</span>
+                                    <div className="kpi-subtext">
+                                        <span>{subtextMap[label]}</span>
                                     </div>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: 0, left: 0, right: 0,
-                                        height: 2,
-                                        background: `linear-gradient(90deg, ${accentColor}, transparent)`,
-                                        borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-                                    }} />
                                 </div>
                             );
                         })}

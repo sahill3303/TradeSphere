@@ -39,9 +39,22 @@ function formatTime(dateStr) {
 }
 
 // ── Intelligence Card (compact, for Dashboard) ────────────────
-function IntelCard({ item, idx }) {
+function IntelCard({ item, idx, openSymbols, paperSymbols, watchlistSymbols }) {
   const dir  = DIRECTION_CONFIG[item.impact?.direction] || DIRECTION_CONFIG.Neutral;
   const tone = TONE_CONFIG[item.tone]                   || TONE_CONFIG.Update;
+
+  const checkMatch = (symbolsArray) => {
+    if (!symbolsArray || symbolsArray.length === 0) return false;
+    return symbolsArray.some(sym => {
+      const rawTickers = typeof item.ticker_symbols === 'string' ? item.ticker_symbols : JSON.stringify(item.ticker_symbols || []);
+      const rawInst = typeof item.impact?.affected_instruments === 'string' ? item.impact.affected_instruments : JSON.stringify(item.impact?.affected_instruments || []);
+      return rawTickers.includes(sym) || rawInst.includes(sym);
+    });
+  };
+
+  const isPortfolio = checkMatch(openSymbols);
+  const isPaperTrade = checkMatch(paperSymbols);
+  const isWatchlist = checkMatch(watchlistSymbols);
 
   return (
     <a
@@ -66,6 +79,21 @@ function IntelCard({ item, idx }) {
           {item.classification?.primary_category && (
             <span className="dn-intel-category">
               {item.classification.primary_category}
+            </span>
+          )}
+          {isPortfolio && (
+            <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
+              ★ PORTFOLIO
+            </span>
+          )}
+          {isPaperTrade && !isPortfolio && (
+            <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #60A5FA, #3B82F6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
+              📝 PAPER TRADE
+            </span>
+          )}
+          {isWatchlist && !isPortfolio && !isPaperTrade && (
+            <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #A78BFA, #8B5CF6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
+              👁 WATCHLIST
             </span>
           )}
           <span className="dn-intel-time">{formatTime(item.published_at)}</span>
@@ -152,10 +180,50 @@ export default function DailyNews() {
   const [isIntel,  setIsIntel]  = useState(false);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState(false);
+  const [openSymbols, setOpenSymbols] = useState([]);
+  const [paperSymbols, setPaperSymbols] = useState([]);
+  const [watchlistSymbols, setWatchlistSymbols] = useState([]);
+
+  const hasPersonalized = openSymbols.length > 0 || paperSymbols.length > 0 || watchlistSymbols.length > 0;
 
   useEffect(() => {
-    // Try intelligence feed first
-    api.get('/intelligence/feed?limit=5&min_score=40')
+    // 1. Fetch all user interests to prioritize their news
+    Promise.allSettled([
+      api.get('/trades?status=OPEN'),
+      api.get('/paper-trades'),
+      api.get('/watchlist')
+    ]).then(([tradesRes, paperRes, watchRes]) => {
+      const extractSymbols = (arr) => {
+        return [...new Set(arr.map(t => {
+          const parts = (t.stock_name || t.symbol || '').split(':');
+          return parts[parts.length - 1];
+        }).filter(Boolean))];
+      };
+
+      let tArr = [], pArr = [], wArr = [];
+      if (tradesRes.status === 'fulfilled') {
+        const trades = tradesRes.value.data?.trades || [];
+        tArr = extractSymbols(trades.filter(t => t.status === 'OPEN'));
+        setOpenSymbols(tArr);
+      }
+      if (paperRes.status === 'fulfilled') {
+        const pTrades = paperRes.value.data?.data || [];
+        pArr = extractSymbols(pTrades);
+        setPaperSymbols(pArr);
+      }
+      if (watchRes.status === 'fulfilled') {
+        const wItems = watchRes.value.data?.data || [];
+        wArr = extractSymbols(wItems);
+        setWatchlistSymbols(wArr);
+      }
+
+      const allSymbols = [...new Set([...tArr, ...pArr, ...wArr])].join(',');
+      
+      let url = '/intelligence/feed?limit=5&min_score=40';
+      if (allSymbols) url += `&prioritize_symbols=${encodeURIComponent(allSymbols)}`;
+
+      return api.get(url);
+    })
       .then(res => {
         if (res.data.success && res.data.data?.length > 0) {
           setItems(res.data.data);
@@ -222,6 +290,11 @@ export default function DailyNews() {
           {isIntel && (
             <span className="dn-live-badge">7-LAYER AI</span>
           )}
+          {hasPersonalized && (
+            <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', marginLeft: '0.5rem', cursor: 'help' }}>
+              ✨ PERSONALIZED
+            </span>
+          )}
         </div>
         <div className="dn-header-right">
           <span className="dn-date">📅 {todayLabel}</span>
@@ -232,7 +305,7 @@ export default function DailyNews() {
       <div className="dn-items">
         {items.map((item, idx) =>
           isIntel
-            ? <IntelCard key={item.id || idx} item={item} idx={idx} />
+            ? <IntelCard key={item.id || idx} item={item} idx={idx} openSymbols={openSymbols} paperSymbols={paperSymbols} watchlistSymbols={watchlistSymbols} />
             : <LegacyCard key={idx} item={item} idx={idx} />
         )}
       </div>

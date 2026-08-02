@@ -16,7 +16,7 @@ const parser = new Parser({
 // GET /api/intelligence/feed
 export const getFeedHandler = async (req, res) => {
   try {
-    const { page = 1, limit = 20, category, direction, horizon, timing, min_score = 0 } = req.query;
+    const { page = 1, limit = 20, category, direction, horizon, timing, min_score = 0, prioritize_symbols } = req.query;
 
     const result = await getFeed({
       page:      parseInt(page),
@@ -26,6 +26,7 @@ export const getFeedHandler = async (req, res) => {
       horizon,
       timing,
       minScore:  parseInt(min_score),
+      prioritizeSymbols: prioritize_symbols,
     });
 
     res.json({

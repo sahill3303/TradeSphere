@@ -52,8 +52,21 @@ function gradeColor(grade) {
 }
 
 // ── Analyst Card Component ─────────────────────────────────────
-function AnalystCard({ item }) {
+function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
   const [expanded, setExpanded] = useState(false);
+
+  const checkMatch = (symbolsArray) => {
+    if (!symbolsArray || symbolsArray.length === 0) return false;
+    return symbolsArray.some(sym => {
+      const rawTickers = typeof item.ticker_symbols === 'string' ? item.ticker_symbols : JSON.stringify(item.ticker_symbols || []);
+      const rawInst = typeof item.impact?.affected_instruments === 'string' ? item.impact.affected_instruments : JSON.stringify(item.impact?.affected_instruments || []);
+      return rawTickers.includes(sym) || rawInst.includes(sym);
+    });
+  };
+
+  const isPortfolio = checkMatch(openSymbols);
+  const isPaperTrade = checkMatch(paperSymbols);
+  const isWatchlist = checkMatch(watchlistSymbols);
 
   const a = item.analyst || {};
   const imp = item.impact || {};
@@ -96,6 +109,21 @@ function AnalystCard({ item }) {
             <span className="analyst-dot">•</span>
             <span className="analyst-category">{cls.primary_category}</span>
           </>
+        )}
+        {isPortfolio && (
+            <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
+              ★ PORTFOLIO
+            </span>
+        )}
+        {isPaperTrade && !isPortfolio && (
+            <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #60A5FA, #3B82F6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
+              📝 PAPER TRADE
+            </span>
+        )}
+        {isWatchlist && !isPortfolio && !isPaperTrade && (
+            <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #A78BFA, #8B5CF6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
+              👁 WATCHLIST
+            </span>
         )}
         <span className="analyst-time">{fmtTime(item.published_at)}</span>
       </div>
@@ -313,6 +341,14 @@ export default function Intelligence() {
   const [status,     setStatus]     = useState(null);
   const [error,      setError]      = useState(null);
 
+  const [openSymbols, setOpenSymbols] = useState([]);
+  const [paperSymbols, setPaperSymbols] = useState([]);
+  const [watchlistSymbols, setWatchlistSymbols] = useState([]);
+  const [symbolsString, setSymbolsString] = useState('');
+  const [isSymbolsLoaded, setIsSymbolsLoaded] = useState(false);
+
+  const hasPersonalized = openSymbols.length > 0 || paperSymbols.length > 0 || watchlistSymbols.length > 0;
+
   const [filterCat,  setFilterCat]  = useState('');
   const [filterDir,  setFilterDir]  = useState('');
   const [filterTime, setFilterTime] = useState('');
@@ -329,7 +365,44 @@ export default function Intelligence() {
   const inputRef = useRef(null);
   const suggestionsRef = useRef(null);
 
+  useEffect(() => {
+    Promise.allSettled([
+      api.get('/trades?status=OPEN'),
+      api.get('/paper-trades'),
+      api.get('/watchlist')
+    ]).then(([tradesRes, paperRes, watchRes]) => {
+      const extractSymbols = (arr) => {
+        return [...new Set(arr.map(t => {
+          const parts = (t.stock_name || t.symbol || '').split(':');
+          return parts[parts.length - 1];
+        }).filter(Boolean))];
+      };
+
+      let tArr = [], pArr = [], wArr = [];
+      if (tradesRes.status === 'fulfilled') {
+        const trades = tradesRes.value.data?.trades || [];
+        tArr = extractSymbols(trades.filter(t => t.status === 'OPEN'));
+        setOpenSymbols(tArr);
+      }
+      if (paperRes.status === 'fulfilled') {
+        const pTrades = paperRes.value.data?.data || [];
+        pArr = extractSymbols(pTrades);
+        setPaperSymbols(pArr);
+      }
+      if (watchRes.status === 'fulfilled') {
+        const wItems = watchRes.value.data?.data || [];
+        wArr = extractSymbols(wItems);
+        setWatchlistSymbols(wArr);
+      }
+      const allSymbols = [...new Set([...tArr, ...pArr, ...wArr])].join(',');
+      setSymbolsString(allSymbols);
+      setIsSymbolsLoaded(true);
+    });
+  }, []);
+
   const fetchFeed = useCallback(async (isRefresh = false) => {
+    if (!isSymbolsLoaded && !isRefresh) return;
+
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     setError(null);
@@ -339,6 +412,7 @@ export default function Intelligence() {
       if (filterCat)  params.set('category',  filterCat);
       if (filterDir)  params.set('direction',  filterDir);
       if (filterTime) params.set('timing',     filterTime);
+      if (symbolsString) params.set('prioritize_symbols', symbolsString);
 
       const [feedRes, statusRes] = await Promise.all([
         api.get(`/intelligence/feed?${params}`),
@@ -356,7 +430,7 @@ export default function Intelligence() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [filterCat, filterDir, filterTime]);
+  }, [filterCat, filterDir, filterTime, symbolsString, isSymbolsLoaded]);
 
   useEffect(() => { fetchFeed(); }, [fetchFeed]);
 
@@ -464,7 +538,14 @@ export default function Intelligence() {
         {/* ── Header ── */}
         <div className="intel-page__header">
           <div>
-            <h1 className="intel-page__title">⚡ Market Intelligence</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <h1 className="intel-page__title">⚡ Market Intelligence</h1>
+              {hasPersonalized && (
+                <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', cursor: 'help', fontWeight: 600 }}>
+                  ✨ PERSONALIZED
+                </span>
+              )}
+            </div>
             <p className="intel-page__subtitle">
               AI analyst — not a news feed. Every event is analysed for market impact.
             </p>
@@ -616,7 +697,7 @@ export default function Intelligence() {
                 Found {searchResults.length} analyzed signals for "{searchQuery}"
               </p>
               {searchResults.map(item => (
-                <AnalystCard key={item.id} item={item} />
+                <AnalystCard key={item.id} item={item} openSymbols={openSymbols} paperSymbols={paperSymbols} watchlistSymbols={watchlistSymbols} />
               ))}
             </div>
           )
@@ -637,7 +718,7 @@ export default function Intelligence() {
         ) : (
           <div className="intel-feed">
             {items.map(item => (
-              <AnalystCard key={item.id} item={item} />
+              <AnalystCard key={item.id} item={item} openSymbols={openSymbols} paperSymbols={paperSymbols} watchlistSymbols={watchlistSymbols} />
             ))}
             {meta && (
               <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--color-text-dim)', padding: '0.5rem' }}>
