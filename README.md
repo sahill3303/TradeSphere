@@ -28,4 +28,4 @@ A complete, single-page documentation covering the technology stack, core featur
 - Financial News Aggregator
 
 ---
-*Developed during my internship at AJ Consultancy.*
+*Developed during my internship at AJ Consulting.*

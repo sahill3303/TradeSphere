@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/dashboard': 'Dashboard',
@@ -31,11 +32,15 @@ export default function Navbar({ onMenuToggle }) {
 
             <div className="navbar__actions">
                 <button 
-                    className="navbar__theme-toggle" 
+                    className={`theme-toggle-switch ${isDarkMode ? 'theme-toggle-switch--dark' : 'theme-toggle-switch--light'}`}
                     onClick={toggleTheme}
                     title={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Mode`}
                 >
-                    {isDarkMode ? '☀️' : '🌙'}
+                    <div className="theme-toggle-switch__thumb"></div>
+                    <div className="theme-toggle-switch__icons">
+                        <Sun size={14} className="theme-toggle-switch__icon theme-toggle-switch__icon--sun" />
+                        <Moon size={14} className="theme-toggle-switch__icon theme-toggle-switch__icon--moon" />
+                    </div>
                 </button>
                 <span className="hide-mobile" style={{
                     fontSize: '0.72rem',

@@ -115,18 +115,52 @@
 }
 
 [data-theme='light'] {
-  --color-bg: #F9FAFB;
+  --color-bg: #F1F5F9;
   --color-sidebar: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-surface-alt: #F3F4F6;
-  --color-border: #E5E7EB;
-  --color-border-soft: #F0F0F0;
+  --color-surface-alt: #E2E8F0;
+  --color-border: #CBD5E1;
+  --color-border-soft: #E2E8F0;
 
-  --color-text: #111827;
-  --color-text-muted: #6B7280;
-  --color-text-dim: #9CA3AF;
+  --color-text: #020617;
+  --color-text-muted: #1E293B;
+  --color-text-dim: #475569;
+  
+  --color-gold: #B8860B;
+  --color-gold-dark: #8B6508;
+  --color-gold-soft: rgba(184, 134, 11, 0.10);
 
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-success: #15803D;
+  --color-success-soft: rgba(21, 128, 61, 0.15);
+  --color-danger: #B91C1C;
+  --color-danger-soft: rgba(185, 28, 28, 0.15);
+  --color-warning: #B45309;
+  --color-warning-soft: rgba(180, 83, 9, 0.15);
+  
+  --color-blue: #1D4ED8;
+  --color-blue-soft: rgba(29, 78, 216, 0.15);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --shadow-gold: 0 4px 14px 0 rgba(184, 134, 11, 0.25);
+}
+
+[data-theme='light'] .form-input,
+[data-theme='light'] .form-textarea,
+[data-theme='light'] .form-select {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text) !important;
+}
+
+[data-theme='light'] .form-input:focus,
+[data-theme='light'] .form-textarea:focus,
+[data-theme='light'] .form-select:focus {
+  background-color: var(--color-surface);
+  border-color: var(--color-gold);
+  color: var(--color-text) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -2383,3 +2417,83 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   100% { opacity: 0.4; }
 }
 
+/* -- Theme Toggle Switch -- */
+.theme-toggle-switch {
+  position: relative;
+  width: 56px;
+  min-width: 56px;
+  height: 28px;
+  min-height: 28px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  overflow: hidden;
+}
+
+.theme-toggle-switch--dark {
+  background-color: #26262b;
+}
+
+.theme-toggle-switch--light {
+  background-color: #e2e8f0;
+}
+
+.theme-toggle-switch__thumb {
+  position: absolute;
+  top: 50%;
+  margin-top: -11px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.theme-toggle-switch--dark .theme-toggle-switch__thumb {
+  background-color: #ffffff;
+  transform: translateX(0);
+}
+
+.theme-toggle-switch--light .theme-toggle-switch__thumb {
+  background-color: #0f172a;
+  transform: translateX(28px);
+}
+
+.theme-toggle-switch__icons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 7px;
+  z-index: 1;
+}
+
+.theme-toggle-switch__icon {
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle-switch--dark .theme-toggle-switch__icon--sun {
+  opacity: 0;
+}
+
+.theme-toggle-switch--dark .theme-toggle-switch__icon--moon {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.theme-toggle-switch--light .theme-toggle-switch__icon--sun {
+  opacity: 1;
+  color: #0f172a;
+}
+
+.theme-toggle-switch--light .theme-toggle-switch__icon--moon {
+  opacity: 0;
+}
