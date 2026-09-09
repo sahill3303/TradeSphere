@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { TrendingUp, Newspaper, ClipboardList, PenTool, Rocket, Target, Users, Briefcase, Sparkles } from 'lucide-react';
 import './AboutApp.css';
 
 export default function AboutApp() {

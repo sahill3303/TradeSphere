@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';

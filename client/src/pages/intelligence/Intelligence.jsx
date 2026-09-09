@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Zap, Briefcase, FileText, Eye, Clock, Calendar, CheckCircle, XCircle, Pin, Users, Sparkles, Radio } from 'lucide-react';
 import api from '../../api/axios';
 import './Intelligence.css';
 

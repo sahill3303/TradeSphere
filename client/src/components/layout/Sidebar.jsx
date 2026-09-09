@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { TrendingUp, Briefcase, FileText, Shield, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';

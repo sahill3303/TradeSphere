@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { Search, TrendingUp } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
 import api from '../../api/axios';
 import './Watchlist.css';

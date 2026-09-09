@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Users, Coins, Sparkles, BarChart2, TrendingUp, ClipboardList, PenTool, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import DailyNews from '../../components/dashboard/DailyNews';

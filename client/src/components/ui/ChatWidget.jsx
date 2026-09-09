@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Sparkles, X, Send } from 'lucide-react';
 import api from '../../api/axios';
 import ReactMarkdown from 'react-markdown';
 

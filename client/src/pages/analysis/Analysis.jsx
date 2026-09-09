@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, Pin, AlertTriangle, Bot, Globe, BarChart2, Eye, LineChart, Building2, CheckCircle, XCircle, Calendar, Landmark, BookOpen } from 'lucide-react';
 import api from '../../api/axios';
 
 // ─── Small reusable components ────────────────────────────────────────────────
