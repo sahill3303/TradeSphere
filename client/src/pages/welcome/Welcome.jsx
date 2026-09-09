@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { TrendingUp, Users, Target, Microscope, FileText, PartyPopper, Crown, Sparkles, Check } from 'lucide-react';
 import api from '../../api/axios';
 import './Welcome.css';
 
 const FEATURES = [
-    { id: 'watchlist', icon: '📈', label: 'Watchlist', desc: 'Track your stocks with live prices from Screener.in.' },
-    { id: 'clients', icon: '◎', label: 'Clients', desc: 'Manage client portfolios and capital tracking.' },
-    { id: 'trades', icon: '◈', label: 'Trades', desc: 'Log and analyse your trade entries & exits.' },
-    { id: 'analysis', icon: '🔬', label: 'Research', desc: 'AI-powered stock research and analysis.' },
-    { id: 'notes', icon: '📝', label: 'Notes', desc: 'Maintain a personal trading journal.' },
+    { id: 'watchlist', icon: <TrendingUp size={20} />, label: 'Watchlist', desc: 'Track your stocks with live prices from Screener.in.' },
+    { id: 'clients', icon: <Users size={20} />, label: 'Clients', desc: 'Manage client portfolios and capital tracking.' },
+    { id: 'trades', icon: <Target size={20} />, label: 'Trades', desc: 'Log and analyse your trade entries & exits.' },
+    { id: 'analysis', icon: <Microscope size={20} />, label: 'Research', desc: 'AI-powered stock research and analysis.' },
+    { id: 'notes', icon: <FileText size={20} />, label: 'Notes', desc: 'Maintain a personal trading journal.' },
 ];
 
 const COLORS = [
@@ -22,7 +23,11 @@ const COLORS = [
 
 export default function Welcome() {
     const { user, updateUserPreferences } = useAuth();
-    const { setAccentColor, accentColor } = useTheme();
+    const { setAccentColor, accentColor, setTheme } = useTheme();
+
+    useEffect(() => {
+        setTheme('dark');
+    }, [setTheme]);
     const navigate = useNavigate();
 
     const [selectedFeatures, setSelectedFeatures] = useState({
@@ -65,24 +70,24 @@ export default function Welcome() {
         <div className="welcome-page">
             <div className="welcome-card">
                 <div className="welcome-header">
-                    <div className="welcome-emoji">🎉</div>
+                    <div className="welcome-emoji"><PartyPopper size={48} color="var(--color-gold)" /></div>
                     <h1>Welcome to TradeSphere{user?.name ? `, ${user.name.split(' ')[0]}` : ''}!</h1>
                     <p>Let's set up your workspace in 30 seconds.</p>
                 </div>
 
                 {/* Elite Member Banner */}
                 <div className="welcome-elite-banner">
-                    <div className="welcome-elite-badge">👑 30-DAY FREE TRIAL</div>
+                    <div className="welcome-elite-badge"><Crown size={14} style={{ marginRight: '4px' }} /> 30-DAY FREE TRIAL</div>
                     <h3 className="welcome-elite-title">
                         Premium Plan <span style={{ color: 'var(--color-gold)' }}>Activated!</span>
                     </h3>
                     <p className="welcome-elite-desc">
                         Enjoy a <strong>free 30-day trial</strong> of all exclusive features </p>
                     <div className="welcome-elite-perks">
-                        <span>✦ Unlimited Clients</span>
-                        <span>✦ AI Research</span>
-                        <span>✦ Real-time Watchlist</span>
-                        <span>✦ Advanced Analytics</span>
+                        <span><Sparkles size={14} style={{ display: 'inline', marginRight: '6px' }} /> Unlimited Clients</span>
+                        <span><Sparkles size={14} style={{ display: 'inline', marginRight: '6px' }} /> AI Research</span>
+                        <span><Sparkles size={14} style={{ display: 'inline', marginRight: '6px' }} /> Real-time Watchlist</span>
+                        <span><Sparkles size={14} style={{ display: 'inline', marginRight: '6px' }} /> Advanced Analytics</span>
                     </div>
                 </div>
 
@@ -121,11 +126,11 @@ export default function Welcome() {
                             >
                                 <span className="feature-icon">{f.icon}</span>
                                 <div>
-                                    <div className="feature-label">{f.label} <span className="feature-elite-tag">✦ ELITE</span></div>
+                                    <div className="feature-label">{f.label} <span className="feature-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span></div>
                                     <div className="feature-desc">{f.desc}</div>
                                 </div>
                                 <span className="feature-check">
-                                    {selectedFeatures[f.id] ? '✓' : ''}
+                                    {selectedFeatures[f.id] ? <Check size={18} /> : null}
                                 </span>
                             </button>
                         ))}

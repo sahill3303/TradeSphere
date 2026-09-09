@@ -6,13 +6,13 @@ import TS2Logo from '../../assets/TS2.png';
 
 const navItems = [
     { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
-    { to: '/watchlist',    label: 'Watchlist',    icon: '📈', key: 'watchlist' },
+    { to: '/watchlist',    label: 'Watchlist',    icon: <TrendingUp size={18} />, key: 'watchlist' },
     { to: '/intelligence', label: 'Intelligence', icon: '⚡', key: 'intelligence', alwaysShow: true },
     { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
     { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
-    { to: '/paper-trade',  label: 'Paper Trading',icon: '💼', key: 'paperTrade' },
+    { to: '/paper-trade',  label: 'Paper Trading',icon: <Briefcase size={18} />, key: 'paperTrade' },
     { to: '/analysis',     label: 'Research',     icon: '🔬', key: 'analysis' },
-    { to: '/notes',        label: 'Notes',        icon: '📝', key: 'notes' },
+    { to: '/notes',        label: 'Notes',        icon: <FileText size={18} />, key: 'notes' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, onClose }) {
                                         `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                                     }
                                 >
-                                    <span className="sidebar__icon">🛡️</span>
+                                    <span className="sidebar__icon"><Shield size={18} /></span>
                                     <span className="sidebar__label">Super Admin</span>
                                 </NavLink>
                             </li>
@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen, onClose }) {
                                 `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                             }
                         >
-                            <span className="sidebar__icon">⚙️</span>
+                            <span className="sidebar__icon"><Settings size={18} /></span>
                             <span className="sidebar__label">Settings</span>
                         </NavLink>
                     </div>

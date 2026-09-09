@@ -93,7 +93,7 @@ export default function ChatWidget() {
                     animation: 'slideUp 0.3s ease-out',
                     position: 'relative'
                 }}>
-                    ✨ May I help you analyze a trade?
+                    <Sparkles size={16} style={{ display: 'inline', marginRight: '6px' }} /> May I help you analyze a trade?
                     {/* Small triangle pointer */}
                     <div style={{
                         position: 'absolute',
@@ -128,7 +128,7 @@ export default function ChatWidget() {
                 }}
             >
                 {isOpen ? (
-                    <span style={{ fontSize: '1.5rem' }}>✕</span>
+                    <span><X size={20} /></span>
                 ) : (
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -265,7 +265,7 @@ export default function ChatWidget() {
                                     transition: 'all 0.2s'
                                 }}
                             >
-                                ➤
+                                <Send size={16} />
                             </button>
                         </form>
                     </div>

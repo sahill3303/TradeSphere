@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../../api/axios';
 import { useConfirm } from '../../context/ConfirmContext';
+import { Dices, Briefcase, Coins, Rocket, Landmark, TrendingUp, Zap, Target, Shield, Flame, Scale, Microscope, ScrollText, Globe, Plus, RefreshCw, X, Trash2 } from 'lucide-react';
 import './PaperTrade.css';
 
 const STRATEGY_OPTIONS = [
@@ -328,7 +329,7 @@ export default function PaperTrade() {
             <div className="paper-trade-header">
                 <div className="header-title-box">
                     <h1 className="paper-trade-title">
-                        <span>💼</span> Dedicated Paper Trading & Conviction Portfolio
+                        <span><Briefcase size={18} /></span> Dedicated Paper Trading & Conviction Portfolio
                     </h1>
                     <p className="paper-trade-subtitle">
                         Test high-conviction trade ideas, fine-tune strategies without capital risk, and manage your long-term practice portfolio with real-time unrealized P&L tracking.
@@ -336,13 +337,13 @@ export default function PaperTrade() {
                 </div>
                 <div className="header-action-group">
                     <button className="btn-paper-action btn-add-funds" onClick={() => setShowFundsModal(true)}>
-                        <span>🪙</span> + Manage Virtual Funds
+                        <span><Coins size={18} /></span> + Manage Virtual Funds
                     </button>
                     <button 
                         className={`btn-paper-action ${showOrderPad ? 'btn-secondary' : 'btn-new-trade'}`} 
                         onClick={() => setShowOrderPad(!showOrderPad)}
                     >
-                        <span>{showOrderPad ? '✖ Close Pad' : '🚀 + Open Buy Position'}</span>
+                        <span>{showOrderPad ? <><X size={16} style={{marginRight: '6px'}}/> Close Pad</> : <><Rocket size={16} style={{marginRight: '6px'}}/> Open Buy Position</>}</span>
                     </button>
                 </div>
             </div>
@@ -360,7 +361,7 @@ export default function PaperTrade() {
                     <div>
                         <div className="kpi-header">
                             <span className="kpi-label">Simulated Net Worth</span>
-                            <span className="kpi-icon">🏛️</span>
+                            <span className="kpi-icon"><Landmark size={24} /></span>
                         </div>
                         <div className="kpi-value" style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <span>{formatCurrency(liveMetrics.liveNetWorth)}</span>
@@ -381,7 +382,7 @@ export default function PaperTrade() {
                     <div>
                         <div className="kpi-header">
                             <span className="kpi-label">Available Virtual Cash</span>
-                            <span className="kpi-icon">💵</span>
+                            <span className="kpi-icon"><Coins size={24} /></span>
                         </div>
                         <div className="kpi-value" style={{ color: '#34d399' }}>{formatCurrency(summary.available_cash)}</div>
                     </div>
@@ -395,7 +396,7 @@ export default function PaperTrade() {
                     <div>
                         <div className="kpi-header">
                             <span className="kpi-label">Deployed Capital (Open)</span>
-                            <span className="kpi-icon">📈</span>
+                            <span className="kpi-icon"><TrendingUp size={24} /></span>
                         </div>
                         <div className="kpi-value">{formatCurrency(liveMetrics.activeInvested)}</div>
                     </div>
@@ -409,7 +410,7 @@ export default function PaperTrade() {
                     <div>
                         <div className="kpi-header">
                             <span className="kpi-label">Live Unrealized P&L</span>
-                            <span className="kpi-icon">⚡</span>
+                            <span className="kpi-icon"><Zap size={24} /></span>
                         </div>
                         <div 
                             className="kpi-value" 
@@ -436,8 +437,8 @@ export default function PaperTrade() {
             {showOrderPad && (
                 <div className="order-form-card">
                     <div className="order-form-header">
-                        <h3><span>🎯</span> Execute Simulated Buy Position</h3>
-                        <button className="btn-close-pad" onClick={() => setShowOrderPad(false)}>✕</button>
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Target size={20} /> Execute Simulated Buy Position</h3>
+                        <button className="btn-close-pad" onClick={() => setShowOrderPad(false)}><X size={16} /></button>
                     </div>
 
                     <form onSubmit={handleOrderSubmit}>
@@ -449,7 +450,7 @@ export default function PaperTrade() {
                                     className={`horizon-card ${orderForm.holding_type === 'TRADING' ? 'selected-trading' : ''}`}
                                     onClick={() => setOrderForm(prev => ({ ...prev, holding_type: 'TRADING' }))}
                                 >
-                                    <span className="horizon-icon">⚡</span>
+                                    <span className="horizon-icon"><Zap size={16} /></span>
                                     <div className="horizon-info">
                                         <h4>Active Trading (Intraday & Swing)</h4>
                                         <p>Short to medium-term momentum positions with active targets & stop-losses.</p>
@@ -459,7 +460,7 @@ export default function PaperTrade() {
                                     className={`horizon-card ${orderForm.holding_type === 'INVESTMENT' ? 'selected-investment' : ''}`}
                                     onClick={() => setOrderForm(prev => ({ ...prev, holding_type: 'INVESTMENT' }))}
                                 >
-                                    <span className="horizon-icon">🛡️</span>
+                                    <span className="horizon-icon"><Shield size={16} /></span>
                                     <div className="horizon-info">
                                         <h4>Long-Term Conviction Investment</h4>
                                         <p>Portfolio compounding positions for long-term wealth creation & monitoring.</p>
@@ -563,10 +564,10 @@ export default function PaperTrade() {
                                     value={orderForm.conviction_level}
                                     onChange={(e) => setOrderForm(prev => ({ ...prev, conviction_level: e.target.value }))}
                                 >
-                                    <option value="High">High Conviction 🔥</option>
-                                    <option value="Medium">Medium Conviction ⚖️</option>
-                                    <option value="Low">Low / Speculative 🎲</option>
-                                    <option value="Experimental">Thesis Testing 🔬</option>
+                                    <option value="High">High Conviction</option>
+                                    <option value="Medium">Medium Conviction</option>
+                                    <option value="Low">Low / Speculative</option>
+                                    <option value="Experimental">Thesis Testing</option>
                                 </select>
                             </div>
                         </div>
@@ -614,7 +615,7 @@ export default function PaperTrade() {
                                 Cancel
                             </button>
                             <button type="submit" className="btn-paper-action btn-new-trade" disabled={submitting}>
-                                {submitting ? 'Placing Order...' : `Execute simulated ${orderForm.holding_type === 'INVESTMENT' ? 'Investment' : 'Buy Trade'} 🚀`}
+                                {submitting ? 'Placing Order...' : `Execute simulated ${orderForm.holding_type === 'INVESTMENT' ? 'Investment' : 'Buy Trade'} `}
                             </button>
                         </div>
                     </form>
@@ -629,7 +630,7 @@ export default function PaperTrade() {
                             className={`paper-tab-btn ${activeTab === 'TRADING' ? 'active' : ''}`}
                             onClick={() => setActiveTab('TRADING')}
                         >
-                            <span>⚡ Active Trading</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={16} /> Active Trading</span>
                             <span style={{ opacity: 0.7, fontSize: '0.8rem' }}>
                                 ({trades.filter(t => t.status === 'OPEN' && t.holding_type === 'TRADING').length})
                             </span>
@@ -638,7 +639,7 @@ export default function PaperTrade() {
                             className={`paper-tab-btn ${activeTab === 'INVESTMENT' ? 'active-green' : ''}`}
                             onClick={() => setActiveTab('INVESTMENT')}
                         >
-                            <span>🛡️ Long-Term Portfolio</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Shield size={16} /> Long-Term Portfolio</span>
                             <span style={{ opacity: 0.7, fontSize: '0.8rem' }}>
                                 ({trades.filter(t => t.status === 'OPEN' && t.holding_type === 'INVESTMENT').length})
                             </span>
@@ -647,7 +648,7 @@ export default function PaperTrade() {
                             className={`paper-tab-btn ${activeTab === 'CLOSED' ? 'active' : ''}`}
                             onClick={() => setActiveTab('CLOSED')}
                         >
-                            <span>📜 Historical Journal Log</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ScrollText size={16} /> Historical Journal Log</span>
                             <span style={{ opacity: 0.7, fontSize: '0.8rem' }}>
                                 ({trades.filter(t => t.status === 'CLOSED').length})
                             </span>
@@ -656,7 +657,7 @@ export default function PaperTrade() {
                             className={`paper-tab-btn ${activeTab === 'ALL' ? 'active' : ''}`}
                             onClick={() => setActiveTab('ALL')}
                         >
-                            <span>🌐 All Open Positions</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={16} /> All Open Positions</span>
                         </button>
                     </div>
 
@@ -673,7 +674,7 @@ export default function PaperTrade() {
                 ) : filteredTrades.length === 0 ? (
                     <div className="empty-state-box">
                         <div className="empty-state-icon">
-                            {activeTab === 'INVESTMENT' ? '🛡️' : activeTab === 'CLOSED' ? '📜' : '🎯'}
+                            {activeTab === 'INVESTMENT' ? <Shield size={16} /> : activeTab === 'CLOSED' ? <ScrollText size={16} /> : <Target size={16} />}
                         </div>
                         <h4>No {activeTab === 'INVESTMENT' ? 'Long-Term Investments' : activeTab === 'CLOSED' ? 'Closed Practice Trades' : 'Active Practice Trades'} Yet</h4>
                         <p>
@@ -685,7 +686,7 @@ export default function PaperTrade() {
                         </p>
                         {activeTab !== 'CLOSED' && (
                             <button className="btn-paper-action btn-new-trade" onClick={() => setShowOrderPad(true)}>
-                                + Place First Simulated Order 🚀
+                                + Place First Simulated Order
                             </button>
                         )}
                     </div>
@@ -713,7 +714,7 @@ export default function PaperTrade() {
                                                         onClick={() => handleCategorySwitch(t)}
                                                         title="Click to switch to Active Trading (Intraday/Swing)"
                                                     >
-                                                        <span>🛡️ Long-Term Conviction</span>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Shield size={16} /> Long-Term Conviction</span>
                                                         <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>⇄</span>
                                                     </span>
                                                 </div>
@@ -763,7 +764,7 @@ export default function PaperTrade() {
                                                     onClick={() => handleCategorySwitch(t)}
                                                     title="Convert to Active Trading (Intraday/Swing)"
                                                 >
-                                                    ⚡ Convert to Swing
+                                                    Convert to Swing
                                                 </button>
                                                 <button 
                                                     className="table-btn-action btn-exit-trade"
@@ -775,7 +776,7 @@ export default function PaperTrade() {
                                                     Book Profits / Exit
                                                 </button>
                                                 <button className="btn-delete-icon" onClick={() => handleDeleteTrade(t)} title="Delete Record">
-                                                    🗑️
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </div>
@@ -836,7 +837,7 @@ export default function PaperTrade() {
                                                         onClick={() => t.status === 'OPEN' && handleCategorySwitch(t)}
                                                         title={t.status === 'OPEN' ? `Click to switch to ${t.holding_type === 'INVESTMENT' ? 'Active Trading (Intraday/Swing)' : 'Long-Term Conviction'}` : 'Closed trade'}
                                                     >
-                                                        <span>{t.holding_type === 'INVESTMENT' ? '🛡️ Investment' : '⚡ Swing/Trading'}</span>
+                                                        <span>{t.holding_type === 'INVESTMENT' ? <><Shield size={14} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Investment</> : <><Zap size={14} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Swing/Trading</>}</span>
                                                         {t.status === 'OPEN' && <span style={{ fontSize: '0.8rem', opacity: 0.8 }} title="Click to Switch Category">⇄</span>}
                                                     </div>
                                                 </td>
@@ -906,7 +907,7 @@ export default function PaperTrade() {
                                                                     onClick={() => handleCategorySwitch(t)}
                                                                     title={`Convert position to ${t.holding_type === 'INVESTMENT' ? 'Active Trading (Intraday/Swing)' : 'Long-Term Conviction'}`}
                                                                 >
-                                                                    {t.holding_type === 'INVESTMENT' ? '⚡ Move to Swing' : '🛡️ Move to Long-Term'}
+                                                                    {t.holding_type === 'INVESTMENT' ? 'Move to Swing' : 'Move to Long-Term'}
                                                                 </button>
                                                                 <button 
                                                                     className="table-btn-action btn-exit-trade"
@@ -920,7 +921,7 @@ export default function PaperTrade() {
                                                             </>
                                                         )}
                                                         <button className="btn-delete-icon" onClick={() => handleDeleteTrade(t)} title="Delete Record">
-                                                            🗑️
+                                                            <Trash2 size={16} />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -939,8 +940,8 @@ export default function PaperTrade() {
                 <div className="paper-modal-overlay" onClick={() => setShowFundsModal(false)}>
                     <div className="paper-modal-box" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3><span>🪙</span> Manage Virtual Wallet & Funds</h3>
-                            <button className="btn-close-pad" onClick={() => setShowFundsModal(false)}>✕</button>
+                            <h3><span><Coins size={18} /></span> Manage Virtual Wallet & Funds</h3>
+                            <button className="btn-close-pad" onClick={() => setShowFundsModal(false)}><X size={16} /></button>
                         </div>
 
                         {fundMessage && (
@@ -957,8 +958,8 @@ export default function PaperTrade() {
                                     value={fundForm.action} 
                                     onChange={(e) => setFundForm(prev => ({ ...prev, action: e.target.value }))}
                                 >
-                                    <option value="ADD">➕ Add Virtual Cash to Balance</option>
-                                    <option value="RESET">🔄 Reset Account to Specific Starting Balance</option>
+                                    <option value="ADD">Add Virtual Cash to Balance</option>
+                                    <option value="RESET">Reset Account to Specific Starting Balance</option>
                                 </select>
                             </div>
 
@@ -985,7 +986,7 @@ export default function PaperTrade() {
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn-paper-action btn-add-funds" disabled={submitting}>
-                                    {submitting ? 'Updating...' : fundForm.action === 'ADD' ? 'Deposit Simulated Funds 💵' : 'Reset Wallet Balance 🔄'}
+                                    {submitting ? 'Updating...' : fundForm.action === 'ADD' ? 'Deposit Simulated Funds' : 'Reset Wallet Balance'}
                                 </button>
                             </div>
                         </form>
@@ -998,8 +999,8 @@ export default function PaperTrade() {
                 <div className="paper-modal-overlay" onClick={() => setExitTradeModal(null)}>
                     <div className="paper-modal-box" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3><span>📈</span> Exit Practice Position ({exitTradeModal.stock_name})</h3>
-                            <button className="btn-close-pad" onClick={() => setExitTradeModal(null)}>✕</button>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><TrendingUp size={20} /> Exit Practice Position ({exitTradeModal.stock_name})</h3>
+                            <button className="btn-close-pad" onClick={() => setExitTradeModal(null)}><X size={16} /></button>
                         </div>
 
                         <form onSubmit={handleExitSubmit}>
@@ -1062,7 +1063,7 @@ export default function PaperTrade() {
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn-paper-action btn-exit-trade" style={{ background: '#f59e0b', color: '#0f172a', fontWeight: 800 }} disabled={submitting}>
-                                    {submitting ? 'Closing Trade...' : 'Lock In Profits & Settle 💰'}
+                                    {submitting ? 'Closing Trade...' : 'Lock In Profits & Settle'}
                                 </button>
                             </div>
                         </form>

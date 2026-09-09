@@ -25,7 +25,7 @@ export default function Navbar({ onMenuToggle }) {
                 onClick={onMenuToggle}
                 aria-label="Toggle sidebar"
             >
-                ☰
+                <Menu size={24} />
             </button>
 
             <h1 className="navbar__title">{title}</h1>

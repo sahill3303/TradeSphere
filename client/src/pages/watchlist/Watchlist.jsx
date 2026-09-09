@@ -228,7 +228,7 @@ export default function Watchlist() {
                     </div>
 
                     <div className="watchlist-sidebar-info">
-                        <div className="watchlist-sidebar-icon">🔍</div>
+                        <div className="watchlist-sidebar-icon"><Search size={20} /></div>
                         <p>Search for a stock above and select a category to add it to your watchlist.</p>
                     </div>
                 </div>
@@ -268,7 +268,7 @@ export default function Watchlist() {
                             <div className="watchlist-placeholder">Loading...</div>
                         ) : activeSymbols.length === 0 ? (
                             <div className="watchlist-placeholder">
-                                <div className="watchlist-placeholder-icon">📈</div>
+                                <div className="watchlist-placeholder-icon"><TrendingUp size={48} /></div>
                                 <p>No stocks in <strong>{activeCategory}</strong>.</p>
                             </div>
                         ) : (

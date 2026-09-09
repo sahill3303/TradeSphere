@@ -65,7 +65,7 @@ export function ThemeProvider({ children }) {
     const isDarkMode = theme === 'dark';
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode, accentColor, setAccentColor, hydrateFromPreferences }}>
+        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDarkMode, accentColor, setAccentColor, hydrateFromPreferences }}>
             {children}
         </ThemeContext.Provider>
     );

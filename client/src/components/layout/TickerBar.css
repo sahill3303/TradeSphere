@@ -1,7 +1,7 @@
 .ticker-bar {
     width: 100%;
     overflow: hidden;
-    background: #0B0B0D;
+    background: var(--color-sidebar);
     border-bottom: 1px solid var(--color-border);
     height: 38px;
     display: flex;
@@ -49,7 +49,7 @@
 }
 
 .ticker-item__price {
-    color: #FFFFFF;
+    color: var(--color-text);
 }
 
 .ticker-item__change {

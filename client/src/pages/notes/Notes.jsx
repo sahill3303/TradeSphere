@@ -137,7 +137,7 @@ export default function Notes() {
                                     style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--color-text-dim)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
                                     title="Delete Note"
                                 >
-                                    ✕
+                                    <X size={16} />
                                 </button>
 
                                 <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--color-gold)', marginBottom: 'var(--space-xs)', paddingRight: '2rem' }}>

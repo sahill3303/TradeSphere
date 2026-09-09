@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import { Shield, Users, CheckCircle, Snowflake, Search, Calendar, X, Key, Zap, Trash2 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -229,7 +230,7 @@ export default function SuperAdminDashboard() {
             {/* Header */}
             <div className="page__header" style={{ marginBottom: 'var(--space-md)' }}>
                 <div>
-                    <h2 className="page__title">🛡️ Super Admin Control Room</h2>
+                    <h2 className="page__title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Shield size={24} /> Super Admin Control Room</h2>
                     <p className="page__subtitle">Monitor and manage registered tenants, track activities, and manage active licenses.</p>
                 </div>
             </div>
@@ -237,14 +238,14 @@ export default function SuperAdminDashboard() {
             {/* Quick Metrics */}
             <div className="stats-grid">
                 <div className="stat-card" style={{ '--card-accent': '#60A5FA' }}>
-                    <div className="stat-card__icon" style={{ background: '#60A5FA18', border: '1px solid #60A5FA30' }}>👥</div>
+                    <div className="stat-card__icon" style={{ background: '#60A5FA18', border: '1px solid #60A5FA30' }}><Users size={24} /></div>
                     <div className="stat-card__body">
                         <span className="stat-card__value">{totalUsers}</span>
                         <span className="stat-card__label">Total Tenants</span>
                     </div>
                 </div>
                 <div className="stat-card" style={{ '--card-accent': 'var(--color-success)' }}>
-                    <div className="stat-card__icon" style={{ background: 'var(--color-success-soft)', border: '1px solid rgba(34,197,94,0.3)' }}>✅</div>
+                    <div className="stat-card__icon" style={{ background: 'var(--color-success-soft)', border: '1px solid rgba(34,197,94,0.3)' }}><CheckCircle size={24} /></div>
                     <div className="stat-card__body">
                         <span className="stat-card__value">{activeCount}</span>
                         <span className="stat-card__label">Active Licenses</span>
@@ -258,7 +259,7 @@ export default function SuperAdminDashboard() {
                     </div>
                 </div>
                 <div className="stat-card" style={{ '--card-accent': 'var(--color-danger)' }}>
-                    <div className="stat-card__icon" style={{ background: 'var(--color-danger-soft)', border: '1px solid rgba(239,68,68,0.3)' }}>❄️</div>
+                    <div className="stat-card__icon" style={{ background: 'var(--color-danger-soft)', border: '1px solid rgba(239,68,68,0.3)' }}><Snowflake size={24} /></div>
                     <div className="stat-card__body">
                         <span className="stat-card__value">{frozenCount}</span>
                         <span className="stat-card__label">Frozen Accounts</span>
@@ -381,7 +382,7 @@ export default function SuperAdminDashboard() {
                                                         background: 'var(--color-gold-soft)'
                                                     }}
                                                 >
-                                                    🔍 Overview
+                                                    <><Search size={16} /> Overview</>
                                                 </button>
                                             </td>
                                         </tr>
@@ -398,7 +399,7 @@ export default function SuperAdminDashboard() {
                 <div className="superadmin-overlay" style={{ zIndex: 1000 }}>
                     <div className="superadmin-modal-card superadmin-modal-card--small">
                         <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', marginBottom: 'var(--space-md)' }}>
-                            📅 Adjust License Duration
+                            <><Calendar size={16} /> Adjust License Duration</>
                         </h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-lg)' }}>
                             Update subscription credentials for <strong>{userToUpdate.name}</strong> ({userToUpdate.email}).
@@ -476,7 +477,7 @@ export default function SuperAdminDashboard() {
                     <div className="superadmin-modal-card superadmin-modal-card--large">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                             <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', margin: 0 }}>
-                                🔎 Inspect Workspace: {selectedUser.name}
+                                Inspect Workspace: {selectedUser.name}
                             </h3>
                             <button
                                 onClick={closeInspectModal}
@@ -489,7 +490,7 @@ export default function SuperAdminDashboard() {
                                     padding: '0.2rem 0.5rem'
                                 }}
                             >
-                                ✕
+                                <X size={18} />
                             </button>
                         </div>
                         
@@ -507,7 +508,7 @@ export default function SuperAdminDashboard() {
                             boxShadow: 'var(--shadow-sm)'
                         }}>
                             <h4 style={{ margin: '0 0 var(--space-xs) 0', fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                🔑 Tenant Login Credentials
+                                <><Key size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Tenant Login Credentials</>
                             </h4>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', fontSize: '0.8rem' }}>
                                 <div>
@@ -535,7 +536,7 @@ export default function SuperAdminDashboard() {
                             boxShadow: 'var(--shadow-sm)'
                         }}>
                             <h4 style={{ margin: '0 0 var(--space-xs) 0', fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                🛡️ Account Management Controls
+                                <><Shield size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Account Management Controls</>
                             </h4>
                             <p style={{ margin: '0 0 var(--space-md) 0', fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>
                                 Modify active license limits, freeze tenant workspace access, or delete this account.
@@ -546,7 +547,7 @@ export default function SuperAdminDashboard() {
                                     className="btn btn--secondary"
                                     style={{ padding: '0.45rem 1rem', fontSize: '0.78rem' }}
                                 >
-                                    📅 Adjust License
+                                    <><Calendar size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Adjust License</>
                                 </button>
                                 <button
                                     onClick={() => handleFreezeToggle(selectedUser)}
@@ -558,14 +559,14 @@ export default function SuperAdminDashboard() {
                                         borderColor: selectedUser.is_frozen ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'
                                     }}
                                 >
-                                    {selectedUser.is_frozen ? '⚡ Unfreeze Account' : '❄️ Freeze Account'}
+                                    {selectedUser.is_frozen ? <><Zap size={16} style={{marginRight: '6px', verticalAlign: 'middle'}}/> Unfreeze Account</> : <><Snowflake size={16} style={{marginRight: '6px', verticalAlign: 'middle'}}/> Freeze Account</>}
                                 </button>
                                 <button
                                     onClick={() => handleDeleteUser(selectedUser)}
                                     className="btn btn--danger"
                                     style={{ padding: '0.45rem 1rem', fontSize: '0.78rem' }}
                                 >
-                                    🗑️ Delete Tenant
+                                    <><Trash2 size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Delete Tenant</>
                                 </button>
                             </div>
                         </div>

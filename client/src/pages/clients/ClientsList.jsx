@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConfirm } from '../../context/ConfirmContext';
+import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Eye, Pencil, Trash2, RotateCcw, Loader2 } from 'lucide-react';
 import api from '../../api/axios';
@@ -248,7 +249,7 @@ export default function ClientsList() {
     const handleHardDelete = async (id, name) => {
         confirmAction({
             title: 'Permanent Delete',
-            message: `⚠️ Permanently delete "${name}"? This action CANNOT be undone.`,
+            message: `Permanently delete "${name}"? This action CANNOT be undone.`,
             variant: 'danger',
             onConfirm: async () => {
                 setHardDeletingId(id);
@@ -389,7 +390,7 @@ export default function ClientsList() {
                     <div className="modal">
                         <div className="modal__header">
                             <h3>{modalMode === 'add' ? 'Add New Client' : 'Edit Client'}</h3>
-                            <button onClick={() => setShowModal(false)} className="modal__close">✕</button>
+                            <button onClick={() => setShowModal(false)} className="modal__close"><X size={16} /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal__body">
                             {submitError && <div className="alert alert--error">{submitError}</div>}

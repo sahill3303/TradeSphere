@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { CheckCircle, Circle } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
@@ -20,7 +21,11 @@ const getStrengthDetails = (score) => {
 
 export default function Register() {
     const { login } = useAuth();
-    const { hydrateFromPreferences } = useTheme();
+    const { setTheme, hydrateFromPreferences } = useTheme();
+
+    useEffect(() => {
+        setTheme('dark');
+    }, [setTheme]);
     const navigate = useNavigate();
 
     const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -190,19 +195,19 @@ export default function Register() {
                                 {/* Checklist */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', color: 'var(--color-text-muted)', paddingLeft: '0.2rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.length ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.length ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.length ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least 8 characters</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: (passwordChecks.uppercase && passwordChecks.lowercase) ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{(passwordChecks.uppercase && passwordChecks.lowercase) ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{(passwordChecks.uppercase && passwordChecks.lowercase) ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>Uppercase & lowercase letters</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.number ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.number ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.number ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least one number</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.specialChar ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.specialChar ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.specialChar ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least one special character (@, $, !, %, *, ?, &)</span>
                                     </div>
                                 </div>

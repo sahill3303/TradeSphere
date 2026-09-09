@@ -44,10 +44,10 @@ function fmtLakhsPlain(val) {
 
 // Icon components (inline SVG-like characters for stat cards)
 const STAT_ICONS = {
-    'Total Clients': '👥',
-    'Total Trades': '📈',
-    'Total Capital': '💰',
-    'Realised P&L': '📊',
+    'Total Clients': <Users size={16} />,
+    'Total Trades': <TrendingUp size={16} />,
+    'Total Capital': <Coins size={16} />,
+    'Realised P&L': <BarChart2 size={16} />,
 };
 
 const STAT_COLORS = {
@@ -169,34 +169,34 @@ export default function Dashboard() {
                 <div className="onboarding-guide">
                     {/* Header Banner */}
                     <div className="onboarding-hero">
-                        <div className="onboarding-hero__sparkle">✨</div>
+                        <div className="onboarding-hero__sparkle"><Sparkles size={32} color="var(--color-gold)" /></div>
                         <h2>Get Started with TradeSphere</h2>
                         <p>Welcome to your command center! Your dashboard analytics are currently empty. Complete these simple steps to set up your workspace and start tracking your performance.</p>
                     </div>
 
                     {/* Dashboard Metrics Explained */}
                     <div className="onboarding-section">
-                        <h3>📊 Dashboard Metrics Explained</h3>
+                        <h3><BarChart2 size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Dashboard Metrics Explained</h3>
                         <p className="onboarding-section__subtitle">These KPI cards will track your management metrics and automatically update as you log data:</p>
                         
                         <div className="onboarding-grid">
                             <div className="onboarding-card">
-                                <div className="onboarding-card__icon" style={{ color: 'var(--color-gold)', background: 'var(--color-gold-soft)' }}>👥</div>
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-gold)', background: 'var(--color-gold-soft)' }}><Users size={24} /></div>
                                 <h4>Total Clients</h4>
                                 <p>Tracks the number of client portfolios you manage. Allows you to monitor active status, start dates, and individual P&L contributions.</p>
                             </div>
                             <div className="onboarding-card">
-                                <div className="onboarding-card__icon" style={{ color: '#60A5FA', background: 'rgba(96, 165, 250, 0.1)' }}>📈</div>
+                                <div className="onboarding-card__icon" style={{ color: '#60A5FA', background: 'rgba(96, 165, 250, 0.1)' }}><TrendingUp size={24} /></div>
                                 <h4>Total Trades</h4>
                                 <p>Displays your aggregate trade volume. Logs active open positions and historical trades with details like ticker symbols, quantities, and direction.</p>
                             </div>
                             <div className="onboarding-card">
-                                <div className="onboarding-card__icon" style={{ color: 'var(--color-success)', background: 'var(--color-success-soft)' }}>💰</div>
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-success)', background: 'var(--color-success-soft)' }}><Coins size={24} /></div>
                                 <h4>Total Capital</h4>
                                 <p>Aggregates the total active capital invested across all client portfolios. Keep track of cash balances and leverage indicators in one place.</p>
                             </div>
                             <div className="onboarding-card">
-                                <div className="onboarding-card__icon" style={{ color: 'var(--color-warning)', background: 'var(--color-warning-soft)' }}>📊</div>
+                                <div className="onboarding-card__icon" style={{ color: 'var(--color-warning)', background: 'var(--color-warning-soft)' }}><BarChart2 size={24} /></div>
                                 <h4>Realised P&L</h4>
                                 <p>Calculates the net closed position profit or loss. Currently gross (without tax and interest), operating costs will be added in the future.</p>
                             </div>
@@ -205,14 +205,14 @@ export default function Dashboard() {
 
                     {/* Features & Actions */}
                     <div className="onboarding-section">
-                        <h3>🚀 Core Platform Features</h3>
+                        <h3>Core Platform Features</h3>
                         <p className="onboarding-section__subtitle">Unlock full dashboard analytics by completing your first setup actions:</p>
                         
                         <div className="onboarding-actions-list">
                             <div className="onboarding-action-row">
                                 <div className="onboarding-action-row__content">
                                     <div className="onboarding-action-row__title">
-                                        <span className="onboarding-action-row__emoji">👥</span>
+                                        <span className="onboarding-action-row__emoji"><Users size={18} /></span>
                                         <h4>Add Your First Client</h4>
                                     </div>
                                     <p>Set up an investor profile to start tracking their initial capital, capital history, and dedicated portfolio statistics.</p>
@@ -225,7 +225,7 @@ export default function Dashboard() {
                             <div className="onboarding-action-row">
                                 <div className="onboarding-action-row__content">
                                     <div className="onboarding-action-row__title">
-                                        <span className="onboarding-action-row__emoji">📈</span>
+                                        <span className="onboarding-action-row__emoji"><TrendingUp size={18} /></span>
                                         <h4>Log a Live Trade</h4>
                                     </div>
                                     <p>Log a LONG or SHORT entry position. Keep track of shares/quantities, stop losses, and target entries.</p>
@@ -238,7 +238,7 @@ export default function Dashboard() {
                             <div className="onboarding-action-row">
                                 <div className="onboarding-action-row__content">
                                     <div className="onboarding-action-row__title">
-                                        <span className="onboarding-action-row__emoji">📝</span>
+                                        <span className="onboarding-action-row__emoji"><PenTool size={18} /></span>
                                         <h4>Write a Journal Entry</h4>
                                     </div>
                                     <p>Document daily market analysis, setups, mistakes, or psychological updates in your secure private notebook.</p>
@@ -251,7 +251,7 @@ export default function Dashboard() {
                             <div className="onboarding-action-row">
                                 <div className="onboarding-action-row__content">
                                     <div className="onboarding-action-row__title">
-                                        <span className="onboarding-action-row__emoji">📋</span>
+                                        <span className="onboarding-action-row__emoji"><ClipboardList size={18} /></span>
                                         <h4>Build your Watchlist</h4>
                                     </div>
                                     <p>Save symbols and track prices, daily changes, and charts integrated directly from Screener.in.</p>
@@ -282,9 +282,9 @@ export default function Dashboard() {
                             }
 
                             const iconMap = {
-                                'Total Clients': '👥',
-                                'Total Trades': '📈',
-                                'Total Capital': '💰',
+                                'Total Clients': <Users size={16} />,
+                                'Total Trades': <TrendingUp size={16} />,
+                                'Total Capital': <Coins size={16} />,
                                 'Realised P&L': '📊'
                             };
 
@@ -300,7 +300,7 @@ export default function Dashboard() {
                                     <div>
                                         <div className="kpi-header">
                                             <span className="kpi-label">{label}</span>
-                                            <span className="kpi-icon">{iconMap[label] || '📊'}</span>
+                                            <span className="kpi-icon">{iconMap[label] || <BarChart2 size={16} />}</span>
                                         </div>
                                         <div className="kpi-value" style={valueStyle}>
                                             {value}
@@ -653,7 +653,7 @@ export default function Dashboard() {
                                 animation: 'float 3.5s ease-in-out infinite',
                                 color: '#0B0B0D',
                                 zIndex: 2
-                            }}>👑</div>
+                            }}><Crown size={24} /></div>
                         </div>
 
                         {/* Title */}
@@ -688,7 +688,7 @@ export default function Dashboard() {
                             animation: 'fadeInUp 0.5s ease-out both',
                             animationDelay: '0.3s'
                         }}>
-                            <span>✦</span> ELITE MEMBER ACCESS <span>✦</span>
+                            <span><Sparkles size={14} style={{display:'inline'}}/></span> ELITE MEMBER ACCESS <span><Sparkles size={14} style={{display:'inline'}}/></span>
                         </div>
 
                         {/* Punchy Subtitle */}

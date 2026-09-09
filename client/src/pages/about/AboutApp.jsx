@@ -24,52 +24,52 @@ export default function AboutApp() {
 
                 {/* Features */}
                 <section className="about-section">
-                    <h2 className="about-section__title">✨ Key Features</h2>
+                    <h2 className="about-section__title"><Sparkles size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Key Features</h2>
                     <div className="about-features-grid">
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">📊</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><TrendingUp size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Live Market Dashboard</h3>
                             <p>Real-time CMP tracking for NIFTY 50, SENSEX, DOW JONES & NASDAQ with auto-refresh every 30 seconds.</p>
                         </div>
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">👥</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><Users size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Client Management</h3>
                             <p>Add, edit, and track multiple clients. Monitor capital invested, active status, and individual P&L per client.</p>
                         </div>
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">📈</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><TrendingUp size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Trade Tracking</h3>
                             <p>Log LONG/SHORT trades with entry & exit prices, quantities, and automated profit/loss calculations.</p>
                         </div>
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">📰</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><Newspaper size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Market Intelligence</h3>
                             <p>AI-powered daily market news, sentiment analysis, and curated insights from top financial sources.</p>
                         </div>
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">📋</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><ClipboardList size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Watchlist</h3>
                             <p>Track your favourite stocks with live prices via Screener.in integration. Never miss a move.</p>
                         </div>
                         <div className="about-feature-card">
                             <div className="about-feature-card__top">
-                                <span className="about-feature-card__icon">📝</span>
-                                <span className="about-elite-tag">✦ ELITE</span>
+                                <span className="about-feature-card__icon"><PenTool size={24} /></span>
+                                <span className="about-elite-tag"><Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} /> ELITE</span>
                             </div>
                             <h3>Trading Journal</h3>
                             <p>Maintain personal notes, trade rationale, and strategy logs in a secure private journal.</p>
@@ -79,7 +79,7 @@ export default function AboutApp() {
 
                 {/* How to Use */}
                 <section className="about-section">
-                    <h2 className="about-section__title">🚀 How to Use</h2>
+                    <h2 className="about-section__title"><><Rocket size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> How to Use</></h2>
                     <div className="about-steps">
                         <div className="about-step">
                             <div className="about-step__number">1</div>
@@ -114,24 +114,24 @@ export default function AboutApp() {
 
                 {/* Built For */}
                 <section className="about-section">
-                    <h2 className="about-section__title">🎯 Built For</h2>
+                    <h2 className="about-section__title"><><Target size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Built For</></h2>
                     <div className="about-usecases">
                         <div className="about-usecase">
-                            <div className="about-usecase__icon">📈</div>
+                            <div className="about-usecase__icon"><TrendingUp size={32} /></div>
                             <div>
                                 <h4>Independent Traders</h4>
                                 <p>Track your personal trades, monitor your win rate, and journal your strategy evolution.</p>
                             </div>
                         </div>
                         <div className="about-usecase">
-                            <div className="about-usecase__icon">🤝</div>
+                            <div className="about-usecase__icon"><Users size={32} /></div>
                             <div>
                                 <h4>Trading Consultants</h4>
                                 <p>Manage multiple client portfolios, provide transparent P&L reports, and scale your advisory business.</p>
                             </div>
                         </div>
                         <div className="about-usecase">
-                            <div className="about-usecase__icon">💼</div>
+                            <div className="about-usecase__icon"><Briefcase size={32} /></div>
                             <div>
                                 <h4>Portfolio Managers</h4>
                                 <p>Get a bird's eye view of all client capital, aggregate performance, and market-level insights.</p>

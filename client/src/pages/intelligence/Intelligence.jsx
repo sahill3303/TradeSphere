@@ -11,7 +11,7 @@ import './Intelligence.css';
 const DIRECTION = {
   Bullish: { arrow: '▲', color: '#22C55E', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.30)', accent: '#22C55E' },
   Bearish: { arrow: '▼', color: '#EF4444', bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.30)',  accent: '#EF4444' },
-  Mixed:   { arrow: '⚡', color: '#F59E0B', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.30)', accent: '#F59E0B' },
+  Mixed:   { arrow: <Zap size={14} />, color: '#F59E0B', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.30)', accent: '#F59E0B' },
   Neutral: { arrow: '●', color: '#9CA3AF', bg: 'rgba(156,163,175,0.08)',border: 'rgba(156,163,175,0.20)',accent: '#4B5563' },
 };
 
@@ -112,17 +112,17 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
         )}
         {isPortfolio && (
             <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
-              ★ PORTFOLIO
+              PORTFOLIO
             </span>
         )}
         {isPaperTrade && !isPortfolio && (
             <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #60A5FA, #3B82F6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
-              📝 PAPER TRADE
+              PAPER TRADE
             </span>
         )}
         {isWatchlist && !isPortfolio && !isPaperTrade && (
             <span className="analyst-category" style={{ background: 'linear-gradient(45deg, #A78BFA, #8B5CF6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginLeft: '0.5rem' }}>
-              👁 WATCHLIST
+              WATCHLIST
             </span>
         )}
         <span className="analyst-time">{fmtTime(item.published_at)}</span>
@@ -181,14 +181,14 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
           {/* Effect Timing */}
           {a.effect_timing && (
             <span className="analyst-timing-badge">
-              {a.effect_timing === 'Immediate' ? '⚡' : a.effect_timing === 'Short-Term' ? '⏱' : '🕐'} {a.effect_timing}
+              {a.effect_timing === 'Immediate' ? <Zap size={12} style={{marginRight:'4px'}}/> : a.effect_timing === 'Short-Term' ? <Clock size={12} style={{marginRight:'4px'}}/> : <Clock size={12} style={{marginRight:'4px'}}/>} {a.effect_timing}
             </span>
           )}
 
           {/* Duration */}
           {a.expected_duration && (
             <span className="analyst-duration-badge">
-              📅 {a.expected_duration}
+              <><Calendar size={12} style={{marginRight:'4px'}}/> {a.expected_duration}</>
             </span>
           )}
         </div>
@@ -197,7 +197,7 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
         {hasSectors && (
           <div className="analyst-sectors">
             <div className="analyst-sector-group">
-              <span className="analyst-sector-group__label benefit">✅ Sectors Benefiting</span>
+              <span className="analyst-sector-group__label benefit"><CheckCircle size={14} style={{marginRight:'4px'}}/> Sectors Benefiting</span>
               <div className="analyst-sector-pills">
                 {a.sectors_benefit?.length > 0
                   ? a.sectors_benefit.map((s, i) => (
@@ -208,7 +208,7 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
               </div>
             </div>
             <div className="analyst-sector-group">
-              <span className="analyst-sector-group__label harm">❌ Sectors Harmed</span>
+              <span className="analyst-sector-group__label harm"><XCircle size={14} style={{marginRight:'4px'}}/> Sectors Harmed</span>
               <div className="analyst-sector-pills">
                 {a.sectors_harmed?.length > 0
                   ? a.sectors_harmed.map((s, i) => (
@@ -239,19 +239,19 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
               <div className="analyst-breakdown">
                 {a.what_happened && (
                   <div className="analyst-breakdown__item">
-                    <span className="analyst-breakdown__label">📌 What Happened</span>
+                    <span className="analyst-breakdown__label"><Pin size={14} style={{marginRight:'4px'}}/> What Happened</span>
                     <p className="analyst-breakdown__text">{a.what_happened}</p>
                   </div>
                 )}
                 {a.why_it_matters && (
                   <div className="analyst-breakdown__item">
-                    <span className="analyst-breakdown__label">⚡ Why It Matters</span>
+                    <span className="analyst-breakdown__label"><Zap size={14} style={{marginRight:'4px'}}/> Why It Matters</span>
                     <p className="analyst-breakdown__text">{a.why_it_matters}</p>
                   </div>
                 )}
                 {a.who_is_affected && (
                   <div className="analyst-breakdown__item">
-                    <span className="analyst-breakdown__label">👥 Who Is Affected</span>
+                    <span className="analyst-breakdown__label"><Users size={14} style={{marginRight:'4px'}}/> Who Is Affected</span>
                     <p className="analyst-breakdown__text">{a.who_is_affected}</p>
                   </div>
                 )}
@@ -280,7 +280,7 @@ function AnalystCard({ item, openSymbols, paperSymbols, watchlistSymbols }) {
             </span> · Credibility {cred.score || '—'}/100
           </span>
           {item.generated_by === 'gemini-analyst' && (
-            <span className="analyst-ai-badge">✦ AI ANALYST</span>
+            <span className="analyst-ai-badge"><Sparkles size={12} style={{marginRight:'4px'}}/> AI ANALYST</span>
           )}
         </div>
         <div className="analyst-footer-right">
@@ -539,7 +539,7 @@ export default function Intelligence() {
         <div className="intel-page__header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <h1 className="intel-page__title">⚡ Market Intelligence</h1>
+              <h1 className="intel-page__title"><Zap size={24} style={{marginRight:'8px'}}/> Market Intelligence</h1>
               {hasPersonalized && (
                 <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', cursor: 'help', fontWeight: 600 }}>
                   ✨ PERSONALIZED
@@ -688,7 +688,7 @@ export default function Intelligence() {
         ) : searchResults !== null ? (
           searchResults.length === 0 ? (
             <div className="intel-empty">
-              <div className="intel-empty__icon">📡</div>
+              <div className="intel-empty__icon"><Radio size={48} /></div>
               <p className="intel-empty__title">No recent news found for "{searchQuery}"</p>
             </div>
           ) : (
@@ -707,7 +707,7 @@ export default function Intelligence() {
           </div>
         ) : items.length === 0 ? (
           <div className="intel-empty">
-            <div className="intel-empty__icon">📡</div>
+            <div className="intel-empty__icon"><Radio size={48} /></div>
             <p className="intel-empty__title">No signals match your filters</p>
             <p className="intel-empty__sub">
               {filterCat || filterDir || filterTime

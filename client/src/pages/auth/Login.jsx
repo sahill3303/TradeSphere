@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { AlertTriangle, XCircle, Mail } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AuthInfo from '../../components/auth/AuthInfo';
@@ -10,7 +11,11 @@ import TS2Logo from '../../assets/TS2.png';
 
 export default function Login() {
     const { login } = useAuth();
-    const { hydrateFromPreferences } = useTheme();
+    const { setTheme, hydrateFromPreferences } = useTheme();
+
+    useEffect(() => {
+        setTheme('dark');
+    }, [setTheme]);
     const navigate = useNavigate();
 
     const [form, setForm] = useState({ email: '', password: '' });
@@ -95,7 +100,7 @@ export default function Login() {
                             borderRadius: 'var(--radius-md)'
                         }}>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 700, marginBottom: '4px', fontSize: '0.85rem' }}>
-                                <span>{(error.includes('expired') || error.includes('trial')) ? '⚠️ Trial Expired' : '❌ Error'}</span>
+                                <span>{(error.includes('expired') || error.includes('trial')) ? <><AlertTriangle size={16} style={{marginRight:'4px', verticalAlign:'middle'}}/> Trial Expired</> : <><XCircle size={16} style={{marginRight:'4px', verticalAlign:'middle'}}/> Error</>}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>{error}</p>
                             {(error.includes('expired') || error.includes('trial')) && (
@@ -114,7 +119,7 @@ export default function Login() {
                                         textAlign: 'center'
                                     }}
                                 >
-                                    📧 Contact Team TradeSphere
+                                    <><Mail size={16} style={{marginRight:'6px', verticalAlign:'middle'}}/> Contact Team TradeSphere</>
                                 </a>
                             )}
                         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConfirm } from '../../context/ConfirmContext';
+import { TrendingUp, Zap, Target, Scale, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, Trash2, RotateCcw } from 'lucide-react';
 import api from '../../api/axios';
@@ -231,7 +232,7 @@ export default function TradesList() {
     async function handleHardDelete(tradeId, stockName) {
         confirmAction({
             title: 'Permanent Delete',
-            message: `⚠️ Permanently delete "${stockName}"? This CANNOT be undone.`,
+            message: `Permanently delete "${stockName}"? This CANNOT be undone.`,
             variant: 'danger',
             onConfirm: async () => {
                 setHardDeletingId(tradeId);
@@ -268,7 +269,7 @@ export default function TradesList() {
                         <div>
                             <div className="kpi-header">
                                 <span className="kpi-label">Deployed Capital (Open)</span>
-                                <span className="kpi-icon">📈</span>
+                                <span className="kpi-icon"><TrendingUp size={18} /></span>
                             </div>
                             <div className="kpi-value">{formatCurrency(liveMetrics.activeInvested)}</div>
                         </div>
@@ -282,7 +283,7 @@ export default function TradesList() {
                         <div>
                             <div className="kpi-header">
                                 <span className="kpi-label">Live Unrealized P&L</span>
-                                <span className="kpi-icon">⚡</span>
+                                <span className="kpi-icon"><Zap size={18} /></span>
                             </div>
                             <div 
                                 className="kpi-value" 
@@ -308,7 +309,7 @@ export default function TradesList() {
                         <div>
                             <div className="kpi-header">
                                 <span className="kpi-label">Win Ratio</span>
-                                <span className="kpi-icon">🎯</span>
+                                <span className="kpi-icon"><Target size={18} /></span>
                             </div>
                             <div className="kpi-value" style={{ color: dashboardStats?.winRate >= 50 ? '#34d399' : (dashboardStats?.winRate > 0 ? '#f87171' : 'inherit') }}>
                                 {dashboardStats ? dashboardStats.winRate : 0}%
@@ -324,7 +325,7 @@ export default function TradesList() {
                         <div>
                             <div className="kpi-header">
                                 <span className="kpi-label">Average R:R</span>
-                                <span className="kpi-icon">⚖️</span>
+                                <span className="kpi-icon"><Scale size={18} /></span>
                             </div>
                             <div className="kpi-value">
                                 {dashboardStats && dashboardStats.avgLoss < 0 

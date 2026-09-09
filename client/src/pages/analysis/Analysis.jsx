@@ -189,7 +189,7 @@ function StockAnalysis() {
                         whiteSpace: 'nowrap', alignSelf: 'flex-end'
                     }}
                 >
-                    {loading ? 'Analysing…' : '🔍 Analyse'}
+                    {loading ? 'Analysing…' : <><Search size={16} style={{marginRight:'6px'}}/> Analyse</>}
                 </button>
             </div>
             <style jsx="true">{`
@@ -200,13 +200,13 @@ function StockAnalysis() {
 
             {horizon && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'var(--color-gold-soft)', border: '1px solid var(--color-gold)', borderRadius: 'var(--radius-full)', padding: '0.3rem 0.8rem', fontSize: '0.78rem', color: 'var(--color-gold)', fontWeight: 600, marginBottom: 'var(--space-md)' }}>
-                    📌 Viewing through lens of: {horizon}
+                    Viewing through lens of: {horizon}
                 </div>
             )}
 
             {error && (
                 <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid var(--color-danger)', borderRadius: 'var(--radius-md)', padding: '0.9rem 1.2rem', color: 'var(--color-danger)', marginBottom: 'var(--space-lg)', fontSize: '0.88rem' }}>
-                    ⚠ {error}
+                    <AlertTriangle size={16} style={{marginRight:'4px'}} /> {error}
                 </div>
             )}
 
@@ -246,7 +246,7 @@ function StockAnalysis() {
 
                     {/* AI Factual Summary */}
                     {ai && (
-                        <SectionCard title="🤖 TradeSphere AI — Factual Summary">
+                        <SectionCard title="<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Bot size={20} /> TradeSphere AI — Factual Summary</span>">
                             {/* Summary */}
                             <p style={{ margin: '0 0 var(--space-md) 0', color: 'var(--color-text)', lineHeight: 1.75, fontSize: '0.9rem', background: 'var(--color-surface-alt)', padding: '1rem', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--color-gold)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                                 {ai.summary}
@@ -255,7 +255,7 @@ function StockAnalysis() {
                             {/* Horizon context (shown only if horizon was selected) */}
                             {horizon && ai.horizonContext && (
                                 <div style={{ background: 'rgba(212, 175, 55, 0.06)', border: '1px solid var(--color-gold)', borderRadius: 'var(--radius-md)', padding: '0.9rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>📌 For {horizon} specifically</div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}><Pin size={12} style={{display:'inline', marginRight:'4px'}}/> For {horizon} specifically</div>
                                     {ai.horizonContext}
                                 </div>
                             )}
@@ -263,7 +263,7 @@ function StockAnalysis() {
                             {/* New Insight: Global Context & Future Potential */}
                             {ai.futurePotential && (
                                 <div style={{ background: 'rgba(55, 125, 212, 0.06)', border: '1px solid #377DD4', borderRadius: 'var(--radius-md)', padding: '0.9rem 1rem', marginBottom: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                                    <div style={{ fontSize: '0.72rem', color: '#377DD4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>🌏 Global Context & Future Potential</div>
+                                    <div style={{ fontSize: '0.72rem', color: '#377DD4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}><Globe size={12} style={{display:'inline', marginRight:'4px'}}/> Global Context & Future Potential</div>
                                     {ai.futurePotential}
                                 </div>
                             )}
@@ -272,7 +272,7 @@ function StockAnalysis() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-md)', minWidth: 0 }}>
                                 {ai.keyMetrics && ai.keyMetrics.length > 0 && (
                                     <div style={{ minWidth: 0 }}>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>📊 Key Metrics Context</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}><BarChart2 size={12} style={{display:'inline', marginRight:'4px'}}/> Key Metrics Context</div>
                                         {ai.keyMetrics.slice(0, 4).map((m, i) => (
                                             <div key={i} style={{ marginBottom: '0.5rem', fontSize: '0.82rem', minWidth: 0 }}>
                                                 <span style={{ color: 'var(--color-gold)', fontWeight: 600, display: 'block', wordBreak: 'break-word' }}>{m.label}: {m.value}</span>
@@ -283,7 +283,7 @@ function StockAnalysis() {
                                 )}
                                 {ai.watchPoints && ai.watchPoints.length > 0 && (
                                     <div style={{ minWidth: 0 }}>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>👁 Watch Points</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}><Eye size={12} style={{display:'inline', marginRight:'4px'}}/> Watch Points</div>
                                         {ai.watchPoints.map((p, i) => (
                                             <div key={i} style={{ fontSize: '0.82rem', color: 'var(--color-text)', marginBottom: '0.4rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                                                 <span style={{ color: 'var(--color-gold)', marginTop: '1px', flexShrink: 0 }}>›</span> {p}
@@ -293,14 +293,14 @@ function StockAnalysis() {
                                 )}
                             </div>
                             <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.68rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                                ⚠ TradeSphere AI provides factual data context only. This is not investment advice. Always do your own research.
+                                <AlertTriangle size={14} style={{display:'inline', marginRight:'4px'}}/> TradeSphere AI provides factual data context only. This is not investment advice. Always do your own research.
                             </div>
                         </SectionCard>
                     )}
 
                     {/* Key Ratios */}
                     {data.ratios && Object.keys(data.ratios).length > 0 && (
-                        <SectionCard title="📈 Key Financial Ratios">
+                        <SectionCard title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><LineChart size={18} /> Key Financial Ratios</span>}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(145px, 1fr))', gap: 'var(--space-sm)' }}>
                                 {Object.entries(data.ratios)
                                     .filter(([k]) => !k.toLowerCase().includes('promoter')) // Deduplicate promoter holding
@@ -313,7 +313,7 @@ function StockAnalysis() {
 
                     {/* About */}
                     {data.about && (
-                        <SectionCard title="🏢 About the Company">
+                        <SectionCard title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={18} /> About the Company</span>}>
                             <p style={{ margin: 0, fontSize: '0.87rem', lineHeight: 1.75, color: 'var(--color-text-dim)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{data.about}</p>
                         </SectionCard>
                     )}
@@ -321,14 +321,14 @@ function StockAnalysis() {
                     {/* Pros & Cons */}
                     {(data.pros?.length > 0 || data.cons?.length > 0) && (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                            <SectionCard title="✅ Pros">
+                            <SectionCard title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle size={18} /> Pros</span>}>
                                 {data.pros.map((p, i) => (
                                     <div key={i} style={{ fontSize: '0.83rem', color: 'var(--color-text)', marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', paddingBottom: '0.4rem', borderBottom: i < data.pros.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>+</span> {p}
                                     </div>
                                 ))}
                             </SectionCard>
-                            <SectionCard title="⚠ Cons">
+                            <SectionCard title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={18} /> Cons</span>}>
                                 {data.cons.map((c, i) => (
                                     <div key={i} style={{ fontSize: '0.83rem', color: 'var(--color-text)', marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', paddingBottom: '0.4rem', borderBottom: i < data.cons.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                         <span style={{ color: 'var(--color-danger)', fontWeight: 700, flexShrink: 0 }}>–</span> {c}
@@ -343,7 +343,7 @@ function StockAnalysis() {
                         const resultsData = resultsView === 'quarterly' ? data.quarterly : data.annual;
                         return (
                             <SectionCard
-                                title={`📅 ${resultsView === 'quarterly' ? 'Quarterly' : 'Yearly'} Results (₹ Cr)`}
+                                title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={18} /> {resultsView === 'quarterly' ? 'Quarterly' : 'Yearly'} Results (₹ Cr)</span>}
                                 action={
                                     <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
                                         <button onClick={() => setResultsView('quarterly')} style={{ background: resultsView === 'quarterly' ? 'var(--color-surface-alt)' : 'transparent', color: resultsView === 'quarterly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Quarterly</button>
@@ -361,13 +361,36 @@ function StockAnalysis() {
                                         <tbody>
                                             {resultsData?.rows
                                                 ?.filter(row => !row[0].toLowerCase().includes('promoter'))
-                                                .map((row, i) => (
-                                                    <tr key={i}>
-                                                        {row.map((cell, j) => (
-                                                            <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>{cell}</td>
-                                                        ))}
-                                                    </tr>
-                                                ))}
+                                                .map((row, i) => {
+                                                    const isSales = String(row[0] || '').toLowerCase().includes('sales');
+                                                    return (
+                                                        <tr key={i}>
+                                                            {row.map((cell, j) => {
+                                                                let growthContent = null;
+                                                                if (isSales && j > 1) {
+                                                                    const currentStr = String(cell || '').replace(/,/g, '');
+                                                                    const prevStr = String(row[j - 1] || '').replace(/,/g, '');
+                                                                    const current = parseFloat(currentStr);
+                                                                    const prev = parseFloat(prevStr);
+                                                                    if (!isNaN(current) && !isNaN(prev) && prev !== 0) {
+                                                                        const pct = ((current - prev) / Math.abs(prev)) * 100;
+                                                                        const color = pct > 0 ? '#4ade80' : pct < -0 ? '#f87171' : 'var(--color-text-dim)';
+                                                                        const sign = pct > 0 ? '+' : '';
+                                                                        if (Math.abs(pct) >= 0.01) {
+                                                                            growthContent = <span style={{ color, fontSize: '0.75em', marginLeft: '6px', whiteSpace: 'nowrap' }}>{sign}{pct.toFixed(2)}%</span>;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                return (
+                                                                    <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)' }}>
+                                                                        {cell}
+                                                                        {growthContent}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    );
+                                                })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -399,7 +422,7 @@ function StockAnalysis() {
 
                         return (
                             <SectionCard
-                                title="🏦 Shareholding Pattern Trends"
+                                title={<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Landmark size={18} /> Shareholding Pattern Trends</span>}
                                 action={
                                     <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
                                         <button onClick={() => setShareholdingView('quarterly')} style={{ background: shareholdingView === 'quarterly' ? 'var(--color-surface-alt)' : 'transparent', color: shareholdingView === 'quarterly' ? 'var(--color-text)' : 'var(--color-text-dim)', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Quarterly</button>
@@ -428,20 +451,30 @@ function StockAnalysis() {
                                                 <tr key={i}>
                                                     {row.map((cell, j) => {
                                                         let cellColor = j === 0 ? 'var(--color-text)' : 'var(--color-text-dim)';
+                                                        let changeContent = null;
 
                                                         // Highlight trends starting from the second data column (j > 1)
                                                         if (j > 1) {
-                                                            const current = parseFloat(cell.replace(/[^0-9.]/g, ''));
-                                                            const prev = parseFloat(row[j - 1].replace(/[^0-9.]/g, ''));
+                                                            const currentStr = String(cell || '').replace(/[^0-9.-]/g, '');
+                                                            const prevStr = String(row[j - 1] || '').replace(/[^0-9.-]/g, '');
+                                                            const current = parseFloat(currentStr);
+                                                            const prev = parseFloat(prevStr);
                                                             if (!isNaN(current) && !isNaN(prev)) {
-                                                                if (current > prev) cellColor = '#4ade80'; // Green
-                                                                else if (current < prev) cellColor = '#f87171'; // Red
+                                                                const diff = current - prev;
+                                                                if (diff > 0.009) {
+                                                                    cellColor = '#4ade80'; // Green
+                                                                    changeContent = <span style={{ fontSize: '0.75em', marginLeft: '6px', whiteSpace: 'nowrap' }}>(+{diff.toFixed(2)}%)</span>;
+                                                                } else if (diff < -0.009) {
+                                                                    cellColor = '#f87171'; // Red
+                                                                    changeContent = <span style={{ fontSize: '0.75em', marginLeft: '6px', whiteSpace: 'nowrap' }}>({diff.toFixed(2)}%)</span>;
+                                                                }
                                                             }
                                                         }
 
                                                         return (
                                                             <td key={j} style={{ fontWeight: j === 0 ? 600 : 400, color: cellColor }}>
                                                                 {cell}
+                                                                {changeContent}
                                                             </td>
                                                         );
                                                     })}
@@ -710,7 +743,7 @@ function AnalysisNotes() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-                    📌 Multiple chunked notes. Synced across your devices safely in the database.
+                    Multiple chunked notes. Synced across your devices safely in the database.
                 </p>
                 {!showForm && (
                     <button onClick={() => {
@@ -836,8 +869,8 @@ export default function Analysis() {
     const [activeTab, setActiveTab] = useState('analysis');
 
     const tabs = [
-        { id: 'analysis', label: '📊 Stock Analysis' },
-        { id: 'notes', label: '📝 Analysis Notes' },
+        { id: 'analysis', label: 'Stock Analysis' },
+        { id: 'notes', label: 'Analysis Notes' },
     ];
 
     return (

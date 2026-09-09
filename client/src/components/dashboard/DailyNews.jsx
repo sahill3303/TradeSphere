@@ -15,9 +15,9 @@ const DIRECTION_CONFIG = {
 };
 
 const TONE_CONFIG = {
-  Alert:  { label: '🔴 ALERT',  color: '#EF4444' },
+  Alert:  { label: <><AlertCircle size={14} color="#EF4444" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> ALERT</>,  color: '#EF4444' },
   Signal: { label: '🟡 SIGNAL', color: '#D4AF37' },
-  Watch:  { label: '🔵 WATCH',  color: '#60A5FA' },
+  Watch:  { label: <><Info size={14} color="#60A5FA" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> WATCH</>,  color: '#60A5FA' },
   Update: { label: '⚪ UPDATE', color: '#9CA3AF' },
 };
 
@@ -83,17 +83,17 @@ function IntelCard({ item, idx, openSymbols, paperSymbols, watchlistSymbols }) {
           )}
           {isPortfolio && (
             <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
-              ★ PORTFOLIO
+              PORTFOLIO
             </span>
           )}
           {isPaperTrade && !isPortfolio && (
             <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #60A5FA, #3B82F6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
-              📝 PAPER TRADE
+              PAPER TRADE
             </span>
           )}
           {isWatchlist && !isPortfolio && !isPaperTrade && (
             <span className="dn-intel-category" style={{ background: 'linear-gradient(45deg, #A78BFA, #8B5CF6)', color: '#000', fontWeight: 600, border: 'none', padding: '0.1rem 0.5rem', marginRight: '0.25rem' }}>
-              👁 WATCHLIST
+              WATCHLIST
             </span>
           )}
           <span className="dn-intel-time">{formatTime(item.published_at)}</span>
@@ -161,7 +161,7 @@ function LegacyCard({ item, idx }) {
       <div className="dn-intel-card__body">
         <div className="dn-intel-card__meta">
           <span className="dn-intel-source">{item.source}</span>
-          <span className="dn-intel-time">🕐 {formatDate(item.pubDate)}</span>
+          <span className="dn-intel-time"><Clock size={12} style={{ display: 'inline', marginRight: '4px' }} /> {formatDate(item.pubDate)}</span>
         </div>
         <p className="dn-intel-card__headline">{item.title}</p>
         {item.summary && (
@@ -251,7 +251,7 @@ export default function DailyNews() {
       <div className="card dn-card">
         <div className="dn-card__header">
           <div className="dn-header-left">
-            <span>⚡</span>
+            <span><Zap size={16} /></span>
             <h3>Market Intelligence</h3>
           </div>
         </div>
@@ -285,19 +285,19 @@ export default function DailyNews() {
       {/* ── Header */}
       <div className="dn-card__header">
         <div className="dn-header-left">
-          <span className="dn-header-icon">⚡</span>
+          <span className="dn-header-icon"><Zap size={18} /></span>
           <h3>Market Intelligence</h3>
           {isIntel && (
             <span className="dn-live-badge">7-LAYER AI</span>
           )}
           {hasPersonalized && (
             <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', marginLeft: '0.5rem', cursor: 'help' }}>
-              ✨ PERSONALIZED
+              <><Sparkles size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> PERSONALIZED</>
             </span>
           )}
         </div>
         <div className="dn-header-right">
-          <span className="dn-date">📅 {todayLabel}</span>
+          <span className="dn-date"><><Calendar size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {todayLabel}</></span>
         </div>
       </div>
 
@@ -313,7 +313,7 @@ export default function DailyNews() {
       {/* ── Footer */}
       <div className="dn-card__footer">
         <span className="dn-footer-note">
-          {isIntel ? '⚡ Powered by Market Intelligence Engine' : 'Source: RSS Feeds'}
+          {isIntel ? <><Zap size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Powered by Market Intelligence Engine</> : 'Source: RSS Feeds'}
         </span>
         {isIntel && (
           <button

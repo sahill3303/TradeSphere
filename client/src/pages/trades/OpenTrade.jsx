@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { Rocket } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -524,7 +525,7 @@ export default function OpenTrade() {
 
                         <Button type="submit" variant="primary" disabled={submitting}
                             style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}>
-                            {submitting ? 'Opening Trade…' : '🚀 Open Trade'}
+                            {submitting ? 'Opening Trade…' : <><Rocket size={16} style={{marginRight:'6px'}}/> Open Trade</>}
                         </Button>
                         <Button type="button" variant="secondary" onClick={() => navigate('/trades')} disabled={submitting}
                             style={{ width: '100%' }}>

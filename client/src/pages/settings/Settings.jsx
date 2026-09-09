@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { LineChart, Users, Target, BookOpen, Briefcase, FileText, Palette, Compass, Sparkles, Flame, Lock, CheckCircle, Circle, Moon, Sun } from 'lucide-react';
 import { usePreferences } from '../../context/PreferencesContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -110,12 +111,12 @@ export default function Settings() {
     ];
 
     const features = [
-        { id: 'watchlist', label: 'Watchlist', icon: '📈', desc: 'Track your customized stock lists and prices.' },
+        { id: 'watchlist', label: 'Watchlist', icon: <LineChart size={18} />, desc: 'Track your customized stock lists and prices.' },
         { id: 'clients', label: 'Clients', icon: '◎', desc: 'Manage client portfolios and onboarding.' },
         { id: 'trades', label: 'Trades', icon: '◈', desc: 'Log and monitor active or past trades.' },
-        { id: 'paperTrade', label: 'Paper Trading', icon: '💼', desc: 'Simulated trading journal & long-term conviction portfolio.' },
-        { id: 'analysis', label: 'Research', icon: '🔬', desc: 'Perform AI-driven stock research and analysis.' },
-        { id: 'notes', label: 'Notes', icon: '📝', desc: 'Keep a personal trading journal.' },
+        { id: 'paperTrade', label: 'Paper Trading', icon: <Briefcase size={18} />, desc: 'Simulated trading journal & long-term conviction portfolio.' },
+        { id: 'analysis', label: 'Research', icon: <Microscope size={18} />, desc: 'Perform AI-driven stock research and analysis.' },
+        { id: 'notes', label: 'Notes', icon: <FileText size={18} />, desc: 'Keep a personal trading journal.' },
     ];
 
     return (
@@ -129,7 +130,7 @@ export default function Settings() {
                 {/* Appearance Section */}
                 <section className="settings-card">
                     <div className="settings-card-header">
-                        <h3>🎨 Appearance</h3>
+                        <h3><Palette size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Appearance</h3>
                         <p>Customize the look and feel of TradeSphere.</p>
                     </div>
 
@@ -139,7 +140,7 @@ export default function Settings() {
                             <p>Switch between Light and Dark interface.</p>
                         </div>
                         <button className="settings-toggle-btn" onClick={toggleTheme}>
-                            {isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode'}
+                            {isDarkMode ? <><Moon size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Dark Mode</> : <><Sun size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Light Mode</>}
                         </button>
                     </div>
 
@@ -166,7 +167,7 @@ export default function Settings() {
                 {/* Navigation Section */}
                 <section className="settings-card">
                     <div className="settings-card-header">
-                        <h3>🧭 Sidebar Navigation</h3>
+                        <h3><Compass size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Sidebar Navigation</h3>
                         <p>Toggle modules on or off to keep your workspace clean.</p>
                     </div>
 
@@ -193,14 +194,14 @@ export default function Settings() {
                 {/* Optional Features Section */}
                 <section className="settings-card">
                     <div className="settings-card-header">
-                        <h3>✨ Optional Features</h3>
+                        <h3><Sparkles size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Optional Features</h3>
                         <p>Toggle additional dashboard widgets and intelligence features.</p>
                     </div>
 
                     <div className="settings-features-list">
                         <div className="settings-item">
                             <div className="settings-item-info">
-                                <h4>🔥 Market Intelligence</h4>
+                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Flame size={16} /> Market Intelligence</h4>
                                 <p>Show live market news and sentiment on the dashboard.</p>
                             </div>
                             <label className="settings-switch">
@@ -218,7 +219,7 @@ export default function Settings() {
                 {/* Change Password / Security Section */}
                 <section className="settings-card">
                     <div className="settings-card-header">
-                        <h3>🔒 Security Settings</h3>
+                        <h3><Lock size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Security Settings</h3>
                         <p>Change your password credentials securely.</p>
                     </div>
 
@@ -266,19 +267,19 @@ export default function Settings() {
                                 {/* Checklist */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', color: 'var(--color-text-muted)', paddingLeft: '0.2rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.length ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.length ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.length ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least 8 characters</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: (passwordChecks.uppercase && passwordChecks.lowercase) ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{(passwordChecks.uppercase && passwordChecks.lowercase) ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{(passwordChecks.uppercase && passwordChecks.lowercase) ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>Uppercase & lowercase letters</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.number ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.number ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.number ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least one number</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: passwordChecks.specialChar ? 'var(--color-success)' : 'var(--color-text-dim)', transition: 'color 0.2s' }}>
-                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.specialChar ? '✓' : '○'}</span>
+                                        <span style={{ fontSize: '0.85rem' }}>{passwordChecks.specialChar ? <CheckCircle size={14} color="var(--color-success)" /> : <Circle size={14} color="var(--color-text-dim)" />}</span>
                                         <span>At least one special character (@, $, !, %, *, ?, &)</span>
                                     </div>
                                 </div>
