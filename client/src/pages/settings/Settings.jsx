@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { LineChart, Users, Target, BookOpen, Briefcase, FileText, Palette, Compass, Sparkles, Flame, Lock, CheckCircle, Circle, Moon, Sun } from 'lucide-react';
+import { LineChart, Users, Target, BookOpen, Briefcase, FileText, Palette, Compass, Sparkles, Flame, Lock, CheckCircle, Circle, Moon, Sun, Microscope } from 'lucide-react';
 import { usePreferences } from '../../context/PreferencesContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
