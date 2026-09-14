@@ -30,6 +30,7 @@ import Notes from './pages/notes/Notes';
 import Analysis from './pages/analysis/Analysis';
 import Watchlist from './pages/watchlist/Watchlist';
 import Settings from './pages/settings/Settings';
+import Profile from './pages/profile/Profile';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import Intelligence from './pages/intelligence/Intelligence';
 
@@ -67,6 +68,7 @@ export default function App() {
                   <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />
                   <Route path="/intelligence" element={<Layout><Intelligence /></Layout>} />
                   <Route path="/settings" element={<Layout><Settings /></Layout>} />
+                  <Route path="/profile" element={<Layout><Profile /></Layout>} />
                   <Route path="/super-admin" element={<Layout><SuperAdminDashboard /></Layout>} />
                 </Route>
 

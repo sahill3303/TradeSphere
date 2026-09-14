@@ -291,7 +291,7 @@ export default function TradesList() {
                             >
                                 <span>{liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.totalUnrealizedPnl)}</span>
                                 {liveMetrics.activeInvested > 0 && (
-                                    <span style={{ fontSize: '1.15rem', fontWeight: 800, background: liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', padding: '0.15rem 0.6rem', borderRadius: '8px', border: `1px solid ${liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
+                                    <span style={{ fontSize: '1.15rem', fontWeight: 700, background: liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', padding: '0.15rem 0.6rem', borderRadius: '8px', border: `1px solid ${liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
                                         {liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{liveMetrics.unrealizedPnlPct.toFixed(2)}%
                                     </span>
                                 )}

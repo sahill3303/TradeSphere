@@ -38,10 +38,7 @@ export default function Profitability({ summary }) {
     const lossStartAngle = 360 - (lossPct / 100) * 180;
 
     return (
-        <div className="profitability-grid" style={{
-            marginTop: 'var(--space-xl)',
-            marginBottom: 'var(--space-xl)'
-        }}>
+        <div className="profitability-grid">
 
             {/* Gauge Card */}
             <div className="card" style={{

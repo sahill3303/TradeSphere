@@ -418,7 +418,7 @@ export default function PaperTrade() {
                         >
                             <span>{liveMetrics.unrealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.unrealizedPnl)}</span>
                             {liveMetrics.activeInvested > 0 && (
-                                <span style={{ fontSize: '1.15rem', fontWeight: 800, background: liveMetrics.unrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', padding: '0.15rem 0.6rem', borderRadius: '8px', border: `1px solid ${liveMetrics.unrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
+                                <span style={{ fontSize: '1.15rem', fontWeight: 700, background: liveMetrics.unrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', padding: '0.15rem 0.6rem', borderRadius: '8px', border: `1px solid ${liveMetrics.unrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
                                     {liveMetrics.unrealizedPnl >= 0 ? '+' : ''}{liveMetrics.unrealizedPnlPct.toFixed(2)}%
                                 </span>
                             )}
@@ -718,7 +718,7 @@ export default function PaperTrade() {
                                                         <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>⇄</span>
                                                     </span>
                                                 </div>
-                                                <span style={{ fontSize: '1.4rem', fontWeight: 800, color: isPos ? '#34d399' : '#f87171' }}>
+                                                <span style={{ fontSize: '1.4rem', fontWeight: 700, color: isPos ? '#34d399' : '#f87171' }}>
                                                     {isPos ? '+' : ''}{formatCurrency(pnl)}
                                                 </span>
                                             </div>
@@ -732,7 +732,7 @@ export default function PaperTrade() {
                                                 </div>
                                                 <div>
                                                     <div className="metric-item-label">Total Gain/Loss</div>
-                                                    <div className="metric-item-val" style={{ color: isPos ? '#34d399' : '#f87171', fontWeight: 800 }}>
+                                                    <div className="metric-item-val" style={{ color: isPos ? '#34d399' : '#f87171', fontWeight: 700 }}>
                                                         {isPos ? '+' : ''}{pnlPct.toFixed(2)}%
                                                     </div>
                                                 </div>
@@ -858,7 +858,7 @@ export default function PaperTrade() {
                                                             {t.exit_date ? new Date(t.exit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                                                         </td>
                                                         <td data-label="Realized P&L">
-                                                            <span className={`pnl-badge ${isPos ? 'pnl-positive' : 'pnl-negative'}`} style={{ display: 'inline-block', fontSize: '0.9rem', fontWeight: 800 }}>
+                                                            <span className={`pnl-badge ${isPos ? 'pnl-positive' : 'pnl-negative'}`} style={{ display: 'inline-block', fontSize: '0.9rem', fontWeight: 700 }}>
                                                                 {isPos ? '+' : ''}{formatCurrency(pnl)} ({isPos ? '+' : ''}{pnlPct.toFixed(2)}%)
                                                             </span>
                                                         </td>
@@ -869,7 +869,7 @@ export default function PaperTrade() {
                                                 ) : (
                                                     <>
                                                         <td data-label="Current Price (CMP)">
-                                                            <div style={{ fontWeight: 800, color: prices[t.stock_name] ? '#38bdf8' : '#e2e8f0' }}>
+                                                            <div style={{ fontWeight: 700, color: prices[t.stock_name] ? '#38bdf8' : '#e2e8f0' }}>
                                                                 ₹{cmp.toFixed(2)}
                                                             </div>
                                                             {priceDetails[t.stock_name] && typeof priceDetails[t.stock_name] === 'object' && priceDetails[t.stock_name].percentChange !== undefined && (
@@ -879,7 +879,7 @@ export default function PaperTrade() {
                                                             )}
                                                         </td>
                                                         <td data-label="Live Unrealized P&L">
-                                                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: isPos ? '#34d399' : '#f87171' }}>
+                                                            <div style={{ fontWeight: 700, fontSize: '1.05rem', color: isPos ? '#34d399' : '#f87171' }}>
                                                                 {isPos ? '+' : ''}{formatCurrency(pnl)}
                                                             </div>
                                                             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: isPos ? '#34d399' : '#f87171' }}>
@@ -1062,7 +1062,7 @@ export default function PaperTrade() {
                                 <button type="button" className="btn-paper-action btn-secondary" onClick={() => setExitTradeModal(null)}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn-paper-action btn-exit-trade" style={{ background: '#f59e0b', color: '#0f172a', fontWeight: 800 }} disabled={submitting}>
+                                <button type="submit" className="btn-paper-action btn-exit-trade" style={{ background: '#f59e0b', color: '#0f172a', fontWeight: 700 }} disabled={submitting}>
                                     {submitting ? 'Closing Trade...' : 'Lock In Profits & Settle'}
                                 </button>
                             </div>

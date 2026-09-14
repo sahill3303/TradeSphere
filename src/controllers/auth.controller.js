@@ -194,6 +194,27 @@ export const updatePreferences = async (req, res) => {
 };
 
 /**
+ * UPDATE PROFILE (NAME + PREFERENCES)
+ */
+export const updateProfile = async (req, res) => {
+    try {
+        const { name, preferences } = req.body;
+        if (!name || !preferences) {
+            return res.status(400).json({ message: 'Name and preferences are required' });
+        }
+
+        await db.query(
+            'UPDATE admins SET name = ?, preferences = ? WHERE id = ?',
+            [name, JSON.stringify(preferences), req.user.id]
+        );
+
+        res.json({ message: 'Profile updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Update profile error', error: error.message });
+    }
+};
+
+/**
  * CHANGE PASSWORD
  */
 export const changePassword = async (req, res) => {

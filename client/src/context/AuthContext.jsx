@@ -51,8 +51,13 @@ export function AuthProvider({ children }) {
         setUser(prev => prev ? { ...prev, preferences } : prev);
     }, []);
 
+    // Update full profile including name
+    const updateUserProfile = useCallback((name, preferences) => {
+        setUser(prev => prev ? { ...prev, name, preferences } : prev);
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUserPreferences }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUserPreferences, updateUserProfile }}>
             {children}
         </AuthContext.Provider>
     );

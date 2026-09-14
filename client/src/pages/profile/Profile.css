@@ -1,0 +1,99 @@
+.profile-page {
+    max-width: 1000px;
+    overflow-y: hidden;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem;
+}
+
+.profile-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.profile-card__header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.profile-icon {
+    color: var(--color-text-dim);
+}
+
+.profile-icon.text-gold {
+    color: var(--color-gold);
+}
+
+.profile-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.profile-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-dim);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.5;
+}
+
+.form-textarea {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 120px;
+    transition: all 0.2s;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px var(--color-gold-soft);
+}
+
+
+
+.success-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-success);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.error-msg {
+    color: var(--color-danger);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -30,14 +30,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose }) {
             )}
 
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
-                {/* Brand */}
-                <div className="sidebar__brand">
-                    <div className="sidebar__logo">
-                        <img src={TS2Logo} alt="TradeSphere Logo" />
 
-                    </div>
-                    <span className="sidebar__brand-name">TradeSphere</span>
-                </div>
 
                 {/* Navigation */}
                 <nav className="sidebar__nav" aria-label="Main navigation">

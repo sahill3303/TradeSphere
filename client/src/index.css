@@ -28,6 +28,7 @@
   --color-primary: var(--color-gold);
   --color-primary-dark: var(--color-gold-dark);
   --color-primary-soft: var(--color-gold-soft);
+  --color-btn-text: #0B0B0D;
 
   /* Text */
   --color-text: #F5F5F5;
@@ -45,17 +46,17 @@
 
   /* Layout */
   --sidebar-width: 240px;
-  --navbar-height: 64px;
-  --page-padding: 1.5rem;
-  --page-padding-mobile: 1rem;
+  --navbar-height: 56px;
+  --page-padding: 1rem;
+  --page-padding-mobile: 0.75rem;
 
   /* Spacing */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
+  --space-md: 0.75rem;
+  --space-lg: 1.25rem;
+  --space-xl: 1.75rem;
+  --space-2xl: 2.5rem;
 
   /* Typography */
   --font-family: 'Noto Sans', system-ui, sans-serif;
@@ -136,6 +137,8 @@
   --color-gold: #C28A13;
   --color-gold-dark: #9B6E0F;
   --color-gold-soft: rgba(194, 138, 19, 0.15);
+
+  --color-btn-text: #FFFFFF;
 
   --color-success: #276749;
   --color-success-soft: rgba(39, 103, 73, 0.15);
@@ -226,12 +229,24 @@ svg {
   display: flex;
   min-height: 100vh;
   background: var(--color-bg);
+  padding-top: calc(38px + var(--navbar-height));
+}
+
+.layout__topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2000;
+  background: var(--color-sidebar);
 }
 
 /* Sidebar */
 .sidebar {
   position: fixed;
-  inset: 0 auto 0 0;
+  top: calc(38px + var(--navbar-height));
+  bottom: 0;
+  left: 0;
   width: var(--sidebar-width);
   background: var(--color-sidebar-glass);
   backdrop-filter: blur(12px);
@@ -448,7 +463,7 @@ svg {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: 0 var(--space-xl);
+  padding: 0 var(--page-padding);
 }
 
 .navbar__menu-btn {
@@ -512,8 +527,10 @@ svg {
    5. Page Scaffold
 ────────────────────────────────────────────────────────── */
 .page {
-  padding: var(--space-xl) var(--space-xl);
+  padding: var(--page-padding);
   max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
@@ -580,7 +597,6 @@ svg {
   align-items: center;
   gap: var(--space-md);
   position: relative;
-  overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition);
 }
@@ -593,6 +609,7 @@ svg {
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--color-gold), transparent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .stat-card:hover {
@@ -762,7 +779,7 @@ svg {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }
 
 @media (max-width: 480px) {
@@ -955,7 +972,7 @@ svg {
 /* Primary — gold */
 .btn--primary {
   background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
-  color: #0B0B0D;
+  color: var(--color-btn-text);
   border-color: transparent;
   box-shadow: 0 2px 12px rgba(212, 175, 55, 0.25);
 }
@@ -1991,6 +2008,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    top: 0;
+    z-index: 3000;
   }
 
   .sidebar--open {
@@ -2299,8 +2318,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   right: 1.5rem;
   width: 56px;
   height: 56px;
-  background: var(--color-gold);
-  color: #000;
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+  color: var(--color-btn-text);
   border: none;
   border-radius: 50%;
   display: flex;
@@ -2525,6 +2544,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   
   .layout--collapsed .layout__main {
     margin-left: 80px;
+    max-width: calc(100% - 80px);
   }
   
   .layout--collapsed .sidebar__brand-name,
@@ -2535,6 +2555,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    display: none;
   }
   
   .layout--collapsed .sidebar__brand {
@@ -2545,6 +2566,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .layout--collapsed .sidebar__link {
     justify-content: center;
     padding: 0.8rem 0;
+    gap: 0;
   }
   
   .layout--collapsed .sidebar__icon {
@@ -2594,3 +2616,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--color-surface-alt) !important;
 }
 
+/* ──────────────────────────────────────────────────────────
+   Custom Tooltip
+────────────────────────────────────────────────────────── */
+.custom-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+}
+
+.custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  width: max-content;
+  max-width: 240px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
+
+.custom-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.custom-tooltip--right::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}

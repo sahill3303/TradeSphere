@@ -163,9 +163,9 @@
   color: var(--color-text);
 }
 .intel-filter-pill.active {
-  background: var(--color-gold);
-  border-color: var(--color-gold);
-  color: #0B0B0D;
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+  border-color: transparent;
+  color: var(--color-btn-text);
 }
 
 /* ── Feed container ─────────────────────────────────────────── */

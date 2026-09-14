@@ -62,7 +62,7 @@ export default function Dashboard() {
     const { optionalFeatures } = usePreferences();
     const { user } = useAuth();
     const navigate = useNavigate();
-    
+
     const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -152,27 +152,37 @@ export default function Dashboard() {
         (summary.totalNotes || 0) === 0 &&
         (summary.totalWatchlist || 0) === 0;
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 18) return 'Good Afternoon';
+        return 'Good Evening';
+    };
+
+    const firstName = user?.name ? user.name.split(' ')[0] : 'Trader';
+    const greeting = `${getGreeting()}, ${firstName}`;
+
     return (
         <div className="page">
             {/* Header */}
-        <div className="page__header" style={{ marginBottom: 'var(--space-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-                <h2 className="page__title" style={{ background: 'linear-gradient(90deg, var(--color-gold), #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to Dashboard</h2>
-                <p className="page__subtitle">Your portfolio at a glance</p>
+            <div className="page__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h2 className="page__title">{greeting}</h2>
+                    <p className="page__subtitle">Discipline today. A better tomorrow.</p>
+                </div>
+                <span className="hide-mobile" style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--color-text-dim)',
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.3rem 0.7rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.03em',
+                }}>
+                    {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
             </div>
-            <span className="hide-mobile" style={{
-                fontSize: '0.72rem',
-                color: 'var(--color-text-dim)',
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '0.3rem 0.7rem',
-                fontWeight: 500,
-                letterSpacing: '0.03em',
-            }}>
-                {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-        </div>
 
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
@@ -191,7 +201,7 @@ export default function Dashboard() {
                     <div className="onboarding-section">
                         <h3><BarChart2 size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Dashboard Metrics Explained</h3>
                         <p className="onboarding-section__subtitle">These KPI cards will track your management metrics and automatically update as you log data:</p>
-                        
+
                         <div className="onboarding-grid">
                             <div className="onboarding-card">
                                 <div className="onboarding-card__icon" style={{ color: 'var(--color-gold)', background: 'var(--color-gold-soft)' }}><Users size={24} /></div>
@@ -220,7 +230,7 @@ export default function Dashboard() {
                     <div className="onboarding-section">
                         <h3>Core Platform Features</h3>
                         <p className="onboarding-section__subtitle">Unlock full dashboard analytics by completing your first setup actions:</p>
-                        
+
                         <div className="onboarding-actions-list">
                             <div className="onboarding-action-row">
                                 <div className="onboarding-action-row__content">
@@ -308,60 +318,62 @@ export default function Dashboard() {
                                 'Realised P&L': 'Aggregate gross closed P&L'
                             };
 
-                        const iconColor = STAT_COLORS[label] || 'var(--color-gold)';
+                            const iconColor = STAT_COLORS[label] || 'var(--color-gold)';
 
-                        // If P&L is defined, we could show a trend. For now, we will just use the subtext.
-                        const isPositivePnl = pnl !== undefined && pnl >= 0;
-                        const isNegativePnl = pnl !== undefined && pnl < 0;
+                            // If P&L is defined, we could show a trend. For now, we will just use the subtext.
+                            const isPositivePnl = pnl !== undefined && pnl >= 0;
+                            const isNegativePnl = pnl !== undefined && pnl < 0;
 
-                        return (
-                            <div key={label} className="kpi-card" style={{ 
-                                background: 'var(--color-surface)', 
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '10px',
-                                padding: '0.75rem 1rem',
-                                display: 'flex',
-                                flexDirection: 'row',
-                                gap: '0.85rem',
-                                alignItems: 'center',
-                                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                            }}>
-                                <div style={{ 
-                                    background: 'var(--color-gold-soft)', 
-                                    color: 'var(--color-gold)',
-                                    padding: '8px', 
-                                    borderRadius: '8px',
+                            return (
+                                <div key={label} className="kpi-card" style={{
+                                    background: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '10px',
+                                    padding: '0.75rem 1rem',
                                     display: 'flex',
+                                    flexDirection: 'row',
+                                    gap: '0.85rem',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
                                 }}>
-                                    {iconMap[label] || <BarChart2 size={16} />}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>{label}</span>
-                                        {label === 'Realised P&L' && (
-                                            <Info size={12} color="var(--color-text-muted)" style={{ cursor: 'help' }} title="Realised P&L is gross (without tax and interest). Operating costs will be added in the future." />
-                                        )}
-                                    </div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px', ...valueStyle }}>
-                                        {value}
-                                    </div>
-                                    <div style={{ 
-                                        fontSize: '0.7rem', 
-                                        color: isPositivePnl ? 'var(--color-success)' : (isNegativePnl ? 'var(--color-danger)' : 'var(--color-text-muted)'),
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '4px', 
-                                        fontWeight: 500 
+                                    <div style={{
+                                        background: 'var(--color-gold-soft)',
+                                        color: 'var(--color-gold)',
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
                                     }}>
-                                        {isPositivePnl && <Triangle size={7} fill="currentColor" />}
-                                        {isNegativePnl && <Triangle size={7} fill="currentColor" style={{ transform: 'rotate(180deg)' }} />}
-                                        <span>{subtextMap[label]}</span>
+                                        {iconMap[label] || <BarChart2 size={16} />}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>{label}</span>
+                                            {label === 'Realised P&L' && (
+                                                <span className="custom-tooltip custom-tooltip--right" data-tooltip="* Realised P&L is gross (without tax and interest). Operating costs will be added in the future.">
+                                                    <Info size={12} color="var(--color-text-muted)" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px', ...valueStyle }}>
+                                            {value}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.7rem',
+                                            color: isPositivePnl ? 'var(--color-success)' : (isNegativePnl ? 'var(--color-danger)' : 'var(--color-text-muted)'),
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            fontWeight: 500
+                                        }}>
+                                            {isPositivePnl && <Triangle size={7} fill="currentColor" />}
+                                            {isNegativePnl && <Triangle size={7} fill="currentColor" style={{ transform: 'rotate(180deg)' }} />}
+                                            <span>{subtextMap[label]}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
+                            );
                         })}
                     </div>
                 </>
@@ -371,8 +383,8 @@ export default function Dashboard() {
             {loading && (
                 <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="kpi-card" style={{ 
-                            background: 'var(--color-surface)', 
+                        <div key={i} className="kpi-card" style={{
+                            background: 'var(--color-surface)',
                             border: '1px solid var(--color-border)',
                             borderRadius: '10px',
                             padding: '0.75rem 1rem',
@@ -421,15 +433,15 @@ export default function Dashboard() {
                             <div style={{ display: 'flex', height: '220px', position: 'relative', gap: '8px', padding: '30px 0' }}>
                                 {/* Zero Line */}
                                 <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--color-border)', zIndex: 0 }} />
-                                
+
                                 {monthlyPerformance.map(m => {
                                     const val = m.returnPercentage || 0;
                                     const isPositive = val >= 0;
                                     const heightPct = (Math.abs(val) / maxAbs) * 45; // 45% is max half-height
-                                    
+
                                     return (
-                                        <div 
-                                            key={m.month} 
+                                        <div
+                                            key={m.month}
                                             style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: hoveredMonth === m.month ? 10 : 1 }}
                                             onMouseEnter={() => setHoveredMonth(m.month)}
                                             onMouseLeave={() => setHoveredMonth(null)}
@@ -463,7 +475,7 @@ export default function Dashboard() {
                                                                 <span style={{ color: 'var(--color-text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', paddingRight: '12px' }}>
                                                                     {stk.stock_name}
                                                                 </span>
-                                                                <span style={{ 
+                                                                <span style={{
                                                                     color: stk.returnPercentage >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
                                                                     fontWeight: 600
                                                                 }}>
@@ -485,7 +497,7 @@ export default function Dashboard() {
                                             <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                                                 {isPositive && val > 0 && (
                                                     <div style={{
-                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`, 
+                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`,
                                                         background: 'var(--color-success)',
                                                         borderRadius: '4px 4px 0 0',
                                                         position: 'relative',
@@ -493,18 +505,18 @@ export default function Dashboard() {
                                                         transition: 'filter 0.2s',
                                                         filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
                                                     }}>
-                                                         <span style={{ position: 'absolute', top: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-success)' }}>
-                                                             +{val.toFixed(1)}%
-                                                         </span>
+                                                        <span style={{ position: 'absolute', top: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-success)' }}>
+                                                            +{val.toFixed(1)}%
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
-                                            
+
                                             {/* Bottom Half (Negative) */}
                                             <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
                                                 {!isPositive && val < 0 && (
                                                     <div style={{
-                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`, 
+                                                        width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`,
                                                         background: 'var(--color-danger)',
                                                         borderRadius: '0 0 4px 4px',
                                                         position: 'relative',
@@ -512,13 +524,13 @@ export default function Dashboard() {
                                                         transition: 'filter 0.2s',
                                                         filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
                                                     }}>
-                                                         <span style={{ position: 'absolute', bottom: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-danger)' }}>
-                                                             {val.toFixed(1)}%
-                                                         </span>
+                                                        <span style={{ position: 'absolute', bottom: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-danger)' }}>
+                                                            {val.toFixed(1)}%
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
-                                            
+
                                             {/* Month Label */}
                                             <span style={{ position: 'absolute', bottom: '-10px', fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>
                                                 {m.month}
@@ -651,8 +663,8 @@ export default function Dashboard() {
                                                         borderRadius: '50%',
                                                         display: 'inline-block',
                                                         background: c.status === 'ACTIVE' ? 'var(--color-success)' :
-                                                                    c.status === 'INACTIVE' ? 'var(--color-danger)' :
-                                                                    'var(--color-warning)'
+                                                            c.status === 'INACTIVE' ? 'var(--color-danger)' :
+                                                                'var(--color-warning)'
                                                     }} title={c.status} />
                                                 </td>
                                             </tr>
@@ -749,7 +761,7 @@ export default function Dashboard() {
                             animation: 'fadeInUp 0.5s ease-out both',
                             animationDelay: '0.3s'
                         }}>
-                            <span><Sparkles size={14} style={{display:'inline'}}/></span> ELITE MEMBER ACCESS <span><Sparkles size={14} style={{display:'inline'}}/></span>
+                            <span><Sparkles size={14} style={{ display: 'inline' }} /></span> ELITE MEMBER ACCESS <span><Sparkles size={14} style={{ display: 'inline' }} /></span>
                         </div>
 
                         {/* Punchy Subtitle */}

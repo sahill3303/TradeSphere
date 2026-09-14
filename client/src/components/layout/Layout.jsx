@@ -21,6 +21,15 @@ export default function Layout({ children }) {
 
     return (
         <div className={`layout ${isCollapsed ? 'layout--collapsed' : ''}`}>
+            <div className="layout__topbar">
+                <TickerBar />
+                <Navbar 
+                    onMenuToggle={toggleMobileMenu} 
+                    isCollapsed={isCollapsed} 
+                    onCollapseToggle={toggleDesktopCollapse} 
+                />
+            </div>
+
             <Sidebar 
                 isOpen={sidebarOpen} 
                 isCollapsed={isCollapsed} 
@@ -28,12 +37,6 @@ export default function Layout({ children }) {
             />
 
             <div className="layout__main">
-                <TickerBar />
-                <Navbar 
-                    onMenuToggle={toggleMobileMenu} 
-                    isCollapsed={isCollapsed} 
-                    onCollapseToggle={toggleDesktopCollapse} 
-                />
                 <main className="layout__content" id="main-content">
                     {children}
                 </main>

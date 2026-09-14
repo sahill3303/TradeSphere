@@ -5,7 +5,6 @@
     max-width: 1600px;
     margin: 0 auto;
     color: var(--color-text, #e2e8f0);
-    font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -32,7 +31,7 @@
 
 .paper-trade-title {
     font-size: 2.25rem;
-    font-weight: 800;
+    font-weight: 700;
     margin: 0 0 0.4rem 0;
     color: var(--color-text, #ffffff);
     letter-spacing: -0.03em;
@@ -111,7 +110,6 @@
     flex-direction: column;
     justify-content: space-between;
     position: relative;
-    overflow: hidden;
 }
 
 .kpi-card:hover {
@@ -141,7 +139,7 @@
 
 .kpi-value {
     font-size: 1.85rem;
-    font-weight: 800;
+    font-weight: 700;
     margin: 0.2rem 0 0.5rem 0;
     color: var(--color-text, #f8fafc);
     letter-spacing: -0.02em;

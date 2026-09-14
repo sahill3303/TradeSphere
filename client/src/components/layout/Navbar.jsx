@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, NavLink } from 'react-router-dom';
-import { Menu, Sun, Moon, PanelLeftClose, PanelLeftOpen, User, Settings, LogOut } from 'lucide-react';
+import { Menu, Sun, Moon, User, Settings, LogOut } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../context/ConfirmContext';
+import TS2Logo from '../../assets/TS2.png';
 
 const PAGE_TITLES = {
     '/dashboard': 'Dashboard',
@@ -60,20 +61,40 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                     <Menu size={24} />
                 </button>
 
-                <h1 className="navbar__title">{title}</h1>
+                {/* Brand Logo & Toggle */}
+                <button 
+                    onClick={() => {
+                        // On desktop, toggle collapse. On mobile, toggle off-canvas if needed, 
+                        // but usually brand logo just toggles desktop collapse. 
+                        // Let's call both or rely on CSS hiding.
+                        if (window.innerWidth > 768) {
+                            onCollapseToggle();
+                        } else {
+                            onMenuToggle();
+                        }
+                    }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0
+                    }}
+                >
+                    <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '36px', height: 'auto' }} />
+                    <span className="hide-mobile" style={{
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: '1.25rem',
+                        fontWeight: 800,
+                        letterSpacing: '-0.02em',
+                        color: 'var(--color-text)',
+                    }}>TradeSphere</span>
+                </button>
             </div>
 
             <div className="navbar__actions">
-                {/* Desktop Collapse toggle */}
-                <button
-                    className="navbar__menu-btn hide-mobile"
-                    onClick={onCollapseToggle}
-                    aria-label="Toggle sidebar collapse"
-                    style={{ transition: 'transform 0.3s ease' }}
-                    title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-                >
-                    {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
-                </button>
                 <button 
                     className={`theme-toggle-switch ${isDarkMode ? 'theme-toggle-switch--dark' : 'theme-toggle-switch--light'}`}
                     onClick={toggleTheme}
