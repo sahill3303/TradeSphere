@@ -20,7 +20,7 @@
 .ticker-track {
     display: flex;
     width: max-content;
-    animation: marquee 35s linear infinite;
+    animation: marquee 80s linear infinite;
 }
 
 .ticker-track:hover {

@@ -25,6 +25,16 @@ export default function Login() {
     });
     const [loading, setLoading] = useState(false);
 
+    // Auto-clear error after 3.5 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError('');
+            }, 3500);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
     const handleChange = (e) => {
         let val = e.target.value;
         if (e.target.id === 'email' || e.target.id === 'password') {
@@ -36,7 +46,30 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        if (!form.email || !form.password) { setError('Email and password are required.'); return; }
+        
+        const { email, password } = form;
+        
+        if (!email && !password) {
+            setError('Email and password are required. Please try again.');
+            return;
+        }
+        if (!email) {
+            setError('Email is required. Please try again.');
+            return;
+        }
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+        
+        if (!password) {
+            setError('Password is required. Please try again.');
+            return;
+        }
+
         setLoading(true);
         try {
             const { data } = await api.post('/auth/login', {
@@ -91,17 +124,29 @@ export default function Login() {
                     <p className="auth-card__subtitle">Sign in to your trading dashboard</p>
 
                     {error && (
-                        <div className={`alert ${error.includes('expired') || error.includes('trial') ? 'alert--warning' : 'alert--error'}`} style={{ 
-                            marginBottom: 'var(--space-md)',
-                            border: (error.includes('expired') || error.includes('trial')) ? '1px solid var(--color-gold)' : '1px solid var(--color-danger)',
-                            background: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold-soft)' : 'var(--color-danger-soft)',
-                            color: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold)' : 'var(--color-danger)',
-                            padding: '1rem',
-                            borderRadius: 'var(--radius-md)'
-                        }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 700, marginBottom: '4px', fontSize: '0.85rem' }}>
-                                <span>{(error.includes('expired') || error.includes('trial')) ? <><AlertTriangle size={16} style={{marginRight:'4px', verticalAlign:'middle'}}/> Trial Expired</> : <><XCircle size={16} style={{marginRight:'4px', verticalAlign:'middle'}}/> Error</>}</span>
-                            </div>
+                        <>
+                            <style>{`
+                                @keyframes errorBlink {
+                                    0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(239, 68, 68, 0.25); }
+                                    50% { opacity: 0.75; box-shadow: none; }
+                                }
+                            `}</style>
+                            <div className={`alert ${error.includes('expired') || error.includes('trial') ? 'alert--warning' : 'alert--error'}`} style={{ 
+                                marginBottom: 'var(--space-md)',
+                                border: (error.includes('expired') || error.includes('trial')) ? '1px solid var(--color-gold)' : '1px solid var(--color-danger)',
+                                background: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold-soft)' : 'var(--color-danger-soft)',
+                                color: (error.includes('expired') || error.includes('trial')) ? 'var(--color-gold)' : 'var(--color-danger)',
+                                padding: '1rem',
+                                borderRadius: 'var(--radius-md)',
+                                animation: (error.includes('expired') || error.includes('trial')) ? 'none' : 'errorBlink 1.2s ease-in-out infinite'
+                            }}>
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontWeight: 700, marginBottom: '4px', fontSize: '0.9rem' }}>
+                                    {(error.includes('expired') || error.includes('trial')) ? (
+                                        <><AlertTriangle size={16} /> <span>Trial Expired</span></>
+                                    ) : (
+                                        <><XCircle size={16} /> <span>Error</span></>
+                                    )}
+                                </div>
                             <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>{error}</p>
                             {(error.includes('expired') || error.includes('trial')) && (
                                 <a 
@@ -123,6 +168,7 @@ export default function Login() {
                                 </a>
                             )}
                         </div>
+                        </>
                     )}
 
                     <form className="auth-form" onSubmit={handleSubmit} noValidate autoComplete="off">
@@ -146,6 +192,13 @@ export default function Login() {
                             required
                             autoComplete="new-password"
                         />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginTop: '0.25rem', marginBottom: '0.5rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+                                <input type="checkbox" id="rememberMe" style={{ accentColor: 'var(--color-gold)', width: '16px', height: '16px', cursor: 'pointer' }} />
+                                Remember me
+                            </label>
+                            <Link to="/forgot-password" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</Link>
+                        </div>
                         <Button
                             type="submit"
                             variant="primary"

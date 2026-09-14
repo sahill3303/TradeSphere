@@ -127,3 +127,4 @@ The core tables include:
 - **Automated Broker Integration**: Syncing trades directly from Zerodha/Upstox.
 - **Mobile App**: React Native version for on-the-go tracking.
 - **Advanced AI Forecasting**: Predictive modeling for stock movements based on historical logs.
+

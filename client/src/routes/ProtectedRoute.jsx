@@ -41,19 +41,91 @@ export default function ProtectedRoute() {
         window.open(`https://wa.me/917020807574?text=${text}`, '_blank');
     };
 
-    // While the /api/auth/me call is in-flight, render a clean spinner.
+    // While the /api/auth/me call is in-flight, render a premium loader.
     if (loading) {
         return (
             <div style={{
                 minHeight: '100vh',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '0.9rem',
-                color: 'var(--color-text-muted)',
-                background: 'var(--color-bg)',
+                background: 'var(--color-bg, #0B0B0D)',
+                position: 'relative',
+                overflow: 'hidden'
             }}>
-                Authenticating…
+                <style>{`
+                    .auth-loader-container {
+                        position: relative;
+                        width: 100px;
+                        height: 100px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-bottom: 2rem;
+                    }
+                    .auth-loader-ring {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 50%;
+                        border: 2px solid transparent;
+                        border-top-color: var(--color-gold, #D4AF37);
+                        animation: authSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                    }
+                    .auth-loader-ring:nth-child(2) {
+                        width: 75%;
+                        height: 75%;
+                        border-top-color: transparent;
+                        border-right-color: var(--color-gold, #D4AF37);
+                        animation: authSpin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
+                    }
+                    .auth-loader-ring:nth-child(3) {
+                        width: 50%;
+                        height: 50%;
+                        border-top-color: transparent;
+                        border-bottom-color: var(--color-gold, #D4AF37);
+                        animation: authSpin 2.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                    }
+                    .auth-loader-glow {
+                        position: absolute;
+                        width: 40%;
+                        height: 40%;
+                        background: var(--color-gold, #D4AF37);
+                        border-radius: 50%;
+                        filter: blur(25px);
+                        opacity: 0.15;
+                        animation: authPulse 2s ease-in-out infinite alternate;
+                    }
+                    .auth-loader-text {
+                        color: var(--color-gold, #D4AF37);
+                        font-family: var(--font-heading, 'Noto Sans', sans-serif);
+                        font-size: 0.95rem;
+                        font-weight: 700;
+                        letter-spacing: 0.2em;
+                        text-transform: uppercase;
+                        animation: authFade 1.5s ease-in-out infinite alternate;
+                    }
+                    @keyframes authSpin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    @keyframes authPulse {
+                        0% { opacity: 0.1; transform: scale(0.8); }
+                        100% { opacity: 0.3; transform: scale(1.2); }
+                    }
+                    @keyframes authFade {
+                        0% { opacity: 0.4; }
+                        100% { opacity: 1; }
+                    }
+                `}</style>
+                <div className="auth-loader-container">
+                    <div className="auth-loader-glow"></div>
+                    <div className="auth-loader-ring"></div>
+                    <div className="auth-loader-ring"></div>
+                    <div className="auth-loader-ring"></div>
+                </div>
+                <div className="auth-loader-text">Authenticating...</div>
             </div>
         );
     }

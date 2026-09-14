@@ -16,19 +16,12 @@ const navItems = [
     { to: '/notes',        label: 'Notes',        icon: <FileText size={18} />, key: 'notes' },
 ];
 
-export default function Sidebar({ isOpen, onClose }) {
-    const { user, logout } = useAuth();
+export default function Sidebar({ isOpen, isCollapsed, onClose }) {
+    const { user } = useAuth();
     const { sidebarFeatures } = usePreferences();
     const confirm = useConfirm();
 
-    const handleLogout = () => {
-        confirm({
-            title: 'Confirm Logout',
-            message: 'Are you sure you want to end your session? You will need to sign in again to access your dashboard.',
-            variant: 'danger',
-            onConfirm: logout
-        });
-    };
+
 
     return (
         <>
@@ -80,40 +73,23 @@ export default function Sidebar({ isOpen, onClose }) {
                                 </li>
                             ))
                         )}
+                        {user?.role !== 'superadmin' && (
+                            <li className="sidebar__item" style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                                <NavLink
+                                    to="/settings"
+                                    onClick={onClose}
+                                    className={({ isActive }) =>
+                                        `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                                    }
+                                >
+                                    <span className="sidebar__icon"><Settings size={18} /></span>
+                                    <span className="sidebar__label">Settings</span>
+                                </NavLink>
+                            </li>
+                        )}
                     </ul>
                 </nav>
 
-                {user?.role !== 'superadmin' && (
-                    <div className="sidebar__settings" style={{ marginTop: 'auto', padding: '0 0.75rem', marginBottom: '1rem' }}>
-                        <NavLink
-                            to="/settings"
-                            onClick={onClose}
-                            className={({ isActive }) =>
-                                `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
-                            }
-                        >
-                            <span className="sidebar__icon"><Settings size={18} /></span>
-                            <span className="sidebar__label">Settings</span>
-                        </NavLink>
-                    </div>
-                )}
-
-                {/* User + Logout */}
-                <div className="sidebar__footer">
-                    <div className="sidebar__user">
-                        <div className="sidebar__avatar">
-                            {user?.name?.[0]?.toUpperCase() ?? 'U'}
-                            {/* for profile img */}
-                        </div>
-                        <div className="sidebar__user-info">
-                            <span className="sidebar__user-name">{user?.name ?? 'User'}</span>
-                            <span className="sidebar__user-email">{user?.email ?? ''}</span>
-                        </div>
-                    </div>
-                    <button className="sidebar__logout" onClick={handleLogout} aria-label="Logout">
-                        ⭳ Logout
-                    </button>
-                </div>
             </aside>
         </>
     );

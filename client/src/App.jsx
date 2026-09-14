@@ -9,8 +9,14 @@ import Layout from './components/layout/Layout';
 // Auth pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import Welcome from './pages/welcome/Welcome';
 import AboutApp from './pages/about/AboutApp';
+
+// Info pages
+import Privacy from './pages/info/Privacy';
+import Terms from './pages/info/Terms';
+import Support from './pages/info/Support';
 
 // Protected pages
 import Dashboard from './pages/dashboard/Dashboard';
@@ -38,8 +44,14 @@ export default function App() {
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/about" element={<AboutApp />} />
+                
+                {/* Info routes */}
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/support" element={<Support />} />
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Coins, Sparkles, BarChart2, TrendingUp, ClipboardList, PenTool, Crown } from 'lucide-react';
+import { Users, Coins, Sparkles, BarChart2, TrendingUp, ClipboardList, PenTool, Crown, ChevronRight, Triangle, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import DailyNews from '../../components/dashboard/DailyNews';
@@ -155,12 +155,24 @@ export default function Dashboard() {
     return (
         <div className="page">
             {/* Header */}
-            <div className="page__header" style={{ marginBottom: 'var(--space-md)' }}>
-                <div>
-                    <h2 className="page__title">Dashboard</h2>
-                    <p className="page__subtitle">Your portfolio at a glance</p>
-                </div>
+        <div className="page__header" style={{ marginBottom: 'var(--space-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+                <h2 className="page__title" style={{ background: 'linear-gradient(90deg, var(--color-gold), #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to Dashboard</h2>
+                <p className="page__subtitle">Your portfolio at a glance</p>
             </div>
+            <span className="hide-mobile" style={{
+                fontSize: '0.72rem',
+                color: 'var(--color-text-dim)',
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '0.3rem 0.7rem',
+                fontWeight: 500,
+                letterSpacing: '0.03em',
+            }}>
+                {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+        </div>
 
             {/* Errors */}
             {error && <div className="alert alert--error">{error}</div>}
@@ -271,7 +283,7 @@ export default function Dashboard() {
             {/* ── Stat Cards (For Existing Users) ── */}
             {!loading && !error && summary && !isBlankState && (
                 <>
-                    <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+                    <div className="kpi-grid" style={{ marginBottom: '0.5rem' }}>
                         {SUMMARY_CARDS.map(({ label, value, pnl }) => {
                             let valueStyle = {};
                             if (pnl !== undefined) {
@@ -286,7 +298,7 @@ export default function Dashboard() {
                                 'Total Clients': <Users size={16} />,
                                 'Total Trades': <TrendingUp size={16} />,
                                 'Total Capital': <Coins size={16} />,
-                                'Realised P&L': '📊'
+                                'Realised P&L': <TrendingUp size={16} />
                             };
 
                             const subtextMap = {
@@ -296,39 +308,84 @@ export default function Dashboard() {
                                 'Realised P&L': 'Aggregate gross closed P&L'
                             };
 
-                            return (
-                                <div key={label} className="kpi-card">
-                                    <div>
-                                        <div className="kpi-header">
-                                            <span className="kpi-label">{label}</span>
-                                            <span className="kpi-icon">{iconMap[label] || <BarChart2 size={16} />}</span>
-                                        </div>
-                                        <div className="kpi-value" style={valueStyle}>
-                                            {value}
-                                        </div>
+                        const iconColor = STAT_COLORS[label] || 'var(--color-gold)';
+
+                        // If P&L is defined, we could show a trend. For now, we will just use the subtext.
+                        const isPositivePnl = pnl !== undefined && pnl >= 0;
+                        const isNegativePnl = pnl !== undefined && pnl < 0;
+
+                        return (
+                            <div key={label} className="kpi-card" style={{ 
+                                background: 'var(--color-surface)', 
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '10px',
+                                padding: '0.75rem 1rem',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                gap: '0.85rem',
+                                alignItems: 'center',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                            }}>
+                                <div style={{ 
+                                    background: 'var(--color-gold-soft)', 
+                                    color: 'var(--color-gold)',
+                                    padding: '8px', 
+                                    borderRadius: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    {iconMap[label] || <BarChart2 size={16} />}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>{label}</span>
+                                        {label === 'Realised P&L' && (
+                                            <Info size={12} color="var(--color-text-muted)" style={{ cursor: 'help' }} title="Realised P&L is gross (without tax and interest). Operating costs will be added in the future." />
+                                        )}
                                     </div>
-                                    <div className="kpi-subtext">
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px', ...valueStyle }}>
+                                        {value}
+                                    </div>
+                                    <div style={{ 
+                                        fontSize: '0.7rem', 
+                                        color: isPositivePnl ? 'var(--color-success)' : (isNegativePnl ? 'var(--color-danger)' : 'var(--color-text-muted)'),
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '4px', 
+                                        fontWeight: 500 
+                                    }}>
+                                        {isPositivePnl && <Triangle size={7} fill="currentColor" />}
+                                        {isNegativePnl && <Triangle size={7} fill="currentColor" style={{ transform: 'rotate(180deg)' }} />}
                                         <span>{subtextMap[label]}</span>
                                     </div>
                                 </div>
-                            );
+                            </div>
+                        );
                         })}
-                    </div>
-                    <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', marginRight: '0.25rem' }}>
-                        * Realised P&L is gross (without tax and interest). Operating costs will be added in the future.
                     </div>
                 </>
             )}
 
             {/* Skeleton for loading */}
             {loading && (
-                <div className="stats-grid">
+                <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="stat-card">
-                            <div className="skeleton" style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', flexShrink: 0 }} />
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                <div className="skeleton" style={{ height: 28, width: '60%', borderRadius: 4 }} />
-                                <div className="skeleton" style={{ height: 14, width: '80%', borderRadius: 4 }} />
+                        <div key={i} className="kpi-card" style={{ 
+                            background: 'var(--color-surface)', 
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '10px',
+                            padding: '0.75rem 1rem',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: '0.85rem',
+                            alignItems: 'center'
+                        }}>
+                            <div className="skeleton" style={{ width: 32, height: 32, borderRadius: '8px', flexShrink: 0 }} />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div className="skeleton" style={{ height: 12, width: '50%', borderRadius: 4 }} />
+                                <div className="skeleton" style={{ height: 20, width: '70%', borderRadius: 4 }} />
+                                <div className="skeleton" style={{ height: 10, width: '90%', borderRadius: 4 }} />
                             </div>
                         </div>
                     ))}
@@ -342,11 +399,14 @@ export default function Dashboard() {
 
             {/* ── Monthly Performance Bar Chart ── */}
             {!loading && !error && summary && !isBlankState && (
-                <div className="card" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+                <div className="card" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-xl)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
-                            Monthly Closing %
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
+                            Monthly P&L
                         </h3>
+                        <select style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem' }}>
+                            <option>2026</option>
+                        </select>
                     </div>
 
                     {monthlyLoading && <p className="status-text">Loading chart…</p>}
@@ -743,7 +803,7 @@ export default function Dashboard() {
                             width: 100vw;
                             height: 100vh;
                             height: 100dvh;
-                            background-color: rgba(0, 0, 0, 0.85);
+                            background-color: var(--color-overlay, rgba(0, 0, 0, 0.85));
                             backdrop-filter: blur(12px);
                             z-index: 99999;
                             display: flex;
@@ -755,7 +815,7 @@ export default function Dashboard() {
 
                         @media (max-width: 768px) {
                             .welcome-overlay {
-                                background-color: #0B0B0D !important;
+                                background-color: var(--color-overlay-solid, #0B0B0D) !important;
                                 backdrop-filter: none !important;
                                 padding: 1rem;
                                 width: 100vw;

@@ -121,60 +121,76 @@ export default function Profitability({ summary }) {
             {/* Ratio Cards Grid */}
             <div className="ratio-cards-grid">
                 {/* Average Win */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
+                    <div style={{ background: 'rgba(34, 197, 94, 0.15)', color: 'var(--color-success)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                             <polyline points="17 6 23 6 23 12"></polyline>
                         </svg>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Average Win</span>
                     </div>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-success)' }}>
-                        +₹{Number(avgWin || 0).toLocaleString('en-IN')}
-                    </span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '2px' }}>
+                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Average Win</span>
+                        </div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-success)' }}>
+                            +₹{Number(avgWin || 0).toLocaleString('en-IN')}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Win Ratio */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
+                    <div style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Win Ratio</span>
                     </div>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                        {winRate != null ? `${winRate}%` : '0%'}
-                    </span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '2px' }}>
+                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Win Ratio</span>
+                        </div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                            {winRate != null ? `${winRate}%` : '0%'}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Average Loss */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
+                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'var(--color-danger)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
                             <polyline points="17 18 23 18 23 12"></polyline>
                         </svg>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Average Loss</span>
                     </div>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-danger)' }}>
-                        -₹{Number(Math.abs(avgLoss || 0)).toLocaleString('en-IN')}
-                    </span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '2px' }}>
+                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Average Loss</span>
+                        </div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-danger)' }}>
+                            -₹{Number(Math.abs(avgLoss || 0)).toLocaleString('en-IN')}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Profit Factor */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
+                    <div style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="20" x2="18" y2="10"></line>
                             <line x1="12" y1="20" x2="12" y2="4"></line>
                             <line x1="6" y1="20" x2="6" y2="14"></line>
                         </svg>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontWeight: 500 }}>Profit Factor</span>
                     </div>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: (profitFactor ?? 0) >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                        {profitFactor == null ? '—' : profitFactor === Infinity ? '∞' : profitFactor}
-                    </span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '2px' }}>
+                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Profit Factor</span>
+                        </div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: (profitFactor ?? 0) >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                            {profitFactor == null ? '—' : profitFactor === Infinity ? '∞' : profitFactor}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
