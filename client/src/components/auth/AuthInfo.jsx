@@ -12,7 +12,7 @@ const AuthInfo = () => {
             
             <div className="auth-info__content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Desktop view — full info */}
-                <div className="auth-info--desktop" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '500px' }}>
+                <div className="auth-info--desktop">
                     <div style={{ flex: 1 }}>
                         <div className="auth-info__badge">
                             <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', marginRight: '6px' }}></span>
