@@ -2107,6 +2107,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     align-items: flex-start;
     gap: var(--space-md);
   }
+
+  .trade-form-layout {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--space-md);
+    /* Allow it to be wider than the viewport so it can scroll */
+    width: 100%;
+    /* Ensure the left column doesn't get too squished */
+    grid-template-columns: minmax(320px, 1fr) 320px;
+    gap: var(--space-md);
+  }
 }
 
 @media (max-width: 480px) {

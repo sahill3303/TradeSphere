@@ -165,12 +165,12 @@ export default function Dashboard() {
     return (
         <div className="page">
             {/* Header */}
-            <div className="page__header">
-                <div style={{ textAlign: 'left', width: '100%' }}>
+            <div className="page__header" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+                <div style={{ textAlign: 'left' }}>
                     <h2 className="page__title">{greeting}</h2>
                     <p className="page__subtitle">Discipline today. A better tomorrow.</p>
                 </div>
-                <span className="hide-mobile" style={{
+                <span style={{
                     fontSize: '0.72rem',
                     color: 'var(--color-text-dim)',
                     background: 'var(--color-surface)',
@@ -179,6 +179,8 @@ export default function Dashboard() {
                     padding: '0.3rem 0.7rem',
                     fontWeight: 500,
                     letterSpacing: '0.03em',
+                    whiteSpace: 'nowrap',
+                    marginTop: '0.15rem'
                 }}>
                     {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
@@ -293,7 +295,7 @@ export default function Dashboard() {
             {/* ── Stat Cards (For Existing Users) ── */}
             {!loading && !error && summary && !isBlankState && (
                 <>
-                    <div className="kpi-grid" style={{ marginBottom: '0.5rem' }}>
+                    <div className="stats-grid" style={{ marginBottom: '0.5rem' }}>
                         {SUMMARY_CARDS.map(({ label, value, pnl }) => {
                             let valueStyle = {};
                             if (pnl !== undefined) {
@@ -381,7 +383,7 @@ export default function Dashboard() {
 
             {/* Skeleton for loading */}
             {loading && (
-                <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+                <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="kpi-card" style={{
                             background: 'var(--color-surface)',
