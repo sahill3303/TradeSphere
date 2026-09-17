@@ -25,6 +25,7 @@ import ClientDetails from './pages/clients/ClientDetails';
 import TradesList from './pages/trades/TradesList';
 import TradeDetails from './pages/trades/TradeDetails';
 import OpenTrade from './pages/trades/OpenTrade';
+import OpenPaperTrade from './pages/trades/OpenPaperTrade';
 import PaperTrade from './pages/trades/PaperTrade';
 import Notes from './pages/notes/Notes';
 import Analysis from './pages/analysis/Analysis';
@@ -62,6 +63,7 @@ export default function App() {
                   <Route path="/trades" element={<Layout><TradesList /></Layout>} />
                   <Route path="/trades/open" element={<Layout><OpenTrade /></Layout>} />
                   <Route path="/trades/:id" element={<Layout><TradeDetails /></Layout>} />
+                  <Route path="/paper-trade/open" element={<Layout><OpenPaperTrade /></Layout>} />
                   <Route path="/paper-trade" element={<Layout><PaperTrade /></Layout>} />
                   <Route path="/notes" element={<Layout><Notes /></Layout>} />
                   <Route path="/analysis" element={<Layout><Analysis /></Layout>} />

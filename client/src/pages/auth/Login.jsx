@@ -192,12 +192,12 @@ export default function Login() {
                             required
                             autoComplete="new-password"
                         />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginTop: '0.25rem', marginBottom: '0.5rem' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
-                                <input type="checkbox" id="rememberMe" style={{ accentColor: 'var(--color-gold)', width: '16px', height: '16px', cursor: 'pointer' }} />
+                        <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginTop: '0.25rem', marginBottom: '0.5rem', width: '100%' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-muted)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                <input type="checkbox" id="rememberMe" style={{ accentColor: 'var(--color-gold)', width: '15px', height: '15px', cursor: 'pointer', margin: 0 }} />
                                 Remember me
                             </label>
-                            <Link to="/forgot-password" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</Link>
+                            <Link to="/forgot-password" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>Forgot password?</Link>
                         </div>
                         <Button
                             type="submit"

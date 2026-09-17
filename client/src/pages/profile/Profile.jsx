@@ -71,26 +71,13 @@ export default function Profile() {
 
     return (
         <div className="page profile-page">
-            <div className="page__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button type="button" onClick={() => navigate(-1)} className="btn-icon" style={{ background: 'transparent', border: 'none', color: 'var(--color-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', borderRadius: '50%', transition: 'background 0.2s' }} title="Go Back" onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-surface)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                        <ArrowLeft size={24} />
-                    </button>
-                    <div>
-                        <h2 className="page__title">My Profile</h2>
-                        <p className="page__subtitle">Personalize your identity and set your trading goals.</p>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {success && <div className="success-msg"><CheckCircle size={16} /> {success}</div>}
-                    {error && <div className="error-msg">{error}</div>}
-                    <Button type="button" variant="primary" disabled={loading} className="save-btn" onClick={handleSubmit}>
-                        {loading ? 'Saving...' : (
-                            <>
-                                <Save size={18} /> Save Changes
-                            </>
-                        )}
-                    </Button>
+            <div className="page__header">
+                <button type="button" onClick={() => navigate(-1)} className="btn-icon" style={{ background: 'transparent', border: 'none', color: 'var(--color-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', borderRadius: '50%', transition: 'background 0.2s' }} title="Go Back" onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-surface)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                    <ArrowLeft size={24} />
+                </button>
+                <div>
+                    <h2 className="page__title">My Profile</h2>
+                    <p className="page__subtitle">Personalize your identity and set your trading goals.</p>
                 </div>
             </div>
 
@@ -138,6 +125,18 @@ export default function Profile() {
                         />
                     </div>
                 </Card>
+
+                <div className="profile-actions" style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                    {success && <div className="success-msg"><CheckCircle size={16} /> {success}</div>}
+                    {error && <div className="error-msg">{error}</div>}
+                    <Button type="submit" variant="primary" disabled={loading} className="save-btn">
+                        {loading ? 'Saving...' : (
+                            <>
+                                <Save size={18} /> Save Changes
+                            </>
+                        )}
+                    </Button>
+                </div>
             </form>
         </div>
     );

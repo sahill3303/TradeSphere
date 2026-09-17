@@ -52,37 +52,24 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
     return (
         <header className="navbar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                {/* Mobile Off-canvas menu toggle */}
+                {/* Mobile & Desktop Sidebar Toggle */}
                 <button
-                    className="navbar__menu-btn hide-desktop"
-                    onClick={onMenuToggle}
-                    aria-label="Toggle mobile sidebar"
-                >
-                    <Menu size={24} />
-                </button>
-
-                {/* Brand Logo & Toggle */}
-                <button 
+                    className="navbar__menu-btn"
                     onClick={() => {
-                        // On desktop, toggle collapse. On mobile, toggle off-canvas if needed, 
-                        // but usually brand logo just toggles desktop collapse. 
-                        // Let's call both or rely on CSS hiding.
                         if (window.innerWidth > 768) {
                             onCollapseToggle();
                         } else {
                             onMenuToggle();
                         }
                     }}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0
-                    }}
+                    aria-label="Toggle sidebar"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
+                    <Menu size={24} />
+                </button>
+
+                {/* Brand Logo */}
+                <div className="navbar__brand-container">
                     <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '36px', height: 'auto' }} />
                     <span className="hide-mobile" style={{
                         fontFamily: 'var(--font-heading)',
@@ -91,7 +78,7 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                         letterSpacing: '-0.02em',
                         color: 'var(--color-text)',
                     }}>TradeSphere</span>
-                </button>
+                </div>
             </div>
 
             <div className="navbar__actions">
@@ -137,7 +124,8 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontWeight: '700',
-                            fontSize: '0.85rem'
+                            fontSize: '0.85rem',
+                            lineHeight: 1
                         }}>
                             {user?.name?.[0]?.toUpperCase() ?? 'U'}
                         </div>

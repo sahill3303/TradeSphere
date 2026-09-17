@@ -165,8 +165,8 @@ export default function Dashboard() {
     return (
         <div className="page">
             {/* Header */}
-            <div className="page__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
+            <div className="page__header">
+                <div style={{ textAlign: 'left', width: '100%' }}>
                     <h2 className="page__title">{greeting}</h2>
                     <p className="page__subtitle">Discipline today. A better tomorrow.</p>
                 </div>

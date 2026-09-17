@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useConfirm } from '../../context/ConfirmContext';
 import { Dices, Briefcase, Coins, Rocket, Landmark, TrendingUp, Zap, Target, Shield, Flame, Scale, Microscope, ScrollText, Globe, Plus, RefreshCw, X, Trash2 } from 'lucide-react';
@@ -16,6 +17,7 @@ const STRATEGY_OPTIONS = [
 
 export default function PaperTrade() {
     const confirm = useConfirm();
+    const navigate = useNavigate();
     
     // Core state
     const [summary, setSummary] = useState({
@@ -35,7 +37,6 @@ export default function PaperTrade() {
     const [activeTab, setActiveTab] = useState('TRADING'); // 'TRADING' | 'INVESTMENT' | 'CLOSED' | 'ALL'
 
     // UI Toggle state
-    const [showOrderPad, setShowOrderPad] = useState(false);
     const [showFundsModal, setShowFundsModal] = useState(false);
     const [exitTradeModal, setExitTradeModal] = useState(null);
     const [submitting, setSubmitting] = useState(false);
@@ -43,22 +44,6 @@ export default function PaperTrade() {
     // Fund Management form
     const [fundForm, setFundForm] = useState({ amount: 500000, action: 'ADD' });
     const [fundMessage, setFundMessage] = useState('');
-
-    // Order Pad form (Buy Side Only)
-    const [orderForm, setOrderForm] = useState({
-        stock_name: '',
-        holding_type: 'TRADING', // 'TRADING' | 'INVESTMENT'
-        entry_price: '',
-        quantity: '100',
-        target: '',
-        stop_loss: '',
-        strategy: STRATEGY_OPTIONS[0],
-        conviction_level: 'High',
-        notes: '',
-        trade_date: new Date().toISOString().split('T')[0]
-    });
-    const [symbolSuggestions, setSymbolSuggestions] = useState([]);
-    const [searchingSymbol, setSearchingSymbol] = useState(false);
 
     // Exit Trade form
     const [exitForm, setExitForm] = useState({
@@ -162,47 +147,6 @@ export default function PaperTrade() {
         };
     }, [trades, prices, summary]);
 
-    // Symbol autocompletion handler
-    const handleSymbolChange = async (val) => {
-        setOrderForm(prev => ({ ...prev, stock_name: val }));
-        if (!val || val.trim().length < 2) {
-            setSymbolSuggestions([]);
-            return;
-        }
-        setSearchingSymbol(true);
-        try {
-            const { data: res } = await api.get(`/watchlist/search?q=${encodeURIComponent(val.trim())}`);
-            if (res.success && res.data) {
-                setSymbolSuggestions(res.data.slice(0, 6));
-            } else if (Array.isArray(res)) {
-                setSymbolSuggestions(res.slice(0, 6));
-            }
-        } catch (err) {
-            console.error('Search error:', err);
-        } finally {
-            setSearchingSymbol(false);
-        }
-    };
-
-    const selectSuggestion = async (sym) => {
-        const cleanSym = sym.symbol || sym.ticker || sym.name || sym;
-        setOrderForm(prev => ({ ...prev, stock_name: cleanSym }));
-        setSymbolSuggestions([]);
-
-        // Try to fetch latest quote to auto-populate entry price
-        try {
-            const { data } = await api.get(`/watchlist/prices?symbols=${cleanSym}`);
-            if (data.success && data.data && data.data[cleanSym]) {
-                const liveP = typeof data.data[cleanSym] === 'object' ? data.data[cleanSym].price : data.data[cleanSym];
-                if (liveP && !isNaN(liveP)) {
-                    setOrderForm(prev => ({ ...prev, entry_price: Number(liveP).toFixed(2) }));
-                }
-            }
-        } catch (e) {
-            // ignore auto quote fail
-        }
-    };
-
     // Fund management submission
     const handleFundsSubmit = async (e) => {
         e.preventDefault();
@@ -225,38 +169,6 @@ export default function PaperTrade() {
         }
     };
 
-    // Place Paper Trade submission
-    const handleOrderSubmit = async (e) => {
-        e.preventDefault();
-        if (!orderForm.stock_name || !orderForm.entry_price || !orderForm.quantity) {
-            confirm({ title: 'Validation Error', message: 'Please provide Symbol, Entry Price, and Quantity.', variant: 'warning', alertOnly: true });
-            return;
-        }
-        setSubmitting(true);
-        try {
-            const { data } = await api.post('/paper-trades', orderForm);
-            if (data.success) {
-                setShowOrderPad(false);
-                setOrderForm({
-                    stock_name: '',
-                    holding_type: 'TRADING',
-                    entry_price: '',
-                    quantity: '100',
-                    target: '',
-                    stop_loss: '',
-                    strategy: STRATEGY_OPTIONS[0],
-                    conviction_level: 'High',
-                    notes: '',
-                    trade_date: new Date().toISOString().split('T')[0]
-                });
-                fetchData();
-            }
-        } catch (err) {
-            confirm({ title: 'Error', message: err.response?.data?.message || 'Failed to open paper trade position', variant: 'danger', alertOnly: true });
-        } finally {
-            setSubmitting(false);
-        }
-    };
 
     // Exit Trade submission
     const handleExitSubmit = async (e) => {
@@ -324,29 +236,29 @@ export default function PaperTrade() {
     };
 
     return (
-        <div className="paper-trade-container">
+        <div className="page paper-trade-container">
             {/* Hero & Title Banner */}
-            <div className="paper-trade-header">
-                <div className="header-title-box">
-                    <h1 className="paper-trade-title">
-                        <span><Briefcase size={18} /></span> Dedicated Paper Trading & Conviction Portfolio
+            <header className="page__header" style={{ alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--space-lg)' }}>
+                <div>
+                    <h1 className="page__title" style={{ marginBottom: '0.4rem' }}>
+                        Paper Trading & Conviction Portfolio
                     </h1>
-                    <p className="paper-trade-subtitle">
+                    <p className="page__subtitle" style={{ lineHeight: '1.6', maxWidth: '800px' }}>
                         Test high-conviction trade ideas, fine-tune strategies without capital risk, and manage your long-term practice portfolio with real-time unrealized P&L tracking.
                     </p>
                 </div>
-                <div className="header-action-group">
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <button className="btn-paper-action btn-add-funds" onClick={() => setShowFundsModal(true)}>
                         <span><Coins size={18} /></span> + Manage Virtual Funds
                     </button>
                     <button 
-                        className={`btn-paper-action ${showOrderPad ? 'btn-secondary' : 'btn-new-trade'}`} 
-                        onClick={() => setShowOrderPad(!showOrderPad)}
+                        className="btn-paper-action btn-new-trade" 
+                        onClick={() => navigate('/paper-trade/open')}
                     >
-                        <span>{showOrderPad ? <><X size={16} style={{marginRight: '6px'}}/> Close Pad</> : <><Rocket size={16} style={{marginRight: '6px'}}/> Open Buy Position</>}</span>
+                        <span><Rocket size={16} style={{marginRight: '6px'}}/> Open Buy Position</span>
                     </button>
                 </div>
-            </div>
+            </header>
 
             {error && (
                 <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '12px', marginBottom: '1.5rem' }}>
@@ -433,194 +345,7 @@ export default function PaperTrade() {
                 </div>
             </div>
 
-            {/* Embedded Order Form Drawer */}
-            {showOrderPad && (
-                <div className="order-form-card">
-                    <div className="order-form-header">
-                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Target size={20} /> Execute Simulated Buy Position</h3>
-                        <button className="btn-close-pad" onClick={() => setShowOrderPad(false)}><X size={16} /></button>
-                    </div>
 
-                    <form onSubmit={handleOrderSubmit}>
-                        {/* Horizon Selection */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label className="form-label" style={{ display: 'block', marginBottom: '0.6rem' }}>Select Investment Horizon / Portfolio Category:</label>
-                            <div className="horizon-radio-group">
-                                <div 
-                                    className={`horizon-card ${orderForm.holding_type === 'TRADING' ? 'selected-trading' : ''}`}
-                                    onClick={() => setOrderForm(prev => ({ ...prev, holding_type: 'TRADING' }))}
-                                >
-                                    <span className="horizon-icon"><Zap size={16} /></span>
-                                    <div className="horizon-info">
-                                        <h4>Active Trading (Intraday & Swing)</h4>
-                                        <p>Short to medium-term momentum positions with active targets & stop-losses.</p>
-                                    </div>
-                                </div>
-                                <div 
-                                    className={`horizon-card ${orderForm.holding_type === 'INVESTMENT' ? 'selected-investment' : ''}`}
-                                    onClick={() => setOrderForm(prev => ({ ...prev, holding_type: 'INVESTMENT' }))}
-                                >
-                                    <span className="horizon-icon"><Shield size={16} /></span>
-                                    <div className="horizon-info">
-                                        <h4>Long-Term Conviction Investment</h4>
-                                        <p>Portfolio compounding positions for long-term wealth creation & monitoring.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="form-grid-3">
-                            {/* Stock Symbol with Autocomplete */}
-                            <div className="form-field-group">
-                                <label className="form-label">Stock Symbol / Instrument *</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. TATASTEEL, INFY, HAL" 
-                                    value={orderForm.stock_name}
-                                    onChange={(e) => handleSymbolChange(e.target.value.toUpperCase())}
-                                    required
-                                />
-                                {symbolSuggestions.length > 0 && (
-                                    <div className="symbol-suggestions-dropdown">
-                                        {symbolSuggestions.map((item, idx) => (
-                                            <div key={idx} className="suggestion-item" onClick={() => selectSuggestion(item)}>
-                                                <span className="suggestion-symbol">{item.symbol || item.ticker || item.name}</span>
-                                                <span className="suggestion-name">{item.name || item.exchange || 'NSE'}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Entry Price */}
-                            <div className="form-field-group">
-                                <label className="form-label">Entry Price (₹) *</label>
-                                <input 
-                                    type="number" 
-                                    step="0.05"
-                                    min="0.05"
-                                    className="form-input" 
-                                    placeholder="0.00" 
-                                    value={orderForm.entry_price}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, entry_price: e.target.value }))}
-                                    required
-                                />
-                            </div>
-
-                            {/* Quantity */}
-                            <div className="form-field-group">
-                                <label className="form-label">Quantity / Number of Shares *</label>
-                                <input 
-                                    type="number" 
-                                    step="1"
-                                    min="1"
-                                    className="form-input" 
-                                    placeholder="100" 
-                                    value={orderForm.quantity}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    required
-                                />
-                                {orderForm.entry_price && orderForm.quantity && (
-                                    <span style={{ fontSize: '0.78rem', color: '#818cf8', fontWeight: 600, marginTop: '2px' }}>
-                                        Total Order Value: {formatCurrency(Number(orderForm.entry_price) * Number(orderForm.quantity))}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="form-grid-3">
-                            {/* Target Price */}
-                            <div className="form-field-group">
-                                <label className="form-label">Target Price (Optional)</label>
-                                <input 
-                                    type="number" 
-                                    step="0.05"
-                                    className="form-input" 
-                                    placeholder="Optional exit target" 
-                                    value={orderForm.target}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, target: e.target.value }))}
-                                />
-                            </div>
-
-                            {/* Stop Loss */}
-                            <div className="form-field-group">
-                                <label className="form-label">Stop Loss (Optional)</label>
-                                <input 
-                                    type="number" 
-                                    step="0.05"
-                                    className="form-input" 
-                                    placeholder="Optional protective stop" 
-                                    value={orderForm.stop_loss}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, stop_loss: e.target.value }))}
-                                />
-                            </div>
-
-                            {/* Conviction Level */}
-                            <div className="form-field-group">
-                                <label className="form-label">Conviction Level</label>
-                                <select 
-                                    className="form-select"
-                                    value={orderForm.conviction_level}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, conviction_level: e.target.value }))}
-                                >
-                                    <option value="High">High Conviction</option>
-                                    <option value="Medium">Medium Conviction</option>
-                                    <option value="Low">Low / Speculative</option>
-                                    <option value="Experimental">Thesis Testing</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="form-grid-3">
-                            {/* Strategy */}
-                            <div className="form-field-group">
-                                <label className="form-label">Strategy / Setup Used</label>
-                                <select 
-                                    className="form-select"
-                                    value={orderForm.strategy}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, strategy: e.target.value }))}
-                                >
-                                    {STRATEGY_OPTIONS.map((strat, idx) => (
-                                        <option key={idx} value={strat}>{strat}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Trade Date */}
-                            <div className="form-field-group">
-                                <label className="form-label">Execution Date</label>
-                                <input 
-                                    type="date" 
-                                    className="form-input"
-                                    value={orderForm.trade_date}
-                                    onChange={(e) => setOrderForm(prev => ({ ...prev, trade_date: e.target.value }))}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-field-group" style={{ marginBottom: '1.5rem' }}>
-                            <label className="form-label">Pre-Trade Thesis & Notes (Why this stock now?)</label>
-                            <textarea 
-                                rows="3"
-                                className="form-textarea"
-                                placeholder="Write down your conviction, technical triggers, support/resistance levels, or fundamental news..."
-                                value={orderForm.notes}
-                                onChange={(e) => setOrderForm(prev => ({ ...prev, notes: e.target.value }))}
-                            ></textarea>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button type="button" className="btn-paper-action btn-secondary" onClick={() => setShowOrderPad(false)}>
-                                Cancel
-                            </button>
-                            <button type="submit" className="btn-paper-action btn-new-trade" disabled={submitting}>
-                                {submitting ? 'Placing Order...' : `Execute simulated ${orderForm.holding_type === 'INVESTMENT' ? 'Investment' : 'Buy Trade'} `}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
             {/* Main Workspace Navigation Bar */}
             <div className="workspace-section">
@@ -942,6 +667,17 @@ export default function PaperTrade() {
                         <div className="modal-header">
                             <h3><span><Coins size={18} /></span> Manage Virtual Wallet & Funds</h3>
                             <button className="btn-close-pad" onClick={() => setShowFundsModal(false)}><X size={16} /></button>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Current Available Funds:</span>
+                                <span style={{ color: '#34d399', fontWeight: 600 }}>{formatCurrency(summary.available_cash)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Total Deposited (History):</span>
+                                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formatCurrency(summary.total_added_capital)}</span>
+                            </div>
                         </div>
 
                         {fundMessage && (

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { TrendingUp, Briefcase, FileText, Shield, Settings } from 'lucide-react';
+import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -8,7 +8,7 @@ import TS2Logo from '../../assets/TS2.png';
 const navItems = [
     { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
     { to: '/watchlist',    label: 'Watchlist',    icon: <TrendingUp size={18} />, key: 'watchlist' },
-    { to: '/intelligence', label: 'Intelligence', icon: '⚡', key: 'intelligence', alwaysShow: true },
+    { to: '/intelligence', label: 'Intelligence', icon: <Zap size={18} />, key: 'intelligence', alwaysShow: true },
     { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
     { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
     { to: '/paper-trade',  label: 'Paper Trading',icon: <Briefcase size={18} />, key: 'paperTrade' },

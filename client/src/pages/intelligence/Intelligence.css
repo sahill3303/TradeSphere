@@ -7,10 +7,10 @@
 
 /* ── Page Shell ─────────────────────────────────────────────── */
 .intel-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-md) var(--space-md) var(--space-xl);
   animation: fadeInUp 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 @keyframes fadeInUp {
@@ -60,7 +60,6 @@
 .intel-refresh-btn.spinning svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Pipeline Status Bar ────────────────────────────────────── */
 .intel-status-bar {
   display: flex;
   align-items: center;
@@ -69,7 +68,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 0.9rem 1.25rem;
-  margin-bottom: var(--space-lg);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -548,7 +546,6 @@
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .intel-page {
-    padding: 0 0.15rem var(--space-lg);
     width: 100%;
     box-sizing: border-box;
   }

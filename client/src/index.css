@@ -1,9 +1,9 @@
 /* ============================================================
    TradeSphere — Black + Gold Trading Dashboard
-   Dark mode by default. Noto Sans typography.
+   Dark mode by default. Inter & Outfit typography.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
 
 /* ──────────────────────────────────────────────────────────
@@ -47,8 +47,8 @@
   /* Layout */
   --sidebar-width: 240px;
   --navbar-height: 56px;
-  --page-padding: 1rem;
-  --page-padding-mobile: 0.75rem;
+  --page-padding: 1.5rem;
+  --page-padding-mobile: 1.25rem;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -59,8 +59,8 @@
   --space-2xl: 2.5rem;
 
   /* Typography */
-  --font-family: 'Noto Sans', system-ui, sans-serif;
-  --font-heading: 'Noto Sans', system-ui, sans-serif;
+  --font-family: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.9375rem;
@@ -252,6 +252,7 @@ svg {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid rgba(150, 150, 150, 0.1);
+  border-top: 1px solid rgba(150, 150, 150, 0.1);
   display: flex;
   flex-direction: column;
   z-index: 100;
@@ -430,11 +431,13 @@ svg {
   background: var(--color-danger-soft);
 }
 
-/* Sidebar mobile overlay */
 .sidebar-overlay {
   display: none;
   position: fixed;
-  inset: 0;
+  top: 38px;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: rgba(0, 0, 0, 0.75);
   z-index: 99;
   backdrop-filter: blur(2px);
@@ -480,6 +483,24 @@ svg {
 
 .navbar__menu-btn:hover {
   color: var(--color-text);
+}
+
+.navbar__brand-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 769px) {
+  .navbar__brand-container {
+    position: absolute;
+    left: calc(var(--sidebar-width) + var(--page-padding));
+    transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  
+  .layout--collapsed .navbar__brand-container {
+    left: calc(80px + var(--page-padding));
+  }
 }
 
 .navbar__title {
@@ -2015,7 +2036,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
-    top: 0;
+    top: 38px;
     z-index: 3000;
   }
 

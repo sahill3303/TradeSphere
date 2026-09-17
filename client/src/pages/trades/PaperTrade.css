@@ -1,7 +1,6 @@
 /* ── Premium Paper Trading & Virtual Portfolio Styling ── */
 
 .paper-trade-container {
-    padding: 1.5rem 2rem;
     max-width: 1600px;
     margin: 0 auto;
     color: var(--color-text, #e2e8f0);
@@ -677,9 +676,6 @@
 }
 
 @media (max-width: 768px) {
-    .paper-trade-container {
-        padding: 1rem 0.75rem;
-    }
     .paper-trade-header {
         flex-direction: column;
         align-items: stretch;
@@ -739,7 +735,7 @@
         grid-template-columns: 1fr;
     }
     .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 0.75rem;
     }
     

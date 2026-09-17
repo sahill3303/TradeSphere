@@ -533,37 +533,39 @@ export default function Intelligence() {
   };
 
   return (
-    <div className="page">
-      <div className="intel-page">
+    <div className="page intel-page">
 
-        {/* ── Header ── */}
-        <div className="intel-page__header">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <h1 className="intel-page__title"><Zap size={24} style={{marginRight:'8px'}}/> Market Intelligence</h1>
-              {hasPersonalized && (
-                <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', cursor: 'help', fontWeight: 600 }}>
-                  ✨ PERSONALIZED
-                </span>
-              )}
-            </div>
-            <p className="intel-page__subtitle">
-              AI analyst — not a news feed. Every event is analysed for market impact.
-            </p>
+      {/* ── Header ── */}
+      <header className="page__header" style={{ marginBottom: '0.5rem' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h1 className="page__title">
+              Market Intelligence
+            </h1>
+            {hasPersonalized && (
+              <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', cursor: 'help', fontWeight: 600, fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                ✨ PERSONALIZED
+              </span>
+            )}
           </div>
-          <button
-            id="intel-refresh-btn"
-            className={`intel-refresh-btn ${refreshing ? 'spinning' : ''}`}
-            onClick={triggerPipeline}
-            disabled={refreshing}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M1 4v6h6M23 20v-6h-6"/>
-              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-            </svg>
-            {refreshing ? 'Analysing…' : 'Run Pipeline'}
-          </button>
+          <p className="page__subtitle">
+            AI analyst — not a news feed. Every event is analysed for market impact.
+          </p>
         </div>
+        <button
+          id="intel-refresh-btn"
+          className={`intel-refresh-btn ${refreshing ? 'spinning' : ''}`}
+          onClick={triggerPipeline}
+          disabled={refreshing}
+          style={{ marginLeft: 'auto' }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M1 4v6h6M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>
+          {refreshing ? 'Analysing…' : 'Run Pipeline'}
+        </button>
+      </header>
 
         {/* ── Pipeline Status Strip ── */}
         <div className="intel-status-bar">
@@ -587,7 +589,7 @@ export default function Intelligence() {
         </div>
 
         {/* ── Search Bar ── */}
-        <div style={{ marginBottom: 'var(--space-md)' }}>
+        <div>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <input 
@@ -674,7 +676,7 @@ export default function Intelligence() {
 
         {/* ── Error ── */}
         {error && (
-          <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>
+          <div className="alert alert--error">
             {error}
           </div>
         )}
@@ -729,6 +731,5 @@ export default function Intelligence() {
           </div>
         )}
       </div>
-    </div>
   );
 }
