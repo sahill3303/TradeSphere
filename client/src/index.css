@@ -307,6 +307,20 @@ svg {
   gap: 0.25rem;
 }
 
+.sidebar__group {
+  margin-bottom: 0.75rem;
+}
+
+.sidebar__group-title {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.85rem;
+}
+
 
 .sidebar__link {
   display: flex;

@@ -5,15 +5,35 @@ import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import TS2Logo from '../../assets/TS2.png';
 
-const navItems = [
-    { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
-    { to: '/watchlist',    label: 'Watchlist',    icon: <TrendingUp size={18} />, key: 'watchlist' },
-    { to: '/intelligence', label: 'Intelligence', icon: <Zap size={18} />, key: 'intelligence', alwaysShow: true },
-    { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
-    { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
-    { to: '/paper-trade',  label: 'Paper Trading',icon: <Briefcase size={18} />, key: 'paperTrade' },
-    { to: '/analysis',     label: 'Research',     icon: '🔬', key: 'analysis' },
-    { to: '/notes',        label: 'Notes',        icon: <FileText size={18} />, key: 'notes' },
+const navGroups = [
+    {
+        title: 'MARKET',
+        items: [
+            { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
+            { to: '/watchlist',    label: 'Watchlist',    icon: <TrendingUp size={18} />, key: 'watchlist' },
+            { to: '/intelligence', label: 'Intelligence', icon: <Zap size={18} />, key: 'intelligence', alwaysShow: true },
+        ]
+    },
+    {
+        title: 'TRADING',
+        items: [
+            { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
+            { to: '/paper-trade',  label: 'Paper Trading',icon: <Briefcase size={18} />, key: 'paperTrade' },
+        ]
+    },
+    {
+        title: 'RESEARCH',
+        items: [
+            { to: '/analysis',     label: 'Research',     icon: '🔬', key: 'analysis' },
+            { to: '/notes',        label: 'Notes',        icon: <FileText size={18} />, key: 'notes' },
+        ]
+    },
+    {
+        title: 'MANAGEMENT',
+        items: [
+            { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
+        ]
+    }
 ];
 
 export default function Sidebar({ isOpen, isCollapsed, onClose }) {
@@ -49,22 +69,32 @@ export default function Sidebar({ isOpen, isCollapsed, onClose }) {
                                 </NavLink>
                             </li>
                         ) : (
-                            navItems
-                                .filter(item => item.alwaysShow || item.key === 'dashboard' || (sidebarFeatures?.[item.key] ?? true))
-                                .map(({ to, label, icon }) => (
-                                <li key={to} className="sidebar__item">
-                                    <NavLink
-                                        to={to}
-                                        onClick={onClose}
-                                        className={({ isActive }) =>
-                                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
-                                        }
-                                    >
-                                        <span className="sidebar__icon">{icon}</span>
-                                        <span className="sidebar__label">{label}</span>
-                                    </NavLink>
-                                </li>
-                            ))
+                            navGroups.map((group) => {
+                                const visibleItems = group.items.filter(item => item.alwaysShow || item.key === 'dashboard' || (sidebarFeatures?.[item.key] ?? true));
+                                if (visibleItems.length === 0) return null;
+                                
+                                return (
+                                    <li key={group.title} className="sidebar__group">
+                                        <div className="sidebar__group-title">{group.title}</div>
+                                        <ul className="sidebar__list">
+                                            {visibleItems.map(({ to, label, icon }) => (
+                                                <li key={to} className="sidebar__item">
+                                                    <NavLink
+                                                        to={to}
+                                                        onClick={onClose}
+                                                        className={({ isActive }) =>
+                                                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                                                        }
+                                                    >
+                                                        <span className="sidebar__icon">{icon}</span>
+                                                        <span className="sidebar__label">{label}</span>
+                                                    </NavLink>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </li>
+                                );
+                            })
                         )}
                         {user?.role !== 'superadmin' && (
                             <li className="sidebar__item" style={{ marginTop: 'auto', paddingTop: '1rem' }}>
