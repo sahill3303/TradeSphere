@@ -77,7 +77,7 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                         fontWeight: 800,
                         letterSpacing: '-0.02em',
                         color: 'var(--color-text)',
-                    }}>TradeSphere</span>
+                    }}>Trade<span className="text-gold">Sphere</span></span>
                 </div>
             </div>
 

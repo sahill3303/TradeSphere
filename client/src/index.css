@@ -1662,7 +1662,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-family: var(--font-heading);
   font-size: 1.2rem;
   font-weight: 700;
-  color: #d4af37 !important; /* Gold logo text */
 }
 
 .auth-card__title {
@@ -1867,14 +1866,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   .auth-info {
-    display: flex;
-    padding: 0.75rem 1.5rem;
-    border-right: none;
-    border-bottom: none;
-    flex: none;
-    overflow: visible;
-    background: transparent;
-    justify-content: center;
+    display: none;
   }
 
   .auth-info::before {
@@ -2601,7 +2593,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
   
   .layout--collapsed .sidebar__brand-name,
-  .layout--collapsed .sidebar__label {
+  .layout--collapsed .sidebar__label,
+  .layout--collapsed .sidebar__group-title {
     opacity: 0;
     visibility: hidden;
     width: 0;

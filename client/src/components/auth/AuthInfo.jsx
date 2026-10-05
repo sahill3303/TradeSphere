@@ -19,7 +19,7 @@ const AuthInfo = () => {
                             v2.4.0 Live
                         </div>
                         <h1 className="auth-info__title">
-                            Master Your Trades<br />with <span className="text-gold">TradeSphere</span>
+                            Master Your Trades<br />with <span><span style={{ color: 'var(--color-text)' }}>Trade</span><span className="text-gold">Sphere</span></span>
                         </h1>
                         <p className="auth-info__description">
                             The ultimate all-in-one ecosystem for modern traders.<br />Stop juggling spreadsheets and start making<br />data-driven decisions.
@@ -28,7 +28,7 @@ const AuthInfo = () => {
 
 
                         <div style={{ marginTop: '2.5rem' }}>
-                            <Link to="/about" className="auth-info__primary-btn">
+                            <Link to="/" className="auth-info__primary-btn">
                                 Discover TradeSphere →
                             </Link>
                         </div>
@@ -53,7 +53,7 @@ const AuthInfo = () => {
 
                 {/* Mobile view — compact, just the CTA button */}
                 <div className="auth-info--mobile">
-                    <Link to="/about" className="auth-info__primary-btn" style={{ width: '100%', textAlign: 'center' }}>
+                    <Link to="/" className="auth-info__primary-btn" style={{ width: '100%', textAlign: 'center' }}>
                         Discover TradeSphere →
                     </Link>
                 </div>

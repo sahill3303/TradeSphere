@@ -13,7 +13,7 @@ export default function ForgotPassword() {
                         <div className="auth-card__logo-mark">
                             <img src={TS2Logo} alt="TradeSphere Logo" />
                         </div>
-                        <span className="auth-card__logo-text">TradeSphere</span>
+                        <span className="auth-card__logo-text">Trade<span className="text-gold">Sphere</span></span>
                     </div>
 
                     <h2 className="auth-card__title" style={{ textAlign: 'center' }}>Reset Password</h2>

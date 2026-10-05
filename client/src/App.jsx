@@ -10,6 +10,7 @@ import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import Landing from './pages/public/Landing';
 import Welcome from './pages/welcome/Welcome';
 import AboutApp from './pages/about/AboutApp';
 
@@ -75,7 +76,7 @@ export default function App() {
                 </Route>
 
                 {/* Fallback */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Landing />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </BrowserRouter>

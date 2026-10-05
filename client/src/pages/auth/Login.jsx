@@ -113,12 +113,14 @@ export default function Login() {
                 
                 <div className="auth-card">
                     {/* Logo */}
-                    <div className="auth-card__logo">
-                        <div className="auth-card__logo-mark">
-                            <img src={TS2Logo} alt="TradeSphere Logo" />
+                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: 'fit-content' }}>
+                        <div className="auth-card__logo" style={{ cursor: 'pointer' }}>
+                            <div className="auth-card__logo-mark">
+                                <img src={TS2Logo} alt="TradeSphere Logo" />
+                            </div>
+                            <span className="auth-card__logo-text">Trade<span className="text-gold">Sphere</span></span>
                         </div>
-                        <span className="auth-card__logo-text">TradeSphere</span>
-                    </div>
+                    </Link>
 
                     <h2 className="auth-card__title">Welcome back</h2>
                     <p className="auth-card__subtitle">Sign in to your trading dashboard</p>
