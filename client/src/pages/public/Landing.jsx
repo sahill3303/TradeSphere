@@ -89,7 +89,7 @@ export default function Landing() {
       {/* 1. NAVIGATION */}
       <nav className="landing-nav">
         <div className="landing-nav__left">
-          <div className="landing-nav__brand">
+          <div className="landing-nav__brand" onClick={() => window.scrollTo(0,0)} style={{ cursor: 'pointer' }}>
             <img src={TS2Logo} alt="TradeSphere" style={{ width: '32px', height: '32px' }} />
             <span>Trade<span className="text-gold">Sphere</span></span>
           </div>
@@ -133,6 +133,9 @@ export default function Landing() {
         <div className="hero-actions">
           <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Free Trial</button>
           <button className="landing-btn landing-btn--outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => navigate('/explore')}>Explore the Platform</button>
+        </div>
+        <div style={{ marginTop: '1.5rem', fontSize: '0.95rem', color: 'var(--color-text-dim)' }}>
+          Already have an account? <Link to="/login" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 600, marginLeft: '4px' }}>Log In</Link>
         </div>
         
         <div className="hero-capabilities">

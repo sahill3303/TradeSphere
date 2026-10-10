@@ -36,6 +36,13 @@ export default function Layout({ children }) {
                 onClose={closeMobileMenu} 
             />
 
+            {sidebarOpen && (
+                <div 
+                    onClick={closeMobileMenu}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 998, backdropFilter: 'blur(2px)' }} 
+                />
+            )}
+
             <div className="layout__main">
                 <main className="layout__content" id="main-content">
                     {children}

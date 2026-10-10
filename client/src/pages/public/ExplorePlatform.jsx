@@ -31,7 +31,7 @@ const TooltipCard = ({ title, value, subtitle, icon, tooltipText, color = 'var(-
       <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{subtitle}</div>
 
       {isHovered && (
-        <div style={{ 
+        <div className="explore-tooltip" style={{ 
           position: 'absolute', 
           bottom: 'calc(100% + 10px)', 
           left: '50%', 
@@ -50,7 +50,7 @@ const TooltipCard = ({ title, value, subtitle, icon, tooltipText, color = 'var(-
         }}>
            <div style={{ fontWeight: 600, marginBottom: '6px', color: color }}>About {title}</div>
            {tooltipText}
-           <div style={{ 
+           <div className="explore-tooltip-arrow" style={{ 
              position: 'absolute', 
              bottom: '-6px', 
              left: '50%', 
@@ -77,7 +77,7 @@ const MonthBar = ({ month, value, isPositive, height, tooltipData }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       {isHovered && tooltipData && (
-        <div style={{ 
+        <div className="explore-tooltip" style={{ 
           position: 'absolute', 
           bottom: '100%', 
           left: '50%', 
@@ -108,7 +108,7 @@ const MonthBar = ({ month, value, isPositive, height, tooltipData }) => {
              Avg Capital: <span style={{ color: '#fff', fontWeight: 600 }}>{tooltipData.avgCapital}</span>
            </div>
            
-           <div style={{ 
+           <div className="explore-tooltip-arrow" style={{ 
              position: 'absolute', 
              bottom: '-6px', 
              left: '50%', 
@@ -181,14 +181,18 @@ export default function ExplorePlatform() {
         zIndex: 1000,
         borderBottom: '1px solid var(--color-border)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div 
+          onClick={() => navigate('/')} 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+        >
           <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '32px', height: '32px' }} />
           <span style={{ fontWeight: 700, fontSize: '1.25rem', fontFamily: 'var(--font-heading)' }}>Trade<span style={{ color: 'var(--color-gold)' }}>Sphere</span></span>
-          <span style={{ padding: '4px 10px', background: 'rgba(255,215,0,0.1)', color: 'var(--color-gold)', borderRadius: '12px', fontSize: '0.75rem', marginLeft: '1.5rem', fontWeight: 600 }}>INTERACTIVE PREVIEW</span>
+          <span className="hide-mobile" style={{ padding: '4px 10px', background: 'rgba(255,215,0,0.1)', color: 'var(--color-gold)', borderRadius: '12px', fontSize: '0.75rem', marginLeft: '1.5rem', fontWeight: 600 }}>INTERACTIVE PREVIEW</span>
         </div>
         
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button 
+            className="explore-back-btn"
             onClick={() => navigate('/')} 
             style={{ 
               background: 'transparent', 
@@ -199,7 +203,7 @@ export default function ExplorePlatform() {
               fontWeight: 500
             }}
           >
-            ← Back to Home
+            ← <span className="hide-mobile">Back to Home</span>
           </button>
           <button 
             onClick={() => navigate('/register')} 
@@ -389,6 +393,23 @@ export default function ExplorePlatform() {
         <style dangerouslySetInnerHTML={{__html: `
           .mockup-hover-card:hover > .hover-info-layer {
             opacity: 1 !important;
+          }
+          @media (max-width: 768px) {
+            .hide-mobile {
+              display: none !important;
+            }
+            .explore-tooltip {
+              position: fixed !important;
+              bottom: 20px !important;
+              left: 50% !important;
+              transform: translateX(-50%) !important;
+              width: 90vw !important;
+              max-width: 400px;
+              z-index: 9999 !important;
+            }
+            .explore-tooltip-arrow {
+              display: none !important;
+            }
           }
         `}} />
       </main>
