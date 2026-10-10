@@ -28,7 +28,7 @@ const DashboardMockup = () => (
       </div>
       
       <div className="hero-mockup-content">
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.2rem', color: '#fff' }}>Good Morning, Trader</h3>
+        <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.2rem', color: '#fff' }}>Good Morning, Trader</div>
         <p style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', marginBottom: '1.25rem' }}>Discipline today. A better tomorrow.</p>
         
         <div className="mockup-kpi-grid">
@@ -130,9 +130,12 @@ export default function Landing() {
         <p className="hero-subtitle">
           Research markets, manage trades, track performance and build a disciplined trading process — all in one place.
         </p>
-        <div className="hero-actions">
-          <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Get Started</button>
+        <div className="hero-actions" style={{ marginBottom: '0.75rem' }}>
+          <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Free Trial</button>
           <a href="#features" className="landing-btn landing-btn--outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Explore the Platform</a>
+        </div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: '3.25rem' }}>
+          No credit card required
         </div>
         
         <div className="hero-capabilities">
@@ -182,9 +185,12 @@ export default function Landing() {
       <section className="cta-section">
         <h2 className="cta-title">Trade with a process.<br/>Improve with data.</h2>
         <p className="section-subtitle">Bring your research, trades and performance into one disciplined workflow.</p>
-        <div className="cta-actions">
-          <button className="landing-btn landing-btn--primary" style={{padding: '1rem 2rem', fontSize: '1.1rem'}} onClick={() => navigate('/register')}>Get Started</button>
+        <div className="cta-actions" style={{ marginBottom: '0.75rem' }}>
+          <button className="landing-btn landing-btn--primary" style={{padding: '1rem 2rem', fontSize: '1.1rem'}} onClick={() => navigate('/register')}>Free Trial</button>
           <button className="landing-btn landing-btn--outline" style={{padding: '1rem 2rem', fontSize: '1.1rem'}} onClick={() => navigate('/login')}>Log In</button>
+        </div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
+          No credit card required
         </div>
       </section>
 

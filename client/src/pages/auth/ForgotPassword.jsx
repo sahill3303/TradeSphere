@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import TS2Logo from '../../assets/TS2.png';
 
 export default function ForgotPassword() {
+    useEffect(() => {
+        let meta = document.querySelector('meta[name="robots"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'robots';
+            document.head.appendChild(meta);
+        }
+        meta.content = 'noindex, nofollow';
+
+        return () => {
+            if (meta) meta.content = 'index, follow';
+        };
+    }, []);
     return (
         <div className="auth-page">
             <div className="auth-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>

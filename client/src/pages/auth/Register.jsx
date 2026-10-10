@@ -25,6 +25,18 @@ export default function Register() {
 
     useEffect(() => {
         setTheme('dark');
+        
+        let meta = document.querySelector('meta[name="robots"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'robots';
+            document.head.appendChild(meta);
+        }
+        meta.content = 'noindex, nofollow';
+
+        return () => {
+            if (meta) meta.content = 'index, follow';
+        };
     }, [setTheme]);
     const navigate = useNavigate();
 
@@ -141,7 +153,7 @@ export default function Register() {
                     </Link>
 
                     <h2 className="auth-card__title">Create account</h2>
-                    <p className="auth-card__subtitle">Start managing your trading portfolio</p>
+                    <p className="auth-card__subtitle">Start managing your trading portfolio. No credit card required.</p>
 
                     {error && <div className="alert alert--error" style={{ marginBottom: 'var(--space-md)' }}>{error}</div>}
 

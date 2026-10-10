@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Disallow crawling of authentication pages
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /welcome
+
+# Disallow crawling of private authenticated application routes
+Disallow: /dashboard
+Disallow: /clients
+Disallow: /trades
+Disallow: /paper-trade
+Disallow: /notes
+Disallow: /analysis
+Disallow: /watchlist
+Disallow: /intelligence
+Disallow: /settings
+Disallow: /profile
+Disallow: /super-admin
+
+Sitemap: https://www.tradesphere.in/sitemap.xml

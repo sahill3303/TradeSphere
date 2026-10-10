@@ -19,6 +19,24 @@ export default function ProtectedRoute() {
 
     const [message, setMessage] = useState('');
 
+    // Ensure protected routes are never indexed by search engines
+    useEffect(() => {
+        let meta = document.querySelector('meta[name="robots"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'robots';
+            document.head.appendChild(meta);
+        }
+        meta.content = 'noindex, nofollow';
+
+        return () => {
+            // Restore to default index, follow when leaving protected routes
+            if (meta) {
+                meta.content = 'index, follow';
+            }
+        };
+    }, []);
+
     useEffect(() => {
         if (isExpired) {
             setMessage('Hello Team TradeSphere, my trial plan has expired and I would like to extend it with the Rs 2000 monthly premium plan. Please assist me with the activation process.');

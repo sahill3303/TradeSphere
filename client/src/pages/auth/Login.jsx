@@ -15,6 +15,18 @@ export default function Login() {
 
     useEffect(() => {
         setTheme('dark');
+        
+        let meta = document.querySelector('meta[name="robots"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'robots';
+            document.head.appendChild(meta);
+        }
+        meta.content = 'noindex, nofollow';
+
+        return () => {
+            if (meta) meta.content = 'index, follow';
+        };
     }, [setTheme]);
     const navigate = useNavigate();
 
