@@ -13,6 +13,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import Landing from './pages/public/Landing';
 import Welcome from './pages/welcome/Welcome';
 import AboutApp from './pages/about/AboutApp';
+import ExplorePlatform from './pages/public/ExplorePlatform';
 
 // Info pages
 import Privacy from './pages/info/Privacy';
@@ -50,6 +51,7 @@ export default function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/about" element={<AboutApp />} />
+                <Route path="/explore" element={<ExplorePlatform />} />
                 
                 {/* Info routes */}
                 <Route path="/privacy" element={<Privacy />} />

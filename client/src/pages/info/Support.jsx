@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, MessageCircle, HelpCircle } from 'lucide-react';
 
 export default function Support() {
+    const navigate = useNavigate();
     return (
         <div className="auth-page">
             <div className="auth-container" style={{ display: 'flex', flexDirection: 'column', padding: '3rem', background: '#0B0B0D', borderRadius: 'var(--radius-xl)', maxWidth: '800px', margin: 'auto', overflowY: 'auto' }}>
@@ -18,8 +19,8 @@ export default function Support() {
                         </div>
                         <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                             <MessageCircle size={32} style={{ color: 'var(--color-gold)', margin: '0 auto 1rem' }} />
-                            <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Live Chat</h3>
-                            <p style={{ fontSize: '0.85rem' }}>Available for Premium Users<br/>9AM - 5PM EST</p>
+                            <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>WhatsApp Support</h3>
+                            <p style={{ fontSize: '0.85rem' }}>7020807574<br/>Fast Response</p>
                         </div>
                         <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                             <HelpCircle size={32} style={{ color: 'var(--color-gold)', margin: '0 auto 1rem' }} />
@@ -29,7 +30,7 @@ export default function Support() {
                     </div>
                 </div>
                 <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
-                    <Link to="/login" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 600 }}>← Back to Login</Link>
+                    <button onClick={() => navigate(-1)} style={{ color: 'var(--color-gold)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>← Back</button>
                 </div>
             </div>
         </div>

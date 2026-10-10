@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Zap, Briefcase, FileText, BarChart2, Activity, Menu, X, Shield, Users, Coins } from 'lucide-react';
+import { TrendingUp, Zap, Briefcase, FileText, BarChart2, Activity, Menu, X, Shield, Users, Coins, CheckCircle } from 'lucide-react';
 import TS2Logo from '../../assets/TS2.png';
 import './Landing.css';
 
@@ -96,7 +96,7 @@ export default function Landing() {
           <div className="landing-nav__links">
             <a href="#product" className="landing-nav__link">Product</a>
             <a href="#features" className="landing-nav__link">Features</a>
-            <Link to="/" className="landing-nav__link">How It Works</Link>
+            <Link to="/explore" className="landing-nav__link">Explore</Link>
           </div>
         </div>
         
@@ -130,12 +130,9 @@ export default function Landing() {
         <p className="hero-subtitle">
           Research markets, manage trades, track performance and build a disciplined trading process — all in one place.
         </p>
-        <div className="hero-actions" style={{ marginBottom: '0.75rem' }}>
+        <div className="hero-actions">
           <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Free Trial</button>
-          <a href="#features" className="landing-btn landing-btn--outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Explore the Platform</a>
-        </div>
-        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: '3.25rem' }}>
-          No credit card required
+          <button className="landing-btn landing-btn--outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => navigate('/explore')}>Explore the Platform</button>
         </div>
         
         <div className="hero-capabilities">
@@ -189,8 +186,19 @@ export default function Landing() {
           <button className="landing-btn landing-btn--primary" style={{padding: '1rem 2rem', fontSize: '1.1rem'}} onClick={() => navigate('/register')}>Free Trial</button>
           <button className="landing-btn landing-btn--outline" style={{padding: '1rem 2rem', fontSize: '1.1rem'}} onClick={() => navigate('/login')}>Log In</button>
         </div>
-        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-          No credit card required
+        <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', fontSize: '0.9rem', color: 'var(--color-text-dim)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <CheckCircle size={14} color="var(--color-gold)" />
+            <span>30-Day Free Trial</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <CheckCircle size={14} color="var(--color-gold)" />
+            <span>Full Premium Access</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <CheckCircle size={14} color="var(--color-gold)" />
+            <span>Cancel Anytime</span>
+          </div>
         </div>
       </section>
 

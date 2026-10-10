@@ -1,15 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Newspaper, ClipboardList, PenTool, Rocket, Target, Users, Briefcase, Sparkles } from 'lucide-react';
 import './AboutApp.css';
 
 export default function AboutApp() {
+    const navigate = useNavigate();
     return (
         <div className="about-page">
             <div className="about-page__container">
                 {/* Back button — top */}
-                <Link to="/login" className="about-back-btn about-back-btn--top">
-                    ← Back to Login
-                </Link>
+                <button onClick={() => navigate(-1)} className="about-back-btn about-back-btn--top" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                    ← Back
+                </button>
 
                 {/* Hero */}
                 <header className="about-hero">

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Privacy() {
+    const navigate = useNavigate();
     return (
         <div className="auth-page">
             <div className="auth-container" style={{ display: 'flex', flexDirection: 'column', padding: '3rem', background: '#0B0B0D', borderRadius: 'var(--radius-xl)', maxWidth: '800px', margin: 'auto', overflowY: 'auto' }}>
@@ -18,7 +19,7 @@ export default function Privacy() {
                     <p style={{ marginBottom: '1rem' }}>Your trading data is encrypted and securely stored. We use industry-standard practices to prevent unauthorized access.</p>
                 </div>
                 <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
-                    <Link to="/login" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 600 }}>← Back to Login</Link>
+                    <button onClick={() => navigate(-1)} style={{ color: 'var(--color-gold)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>← Back</button>
                 </div>
             </div>
         </div>
