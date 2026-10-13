@@ -56,7 +56,7 @@ function getMarketStatus() {
     }
 }
 
-export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) {
+export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle, isSidebarOpen }) {
     const { pathname } = useLocation();
     const navigate = useNavigate();
     const { toggleTheme, isDarkMode } = useTheme();
@@ -87,6 +87,13 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Ensure dropdown is always closed when sidebar opens
+    useEffect(() => {
+        if (isSidebarOpen) {
+            setDropdownOpen(false);
+        }
+    }, [isSidebarOpen]);
+
     const handleLogout = () => {
         setDropdownOpen(false);
         confirm({
@@ -113,6 +120,7 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                             if (window.innerWidth > 768) {
                                 onCollapseToggle();
                             } else {
+                                setDropdownOpen(false);
                                 onMenuToggle();
                             }
                         }}

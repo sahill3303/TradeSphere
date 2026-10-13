@@ -285,20 +285,28 @@ export default function DailyNews() {
 
       {/* ── Header */}
       <div className="dn-card__header">
-        <div className="dn-header-left">
-          <span className="dn-header-icon"><Zap size={18} /></span>
-          <h3>Market Intelligence</h3>
-          {isIntel && (
-            <span className="dn-live-badge">7-LAYER AI</span>
-          )}
-          {hasPersonalized && (
-            <span className="dn-live-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist" style={{ background: 'linear-gradient(45deg, #F59E0B, #D97706)', color: '#000', marginLeft: '0.5rem', cursor: 'help' }}>
-              <><Sparkles size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> PERSONALIZED</>
-            </span>
-          )}
+        <div className="dn-header-main">
+          <div className="dn-header-title-group">
+            <span className="dn-header-icon"><Zap size={18} /></span>
+            <h3>Market Intelligence</h3>
+          </div>
+          <div className="dn-header-badges">
+            {isIntel && (
+              <span className="dn-live-badge">7-LAYER AI</span>
+            )}
+            {hasPersonalized && (
+              <span className="dn-personalized-badge" title="Feed prioritized based on your portfolio, paper trades, and watchlist">
+                <Sparkles size={11} style={{ flexShrink: 0 }} />
+                <span>PERSONALIZED</span>
+              </span>
+            )}
+          </div>
         </div>
         <div className="dn-header-right">
-          <span className="dn-date"><><Calendar size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {todayLabel}</></span>
+          <span className="dn-date">
+            <Calendar size={13} style={{ flexShrink: 0 }} />
+            <span>{todayLabel}</span>
+          </span>
         </div>
       </div>
 
@@ -347,19 +355,37 @@ export default function DailyNews() {
           padding: var(--space-md) var(--space-lg);
           border-bottom: 1px solid var(--color-border);
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.6rem;
         }
-        .dn-header-left {
+        .dn-header-main {
           display: flex;
           align-items: center;
-          gap: 0.55rem;
+          gap: 0.65rem;
+          flex-wrap: wrap;
         }
-        .dn-header-icon { font-size: 1rem; }
+        .dn-header-title-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          white-space: nowrap;
+        }
+        .dn-header-icon {
+          display: inline-flex;
+          align-items: center;
+          color: var(--color-gold);
+        }
         .dn-card__header h3 {
           margin: 0;
           font-size: 0.95rem;
           font-weight: 700;
           color: var(--color-text);
+          white-space: nowrap;
+        }
+        .dn-header-badges {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+          flex-wrap: nowrap;
         }
         .dn-live-badge {
           font-size: 0.58rem;
@@ -367,13 +393,68 @@ export default function DailyNews() {
           letter-spacing: 0.08em;
           color: #000;
           background: var(--color-gold);
-          padding: 0.15rem 0.45rem;
+          padding: 0.18rem 0.5rem;
           border-radius: 4px;
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          line-height: 1 !important;
         }
-        .dn-header-right { display: flex; align-items: center; }
+        .dn-personalized-badge {
+          font-size: 0.58rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          background: linear-gradient(45deg, #F59E0B, #D97706);
+          color: #000;
+          padding: 0.18rem 0.5rem;
+          border-radius: 4px;
+          cursor: help;
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 4px !important;
+          line-height: 1 !important;
+        }
+        .dn-header-right {
+          display: flex;
+          align-items: center;
+          flex-shrink: 0;
+        }
         .dn-date {
-          font-size: 0.68rem;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 5px !important;
+          font-size: 0.72rem;
           color: var(--color-text-dim);
+          white-space: nowrap !important;
+        }
+        @media (max-width: 640px) {
+          .dn-card__header {
+            padding: 0.75rem var(--space-md);
+            gap: 0.45rem;
+          }
+          .dn-header-main {
+            width: 100%;
+            justify-content: space-between;
+            gap: 0.4rem;
+          }
+          .dn-header-right {
+            width: 100%;
+            justify-content: flex-start;
+          }
+        }
+        @media (max-width: 480px) {
+          .dn-card__header {
+            padding: 0.65rem 0.75rem;
+          }
+          .dn-card__header h3 {
+            font-size: 0.88rem;
+          }
+          .dn-date {
+            font-size: 0.68rem;
+          }
         }
         /* ── Intel Cards ── */
         .dn-items {

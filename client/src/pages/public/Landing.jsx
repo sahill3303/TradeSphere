@@ -136,8 +136,8 @@ export default function Landing() {
           <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Free Trial</button>
           <button className="landing-btn landing-btn--outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => navigate('/explore')}>Explore the Platform</button>
         </div>
-        <div style={{ marginTop: '1.5rem', fontSize: '0.95rem', color: 'var(--color-text-dim)' }}>
-          Already have an account? <Link to="/login" style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 600, marginLeft: '4px' }}>Log In</Link>
+        <div className="hero-account-link">
+          Already have an account? <Link to="/login" className="hero-account-link__anchor">Log In</Link>
         </div>
         
         <div className="hero-capabilities">

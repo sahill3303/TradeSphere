@@ -18,6 +18,20 @@ export default function Layout({ children }) {
         localStorage.setItem('ts_sidebar_collapsed', JSON.stringify(isCollapsed));
     }, [isCollapsed]);
 
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+        };
+    }, [sidebarOpen]);
+
     const toggleMobileMenu = () => setSidebarOpen(prev => !prev);
     const closeMobileMenu = () => setSidebarOpen(false);
     
@@ -31,6 +45,7 @@ export default function Layout({ children }) {
                     onMenuToggle={toggleMobileMenu} 
                     isCollapsed={isCollapsed} 
                     onCollapseToggle={toggleDesktopCollapse} 
+                    isSidebarOpen={sidebarOpen}
                 />
             </div>
 
@@ -39,13 +54,6 @@ export default function Layout({ children }) {
                     isOpen={sidebarOpen} 
                     isCollapsed={isCollapsed} 
                     onClose={closeMobileMenu} 
-                />
-            )}
-
-            {sidebarOpen && !isSuperAdmin && (
-                <div 
-                    onClick={closeMobileMenu}
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 998, backdropFilter: 'blur(2px)' }} 
                 />
             )}
 

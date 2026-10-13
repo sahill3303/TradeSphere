@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
+import TS2Logo from '../assets/TS2.png';
 
 /**
  * ProtectedRoute
@@ -70,80 +71,147 @@ export default function ProtectedRoute() {
                 justifyContent: 'center',
                 background: 'var(--color-bg, #0B0B0D)',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                fontFamily: 'var(--font-family, system-ui, sans-serif)'
             }}>
                 <style>{`
-                    .auth-loader-container {
+                    .auth-loader-wrapper {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
                         position: relative;
-                        width: 100px;
-                        height: 100px;
+                        z-index: 2;
+                    }
+                    .auth-loader-badge-container {
+                        position: relative;
+                        width: 84px;
+                        height: 84px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        margin-bottom: 2rem;
+                        margin-bottom: 1.5rem;
                     }
-                    .auth-loader-ring {
+                    .auth-loader-halo {
                         position: absolute;
-                        width: 100%;
-                        height: 100%;
+                        inset: -12px;
+                        background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, transparent 70%);
+                        filter: blur(14px);
                         border-radius: 50%;
-                        border: 2px solid transparent;
+                        animation: authPulseGlow 2.2s ease-in-out infinite alternate;
+                    }
+                    .auth-loader-spinner {
+                        position: absolute;
+                        inset: 0;
+                        border-radius: 50%;
+                        border: 2px solid rgba(212, 175, 55, 0.12);
                         border-top-color: var(--color-gold, #D4AF37);
-                        animation: authSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                        border-right-color: rgba(212, 175, 55, 0.45);
+                        animation: authSpin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
                     }
-                    .auth-loader-ring:nth-child(2) {
-                        width: 75%;
-                        height: 75%;
-                        border-top-color: transparent;
-                        border-right-color: var(--color-gold, #D4AF37);
-                        animation: authSpin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
+                    .auth-loader-logo-box {
+                        width: 52px;
+                        height: 52px;
+                        border-radius: 14px;
+                        background: var(--color-surface, #141417);
+                        border: 1px solid rgba(212, 175, 55, 0.3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+                        animation: authLogoFloat 2.4s ease-in-out infinite alternate;
                     }
-                    .auth-loader-ring:nth-child(3) {
-                        width: 50%;
-                        height: 50%;
-                        border-top-color: transparent;
-                        border-bottom-color: var(--color-gold, #D4AF37);
-                        animation: authSpin 2.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                    .auth-loader-logo-img {
+                        width: 30px;
+                        height: 30px;
+                        object-fit: contain;
                     }
-                    .auth-loader-glow {
-                        position: absolute;
-                        width: 40%;
-                        height: 40%;
-                        background: var(--color-gold, #D4AF37);
-                        border-radius: 50%;
-                        filter: blur(25px);
-                        opacity: 0.15;
-                        animation: authPulse 2s ease-in-out infinite alternate;
-                    }
-                    .auth-loader-text {
-                        color: var(--color-gold, #D4AF37);
+                    .auth-loader-brand {
                         font-family: var(--font-heading, 'Noto Sans', sans-serif);
-                        font-size: 0.95rem;
-                        font-weight: 700;
-                        letter-spacing: 0.2em;
+                        font-size: 1.35rem;
+                        font-weight: 800;
+                        letter-spacing: -0.02em;
+                        color: #FFF;
+                        margin-bottom: 0.35rem;
+                    }
+                    .auth-loader-brand-gold {
+                        color: var(--color-gold, #D4AF37);
+                    }
+                    .auth-loader-status {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-size: 0.76rem;
+                        font-weight: 600;
+                        letter-spacing: 0.12em;
                         text-transform: uppercase;
-                        animation: authFade 1.5s ease-in-out infinite alternate;
+                        color: var(--color-text-dim, #8E8E93);
+                        margin-bottom: 1rem;
+                    }
+                    .auth-loader-status-dot {
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 50%;
+                        background: var(--color-gold, #D4AF37);
+                        box-shadow: 0 0 8px var(--color-gold, #D4AF37);
+                        animation: authDotBlink 1.4s ease-in-out infinite;
+                    }
+                    .auth-loader-bar-track {
+                        width: 140px;
+                        height: 2.5px;
+                        background: rgba(255, 255, 255, 0.08);
+                        border-radius: 99px;
+                        overflow: hidden;
+                        position: relative;
+                    }
+                    .auth-loader-bar-thumb {
+                        position: absolute;
+                        top: 0;
+                        bottom: 0;
+                        width: 45%;
+                        background: linear-gradient(90deg, transparent, var(--color-gold, #D4AF37), transparent);
+                        border-radius: 99px;
+                        animation: authBarMove 1.6s ease-in-out infinite;
                     }
                     @keyframes authSpin {
                         0% { transform: rotate(0deg); }
                         100% { transform: rotate(360deg); }
                     }
-                    @keyframes authPulse {
-                        0% { opacity: 0.1; transform: scale(0.8); }
-                        100% { opacity: 0.3; transform: scale(1.2); }
+                    @keyframes authPulseGlow {
+                        0% { opacity: 0.35; transform: scale(0.9); }
+                        100% { opacity: 0.85; transform: scale(1.15); }
                     }
-                    @keyframes authFade {
-                        0% { opacity: 0.4; }
-                        100% { opacity: 1; }
+                    @keyframes authLogoFloat {
+                        0% { transform: scale(0.96); }
+                        100% { transform: scale(1.04); }
+                    }
+                    @keyframes authDotBlink {
+                        0%, 100% { opacity: 0.3; transform: scale(0.8); }
+                        50% { opacity: 1; transform: scale(1.2); }
+                    }
+                    @keyframes authBarMove {
+                        0% { left: -50%; }
+                        100% { left: 100%; }
                     }
                 `}</style>
-                <div className="auth-loader-container">
-                    <div className="auth-loader-glow"></div>
-                    <div className="auth-loader-ring"></div>
-                    <div className="auth-loader-ring"></div>
-                    <div className="auth-loader-ring"></div>
+                <div className="auth-loader-wrapper">
+                    <div className="auth-loader-badge-container">
+                        <div className="auth-loader-halo"></div>
+                        <div className="auth-loader-spinner"></div>
+                        <div className="auth-loader-logo-box">
+                            <img src={TS2Logo} alt="TradeSphere Logo" className="auth-loader-logo-img" />
+                        </div>
+                    </div>
+                    <div className="auth-loader-brand">
+                        Trade<span className="auth-loader-brand-gold">Sphere</span>
+                    </div>
+                    <div className="auth-loader-status">
+                        <span className="auth-loader-status-dot"></span>
+                        <span>Securing workspace</span>
+                    </div>
+                    <div className="auth-loader-bar-track">
+                        <div className="auth-loader-bar-thumb"></div>
+                    </div>
                 </div>
-                <div className="auth-loader-text">Authenticating...</div>
             </div>
         );
     }

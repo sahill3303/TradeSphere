@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap } from 'lucide-react';
+import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -41,8 +41,6 @@ export default function Sidebar({ isOpen, isCollapsed, onClose }) {
     const { sidebarFeatures } = usePreferences();
     const confirm = useConfirm();
 
-
-
     return (
         <>
             {isOpen && (
@@ -50,6 +48,24 @@ export default function Sidebar({ isOpen, isCollapsed, onClose }) {
             )}
 
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+                {/* Mobile Header with Brand & Close Button */}
+                <div className="sidebar__mobile-header">
+                    <div className="sidebar__mobile-brand">
+                        <img src={TS2Logo} alt="TradeSphere Logo" className="sidebar__mobile-logo" />
+                        <span className="sidebar__mobile-title">
+                            Trade<span className="text-gold">Sphere</span>
+                        </span>
+                    </div>
+                    <button 
+                        type="button" 
+                        className="sidebar__mobile-close-btn" 
+                        onClick={onClose} 
+                        aria-label="Close menu"
+                        title="Close sidebar"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
 
 
                 {/* Navigation */}
