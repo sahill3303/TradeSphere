@@ -400,7 +400,7 @@ export default function TradeDetails() {
                         <dt>Symbol</dt>      <dd style={{ fontWeight: 700 }}>{trade.stock_name}</dd>
                         <dt>Clients</dt>     <dd>{clients.length > 0 ? clients.map(c => <span key={c.client_id} className="badge badge--blue" style={{marginRight: '4px', marginBottom: '4px'}}>{c.name}</span>) : '—'}</dd>
                         <dt>Direction</dt>   <dd style={{ color: trade.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 600 }}>{trade.trade_type === 'LONG' ? '▲' : '▼'} {trade.trade_type}</dd>
-                        <dt>Mode</dt>        <dd><span className="badge badge--yellow">{trade.mode}</span></dd>
+                        <dt>Trade Type</dt>  <dd><span className="badge badge--yellow">{trade.mode}</span></dd>
                         <dt>Entry Price</dt> <dd>₹{Number(trade.entry_price).toLocaleString()}</dd>
                         <dt>Quantity</dt>    <dd>{trade.quantity}</dd>
                         <dt>Entry Date</dt>  <dd>{fmtDate(trade.trade_date) !== '—' ? fmtDate(trade.trade_date) : fmtDate(trade.created_at)}</dd>

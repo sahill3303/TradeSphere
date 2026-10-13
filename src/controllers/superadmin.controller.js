@@ -4,7 +4,7 @@ export const getAllUsers = async (req, res) => {
     try {
         const [rows] = await db.query(`
             SELECT 
-                a.id, a.name, a.email, a.role, a.created_at, a.last_login_at, a.is_frozen, a.subscription_expires_at, a.password_plain,
+                a.id, a.name, a.email, a.role, a.created_at, a.last_login_at, a.login_count, a.is_frozen, a.subscription_expires_at, a.password_plain,
                 (SELECT COUNT(*) FROM clients c WHERE c.admin_id = a.id AND c.is_deleted = FALSE) AS client_count,
                 (SELECT COUNT(*) FROM trades t WHERE t.admin_id = a.id AND t.is_deleted = FALSE) AS trade_count,
                 COALESCE((SELECT total_capital FROM capital_summary cs WHERE cs.admin_id = a.id), 0.00) AS total_capital

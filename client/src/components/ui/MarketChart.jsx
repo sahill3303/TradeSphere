@@ -6,14 +6,14 @@ import api from '../../api/axios';
  * Shows only the Current Market Price (CMP) and daily change.
  */
 const SYMBOL_MAP = {
-    'NSE:NIFTY': '%5ENSEI',
-    'NSE:BANKNIFTY': '%5ENSEBANK',
-    'NSE:FINNIFTY': '%5ENSEFIN',
-    'NSE:CNXIT': '%5ECNXIT',
-    'BSE:SENSEX': '%5EBSESN',
-    'DJI': '%5EDJI',
-    'IXIC': '%5ENDX', // Changed from ^IXIC to ^NDX (NASDAQ 100)
-    'NDX': '%5ENDX',
+    'NSE:NIFTY': 'NIFTYBEES',
+    'NSE:BANKNIFTY': 'BANKBEES',
+    'NSE:FINNIFTY': 'BANKBEES',
+    'NSE:CNXIT': 'ITBEES',
+    'BSE:SENSEX': 'SENSEXBETA',
+    'DJI': 'NIFTYBEES',
+    'IXIC': 'NIFTYBEES',
+    'NDX': 'NIFTYBEES',
 };
 
 export default function MarketChart({ 

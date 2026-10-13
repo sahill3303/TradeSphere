@@ -87,41 +87,43 @@ export default function Landing() {
   return (
     <div className="landing-page">
       {/* 1. NAVIGATION */}
-      <nav className="landing-nav">
-        <div className="landing-nav__left">
-          <div className="landing-nav__brand" onClick={() => window.scrollTo(0,0)} style={{ cursor: 'pointer' }}>
-            <img src={TS2Logo} alt="TradeSphere" style={{ width: '32px', height: '32px' }} />
-            <span>Trade<span className="text-gold">Sphere</span></span>
+      <header className="landing-header">
+        <nav className="landing-nav">
+          <div className="landing-nav__left">
+            <div className="landing-nav__brand" onClick={() => window.scrollTo(0,0)} style={{ cursor: 'pointer' }}>
+              <img src={TS2Logo} alt="TradeSphere" style={{ width: '32px', height: '32px' }} />
+              <span>Trade<span className="text-gold">Sphere</span></span>
+            </div>
+            <div className="landing-nav__links">
+              <a href="#product" className="landing-nav__link">Product</a>
+              <a href="#features" className="landing-nav__link">Features</a>
+              <Link to="/explore" className="landing-nav__link">Explore</Link>
+            </div>
           </div>
-          <div className="landing-nav__links">
-            <a href="#product" className="landing-nav__link">Product</a>
-            <a href="#features" className="landing-nav__link">Features</a>
-            <Link to="/explore" className="landing-nav__link">Explore</Link>
+          
+          <div className="landing-nav__right">
+            <button className="landing-btn landing-btn--ghost" onClick={() => navigate('/login')}>Login</button>
+            <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Sign Up</button>
           </div>
-        </div>
-        
-        <div className="landing-nav__right">
-          <button className="landing-btn landing-btn--ghost" onClick={() => navigate('/login')}>Login</button>
-          <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')}>Sign Up</button>
-        </div>
 
-        <button className="hamburger" onClick={toggleMobileMenu}>
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </nav>
+          <button className="hamburger" onClick={toggleMobileMenu} aria-label="Toggle navigation menu">
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </nav>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div style={{ background: 'var(--color-surface)', padding: '1rem', borderBottom: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <a href="#product" className="landing-nav__link" onClick={toggleMobileMenu}>Product</a>
-          <a href="#features" className="landing-nav__link" onClick={toggleMobileMenu}>Features</a>
-          <Link to="/" className="landing-nav__link" onClick={toggleMobileMenu}>How It Works</Link>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button className="landing-btn landing-btn--ghost" onClick={() => navigate('/login')} style={{flex: 1}}>Login</button>
-            <button className="landing-btn landing-btn--primary" onClick={() => navigate('/register')} style={{flex: 1}}>Sign Up</button>
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="landing-mobile-menu">
+            <a href="#product" className="landing-nav__link" onClick={() => setMobileMenuOpen(false)}>Product</a>
+            <a href="#features" className="landing-nav__link" onClick={() => setMobileMenuOpen(false)}>Features</a>
+            <Link to="/explore" className="landing-nav__link" onClick={() => setMobileMenuOpen(false)}>Explore</Link>
+            <div className="landing-mobile-menu__actions">
+              <button className="landing-btn landing-btn--ghost" onClick={() => { setMobileMenuOpen(false); navigate('/login'); }} style={{ flex: 1 }}>Login</button>
+              <button className="landing-btn landing-btn--primary" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }} style={{ flex: 1 }}>Sign Up</button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* 2. HERO SECTION */}
       <section className="hero-section">

@@ -102,8 +102,8 @@ export const loginAdmin = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password. Please try again.', code: 'INVALID_PASSWORD' });
         }
 
-        // Record last login
-        await db.query('UPDATE admins SET last_login_at = NOW() WHERE id = ?', [admin.id]);
+        // Record last login and increment count
+        await db.query('UPDATE admins SET last_login_at = NOW(), login_count = COALESCE(login_count, 0) + 1 WHERE id = ?', [admin.id]);
 
         if (!process.env.JWT_SECRET) {
             return res.status(500).json({ message: 'Server misconfiguration: JWT_SECRET not set.' });

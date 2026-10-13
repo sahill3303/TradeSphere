@@ -217,8 +217,9 @@ export const getAllTrades = async (req, res) => {
     try {
         const {
             page = 1,
-            limit = 10,
+            limit = 200,
             status,
+            mode,
             sort = "created_at",
             order = "DESC"
         } = req.query;
@@ -229,9 +230,23 @@ export const getAllTrades = async (req, res) => {
         let values = [req.user.id];
 
         if (status) {
-            where += " AND status = ?";
+            where += " AND t.status = ?";
             values.push(status);
         }
+
+        if (mode) {
+            const cleanMode = String(mode).trim().toUpperCase();
+            if (cleanMode.replace(/\s+/g, '') === 'LONGTERM') {
+                where += " AND (UPPER(t.mode) = 'LONG TERM' OR UPPER(t.mode) = 'LONGTERM')";
+            } else {
+                where += " AND UPPER(t.mode) = ?";
+                values.push(cleanMode);
+            }
+        }
+
+        const allowedSort = ['created_at', 'trade_date', 'stock_name', 'mode', 'status', 'total_pnl', 'entry_price', 'quantity'];
+        const sortCol = allowedSort.includes(sort) ? sort : 'created_at';
+        const orderDir = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
         const [rows] = await db.query(
             `SELECT 
@@ -239,7 +254,7 @@ export const getAllTrades = async (req, res) => {
                 quantity, total_pnl, status, created_at, closed_at, leverage, trade_date
              FROM trades t
              ${where}
-             ORDER BY t.${sort} ${order}
+             ORDER BY t.${sortCol} ${orderDir}
              LIMIT ? OFFSET ?`,
             [...values, Number(limit), Number(offset)]
         );

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Coins, Sparkles, BarChart2, TrendingUp, ClipboardList, PenTool, Crown, ChevronRight, Triangle, Info } from 'lucide-react';
+import { 
+    Users, Coins, Sparkles, BarChart2, TrendingUp, ClipboardList, 
+    PenTool, ChevronRight, Triangle, Info, Plus, Calendar, 
+    Sun, Moon, Sunrise, Briefcase, Crown
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import DailyNews from '../../components/dashboard/DailyNews';
@@ -152,10 +156,10 @@ export default function Dashboard() {
         (summary.totalNotes || 0) === 0 &&
         (summary.totalWatchlist || 0) === 0;
 
+    const currentHour = new Date().getHours();
     const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 18) return 'Good Afternoon';
+        if (currentHour < 12) return 'Good Morning';
+        if (currentHour < 18) return 'Good Afternoon';
         return 'Good Evening';
     };
 
@@ -165,25 +169,45 @@ export default function Dashboard() {
     return (
         <div className="page">
             {/* Header */}
-            <div className="page__header" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-                <div style={{ textAlign: 'left' }}>
-                    <h2 className="page__title">{greeting}</h2>
-                    <p className="page__subtitle">Discipline today. A better tomorrow.</p>
+            <div className="dashboard-header">
+                <div className="dashboard-header__left">
+                    <div className="dashboard-header__title-row">
+                        {currentHour < 18 ? (
+                            currentHour < 12 ? (
+                                <Sunrise size={22} className="text-gold" />
+                            ) : (
+                                <Sun size={22} className="text-gold" />
+                            )
+                        ) : (
+                            <Moon size={22} className="text-gold" />
+                        )}
+                        <h2 className="dashboard-header__title">{greeting}</h2>
+                    </div>
+                    <p className="dashboard-header__subtitle">Discipline today. A better tomorrow.</p>
                 </div>
-                <span style={{
-                    fontSize: '0.72rem',
-                    color: 'var(--color-text-dim)',
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '0.3rem 0.7rem',
-                    fontWeight: 500,
-                    letterSpacing: '0.03em',
-                    whiteSpace: 'nowrap',
-                    marginTop: '0.15rem'
-                }}>
-                    {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
+
+                <div className="dashboard-header__actions">
+                    <div className="dashboard-date-badge hide-mobile">
+                        <Calendar size={13} />
+                        <span>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                    <button 
+                        className="dashboard-action-btn dashboard-action-btn--secondary"
+                        onClick={() => navigate('/paper-trade')}
+                        title="Open paper trading terminal"
+                    >
+                        <Briefcase size={14} />
+                        <span>Open Paper Trade</span>
+                    </button>
+                    <button 
+                        className="dashboard-action-btn dashboard-action-btn--primary"
+                        onClick={() => navigate('/trades/open')}
+                        title="Log a new trade"
+                    >
+                        <Plus size={15} strokeWidth={2.5} />
+                        <span>Open Trade</span>
+                    </button>
+                </div>
             </div>
 
             {/* Errors */}
@@ -294,91 +318,110 @@ export default function Dashboard() {
 
             {/* ── Stat Cards (For Existing Users) ── */}
             {!loading && !error && summary && !isBlankState && (
-                <>
-                    <div className="stats-grid" style={{ marginBottom: '0.5rem' }}>
-                        {SUMMARY_CARDS.map(({ label, value, pnl }) => {
-                            let valueStyle = {};
-                            if (pnl !== undefined) {
-                                valueStyle = { color: pnl >= 0 ? '#34d399' : '#f87171' };
-                            } else if (label === 'Total Capital') {
-                                valueStyle = { color: 'var(--color-gold)' };
-                            } else if (label === 'Total Trades') {
-                                valueStyle = { color: '#60A5FA' };
-                            }
-
-                            const iconMap = {
-                                'Total Clients': <Users size={16} />,
-                                'Total Trades': <TrendingUp size={16} />,
-                                'Total Capital': <Coins size={16} />,
-                                'Realised P&L': <TrendingUp size={16} />
-                            };
-
-                            const subtextMap = {
-                                'Total Clients': 'Active managed accounts',
-                                'Total Trades': 'Total active & past trades',
-                                'Total Capital': 'Aggregate managed funds',
-                                'Realised P&L': 'Aggregate gross closed P&L'
-                            };
-
-                            const iconColor = STAT_COLORS[label] || 'var(--color-gold)';
-
-                            // If P&L is defined, we could show a trend. For now, we will just use the subtext.
-                            const isPositivePnl = pnl !== undefined && pnl >= 0;
-                            const isNegativePnl = pnl !== undefined && pnl < 0;
-
-                            return (
-                                <div key={label} className="kpi-card" style={{
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: '10px',
-                                    padding: '0.75rem 1rem',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    gap: '0.85rem',
-                                    alignItems: 'center',
-                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                                }}>
-                                    <div style={{
-                                        background: 'var(--color-gold-soft)',
-                                        color: 'var(--color-gold)',
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {iconMap[label] || <BarChart2 size={16} />}
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>{label}</span>
-                                            {label === 'Realised P&L' && (
-                                                <span className="custom-tooltip custom-tooltip--right" data-tooltip="* Realised P&L is gross (without tax and interest). Operating costs will be added in the future.">
-                                                    <Info size={12} color="var(--color-text-muted)" />
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px', ...valueStyle }}>
-                                            {value}
-                                        </div>
-                                        <div style={{
-                                            fontSize: '0.7rem',
-                                            color: isPositivePnl ? 'var(--color-success)' : (isNegativePnl ? 'var(--color-danger)' : 'var(--color-text-muted)'),
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            fontWeight: 500
-                                        }}>
-                                            {isPositivePnl && <Triangle size={7} fill="currentColor" />}
-                                            {isNegativePnl && <Triangle size={7} fill="currentColor" style={{ transform: 'rotate(180deg)' }} />}
-                                            <span>{subtextMap[label]}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                <div className="dashboard-kpi-grid">
+                    {/* Total Clients */}
+                    <div className="dashboard-kpi-card dashboard-kpi-card--clients">
+                        <div className="dashboard-kpi-card__top">
+                            <div className="dashboard-kpi-card__icon-box" style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)' }}>
+                                <Users size={18} />
+                            </div>
+                            <span className="dashboard-kpi-card__badge" style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)' }}>
+                                MANAGED
+                            </span>
+                        </div>
+                        <div className="dashboard-kpi-card__body">
+                            <span className="dashboard-kpi-card__label">Total Clients</span>
+                            <div className="dashboard-kpi-card__value text-gold">
+                                {summary.totalClients}
+                            </div>
+                        </div>
+                        <div className="dashboard-kpi-card__footer">
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-gold)' }} />
+                            <span>Active investor portfolios</span>
+                        </div>
                     </div>
-                </>
+
+                    {/* Total Trades */}
+                    <div className="dashboard-kpi-card dashboard-kpi-card--trades">
+                        <div className="dashboard-kpi-card__top">
+                            <div className="dashboard-kpi-card__icon-box" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8' }}>
+                                <TrendingUp size={18} />
+                            </div>
+                            <span className="dashboard-kpi-card__badge" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8' }}>
+                                VOLUME
+                            </span>
+                        </div>
+                        <div className="dashboard-kpi-card__body">
+                            <span className="dashboard-kpi-card__label">Total Trades</span>
+                            <div className="dashboard-kpi-card__value" style={{ color: '#60A5FA' }}>
+                                {summary.totalTrades}
+                            </div>
+                        </div>
+                        <div className="dashboard-kpi-card__footer">
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60A5FA' }} />
+                            <span>Lifetime closed & open positions</span>
+                        </div>
+                    </div>
+
+                    {/* Total Capital */}
+                    <div className="dashboard-kpi-card dashboard-kpi-card--capital">
+                        <div className="dashboard-kpi-card__top">
+                            <div className="dashboard-kpi-card__icon-box" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                                <Coins size={18} />
+                            </div>
+                            <span className="dashboard-kpi-card__badge" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                                POOLED AUM
+                            </span>
+                        </div>
+                        <div className="dashboard-kpi-card__body">
+                            <span className="dashboard-kpi-card__label">Total Capital</span>
+                            <div className="dashboard-kpi-card__value text-success">
+                                {fmtLakhsPlain(summary.totalCapital)}
+                            </div>
+                        </div>
+                        <div className="dashboard-kpi-card__footer">
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)' }} />
+                            <span>Aggregate managed portfolio funds</span>
+                        </div>
+                    </div>
+
+                    {/* Realised P&L */}
+                    <div className={`dashboard-kpi-card ${summary.totalPnl >= 0 ? 'dashboard-kpi-card--pnl-pos' : 'dashboard-kpi-card--pnl-neg'}`}>
+                        <div className="dashboard-kpi-card__top">
+                            <div className="dashboard-kpi-card__icon-box" style={{
+                                background: summary.totalPnl >= 0 ? 'var(--color-success-soft)' : 'var(--color-danger-soft)',
+                                color: summary.totalPnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
+                            }}>
+                                <BarChart2 size={18} />
+                            </div>
+                            <span className="dashboard-kpi-card__badge" style={{
+                                background: summary.totalPnl >= 0 ? 'var(--color-success-soft)' : 'var(--color-danger-soft)',
+                                color: summary.totalPnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
+                            }}>
+                                {summary.totalPnl >= 0 ? 'NET PROFIT' : 'DRAWDOWN'}
+                            </span>
+                        </div>
+                        <div className="dashboard-kpi-card__body">
+                            <span className="dashboard-kpi-card__label">
+                                Realised P&L
+                                <span className="custom-tooltip custom-tooltip--right" data-tooltip="* Realised P&L is gross (without tax and interest). Operating costs will be added in the future.">
+                                    <Info size={12} color="var(--color-text-muted)" />
+                                </span>
+                            </span>
+                            <div className="dashboard-kpi-card__value" style={{ color: summary.totalPnl >= 0 ? '#34d399' : '#f87171' }}>
+                                {fmtLakhs(summary.totalPnl)}
+                            </div>
+                        </div>
+                        <div className="dashboard-kpi-card__footer" style={{ color: summary.totalPnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                            {summary.totalPnl >= 0 ? (
+                                <Triangle size={8} fill="currentColor" />
+                            ) : (
+                                <Triangle size={8} fill="currentColor" style={{ transform: 'rotate(180deg)' }} />
+                            )}
+                            <span>{summary.totalPnl >= 0 ? 'Profitable aggregate closed balance' : 'Net closed drawdown'}</span>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Skeleton for loading */}
@@ -414,13 +457,22 @@ export default function Dashboard() {
             {/* ── Monthly Performance Bar Chart ── */}
             {!loading && !error && summary && !isBlankState && (
                 <div className="card" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-xl)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
-                            Monthly P&L
-                        </h3>
-                        <select style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem' }}>
-                            <option>2026</option>
-                        </select>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <BarChart2 size={18} className="text-gold" />
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
+                                Monthly Return Performance
+                            </h3>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                            <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.72rem', fontWeight: 600 }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#34d399' }}>▲ Net Gain</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#f87171' }}>▼ Net Drawdown</span>
+                            </div>
+                            <select style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', color: 'var(--color-text)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600 }}>
+                                <option>2026</option>
+                            </select>
+                        </div>
                     </div>
 
                     {monthlyLoading && <p className="status-text">Loading chart…</p>}
@@ -559,12 +611,17 @@ export default function Dashboard() {
                             borderBottom: '1px solid var(--color-border)',
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         }}>
-                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
-                                Recent Trades
-                            </h3>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
-                                Last 5
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                                    Recent Trades
+                                </h3>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                                    Latest 5
+                                </span>
+                            </div>
+                            <button className="section-header-link" onClick={() => navigate('/trades')}>
+                                View All Trades →
+                            </button>
                         </div>
 
                         {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
@@ -591,17 +648,20 @@ export default function Dashboard() {
                                             const pnlNeg = t.total_pnl < 0;
                                             return (
                                                 <tr key={t.trade_id}>
-                                                    <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>{t.stock_name}</td>
+                                                    <td style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.02em' }}>{t.stock_name}</td>
                                                     <td>
                                                         <span style={{
                                                             color: t.trade_type === 'LONG' ? 'var(--color-success)' : 'var(--color-danger)',
-                                                            fontWeight: 600, fontSize: '0.7rem',
+                                                            fontWeight: 700, fontSize: '0.7rem',
+                                                            background: t.trade_type === 'LONG' ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                                                            padding: '0.15rem 0.4rem',
+                                                            borderRadius: '4px'
                                                         }}>
                                                             {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
                                                         </span>
                                                     </td>
                                                     <td style={{
-                                                        fontWeight: 600,
+                                                        fontWeight: 700,
                                                         fontSize: '0.8rem',
                                                         color: pnlPos ? 'var(--color-success)' : pnlNeg ? 'var(--color-danger)' : 'inherit',
                                                     }}>
@@ -629,12 +689,17 @@ export default function Dashboard() {
                             borderBottom: '1px solid var(--color-border)',
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         }}>
-                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
-                                Client Activity
-                            </h3>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
-                                Last 5
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--color-text)' }}>
+                                    Client Portfolios
+                                </h3>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', background: 'var(--color-surface-alt)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                                    Latest 5
+                                </span>
+                            </div>
+                            <button className="section-header-link" onClick={() => navigate('/clients')}>
+                                Manage Clients →
+                            </button>
                         </div>
 
                         {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}

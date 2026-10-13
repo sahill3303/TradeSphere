@@ -1,221 +1,176 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Coins, Activity, BarChart2, PieChart, Target, ChevronDown } from 'lucide-react';
+import { 
+  Users, Coins, BarChart2, TrendingUp, Triangle, Info, 
+  ArrowLeft, ChevronDown 
+} from 'lucide-react';
 import TS2Logo from '../../assets/TS2.png';
+import Profitability from '../../components/dashboard/Profitability';
 
-const TooltipCard = ({ title, value, subtitle, icon, tooltipText, color = 'var(--color-gold)' }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  return (
-    <div 
-      style={{ 
-        position: 'relative', 
-        background: 'var(--color-surface)', 
-        border: `1px solid ${isHovered ? color : 'var(--color-border)'}`, 
-        borderRadius: '12px', 
-        padding: '1.5rem', 
-        cursor: 'help', 
-        transition: 'all 0.2s',
-        boxShadow: isHovered ? `0 0 15px ${color}20` : 'none'
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <div style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{title}</div>
-        <div style={{ color: color, background: `${color}15`, padding: '8px', borderRadius: '8px' }}>
-          {icon}
-        </div>
-      </div>
-      <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '0.25rem' }}>{value}</div>
-      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{subtitle}</div>
-
-      {isHovered && (
-        <div className="explore-tooltip" style={{ 
-          position: 'absolute', 
-          bottom: 'calc(100% + 10px)', 
-          left: '50%', 
-          transform: 'translateX(-50%)', 
-          background: '#1A1A1D', 
-          color: '#E0E0E0', 
-          padding: '12px 16px', 
-          borderRadius: '8px', 
-          fontSize: '0.85rem', 
-          width: '260px', 
-          zIndex: 50, 
-          boxShadow: '0 10px 30px rgba(0,0,0,0.8)', 
-          border: '1px solid #333',
-          lineHeight: 1.5,
-          pointerEvents: 'none'
-        }}>
-           <div style={{ fontWeight: 600, marginBottom: '6px', color: color }}>About {title}</div>
-           {tooltipText}
-           <div className="explore-tooltip-arrow" style={{ 
-             position: 'absolute', 
-             bottom: '-6px', 
-             left: '50%', 
-             transform: 'translateX(-50%) rotate(45deg)', 
-             width: '12px', 
-             height: '12px', 
-             background: '#1A1A1D', 
-             borderRight: '1px solid #333', 
-             borderBottom: '1px solid #333' 
-           }}></div>
-        </div>
-      )}
-    </div>
-  );
+const sampleSummary = {
+  totalClients: 14,
+  totalTrades: 156,
+  totalCapital: 12500000,
+  totalPnl: 845000,
+  wins: 106,
+  losses: 50,
+  winRate: 68,
+  avgWin: 42500,
+  avgLoss: 18200,
+  profitFactor: 2.33,
 };
 
-const MonthBar = ({ month, value, isPositive, height, tooltipData }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  return (
-    <div 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', width: '40px', cursor: 'help' }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isHovered && tooltipData && (
-        <div className="explore-tooltip" style={{ 
-          position: 'absolute', 
-          bottom: '100%', 
-          left: '50%', 
-          transform: 'translateX(-50%) translateY(-10px)', 
-          background: '#1A1A1D', 
-          color: '#E0E0E0', 
-          padding: '16px', 
-          borderRadius: '8px', 
-          fontSize: '0.85rem', 
-          width: '220px', 
-          zIndex: 50, 
-          boxShadow: '0 10px 30px rgba(0,0,0,0.8)', 
-          border: '1px solid #333',
-          pointerEvents: 'none'
-        }}>
-           <div style={{ fontWeight: 700, marginBottom: '12px', color: '#fff', fontSize: '0.9rem' }}>{tooltipData.title}</div>
-           
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-             {tooltipData.items.map((item, i) => (
-               <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                 <span style={{ color: 'var(--color-text-dim)' }}>{item.name}</span>
-                 <span style={{ color: item.isPositive ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 600 }}>{item.val}</span>
-               </div>
-             ))}
-           </div>
-           
-           <div style={{ borderTop: '1px solid #333', paddingTop: '12px', fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-             Avg Capital: <span style={{ color: '#fff', fontWeight: 600 }}>{tooltipData.avgCapital}</span>
-           </div>
-           
-           <div className="explore-tooltip-arrow" style={{ 
-             position: 'absolute', 
-             bottom: '-6px', 
-             left: '50%', 
-             transform: 'translateX(-50%) rotate(45deg)', 
-             width: '12px', 
-             height: '12px', 
-             background: '#1A1A1D', 
-             borderRight: '1px solid #333', 
-             borderBottom: '1px solid #333' 
-           }}></div>
-        </div>
-      )}
-
-      {/* Bar Area (fixed height container to align baseline) */}
-      <div style={{ height: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', marginBottom: '8px', width: '100%' }}>
-        {isPositive && (
-          <div style={{ 
-            height: height, 
-            width: '100%', 
-            background: 'var(--color-success)', 
-            borderRadius: '2px 2px 0 0',
-            opacity: isHovered ? 1 : 0.85,
-            transition: 'opacity 0.2s'
-          }}></div>
-        )}
-      </div>
-
-      {/* Label & Value */}
-      <div style={{ height: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', color: isPositive ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 600, marginBottom: '4px' }}>
-          {isPositive ? `+${value}` : `-${value}`}
-        </span>
-        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{month}</span>
-      </div>
-
-      {/* Negative Bar Area */}
-      <div style={{ height: '60px', width: '100%' }}>
-        {!isPositive && (
-          <div style={{ 
-            height: height, 
-            width: '100%', 
-            background: 'var(--color-danger)', 
-            borderRadius: '0 0 2px 2px',
-            opacity: isHovered ? 1 : 0.85,
-            transition: 'opacity 0.2s',
-            marginTop: '20px'
-          }}></div>
-        )}
-      </div>
-    </div>
-  );
-};
+const sampleMonthlyPerformance = [
+  {
+    month: 'Apr',
+    returnPercentage: -1.7,
+    stocks: [
+      { stock_name: 'HDFCBANK', returnPercentage: -1.2 },
+      { stock_name: 'RELIANCE', returnPercentage: -0.5 },
+    ],
+    averageCapital: 850000,
+  },
+  {
+    month: 'May',
+    returnPercentage: 13.1,
+    stocks: [
+      { stock_name: 'MARKSANS', returnPercentage: 7.4 },
+      { stock_name: 'CGCL', returnPercentage: 3.8 },
+      { stock_name: 'ADANIENT', returnPercentage: 3.5 },
+      { stock_name: 'DRREDDY', returnPercentage: -1.6 },
+    ],
+    averageCapital: 970044,
+  },
+  {
+    month: 'Jun',
+    returnPercentage: 2.5,
+    stocks: [
+      { stock_name: 'TCS', returnPercentage: 1.8 },
+      { stock_name: 'INFY', returnPercentage: 0.7 },
+    ],
+    averageCapital: 1020000,
+  },
+  {
+    month: 'Jul',
+    returnPercentage: 4.5,
+    stocks: [
+      { stock_name: 'BAJFINANCE', returnPercentage: 3.2 },
+      { stock_name: 'SBIN', returnPercentage: 1.3 },
+    ],
+    averageCapital: 1100000,
+  },
+  {
+    month: 'Aug',
+    returnPercentage: 2.8,
+    stocks: [
+      { stock_name: 'ICICIBANK', returnPercentage: 2.1 },
+      { stock_name: 'LT', returnPercentage: 0.7 },
+    ],
+    averageCapital: 1180000,
+  },
+  {
+    month: 'Sep',
+    returnPercentage: 5.2,
+    stocks: [
+      { stock_name: 'TATAMOTORS', returnPercentage: 3.4 },
+      { stock_name: 'BHARTIARTL', returnPercentage: 1.8 },
+    ],
+    averageCapital: 1250000,
+  },
+];
 
 export default function ExplorePlatform() {
   const navigate = useNavigate();
+  const [hoveredMonth, setHoveredMonth] = useState(null);
+
+  const maxAbs = Math.max(...sampleMonthlyPerformance.map(m => Math.abs(m.returnPercentage || 0)), 1);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0B0B0D', color: 'var(--color-text)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg, #0B0B0D)', color: 'var(--color-text)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Top Navbar */}
-      <header style={{ 
+      <header className="explore-header" style={{ 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '1.5rem 5%',
+        padding: '0.85rem 5%',
         position: 'sticky',
         top: 0,
-        backgroundColor: 'rgba(11, 11, 13, 0.9)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(11, 11, 13, 0.95)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         zIndex: 1000,
-        borderBottom: '1px solid var(--color-border)'
+        borderBottom: '1px solid var(--color-border)',
+        gap: '0.75rem'
       }}>
-        <div 
-          onClick={() => navigate('/')} 
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
-        >
-          <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '32px', height: '32px' }} />
-          <span style={{ fontWeight: 700, fontSize: '1.25rem', fontFamily: 'var(--font-heading)' }}>Trade<span style={{ color: 'var(--color-gold)' }}>Sphere</span></span>
-          <span className="hide-mobile" style={{ padding: '4px 10px', background: 'rgba(255,215,0,0.1)', color: 'var(--color-gold)', borderRadius: '12px', fontSize: '0.75rem', marginLeft: '1.5rem', fontWeight: 600 }}>INTERACTIVE PREVIEW</span>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <button 
             className="explore-back-btn"
             onClick={() => navigate('/')} 
+            title="Back to Home"
             style={{ 
-              background: 'transparent', 
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              background: 'var(--color-surface)', 
               color: 'var(--color-text)', 
-              border: 'none', 
+              border: '1px solid var(--color-border)', 
+              borderRadius: 'var(--radius-full)',
+              padding: '0.42rem 0.9rem',
               cursor: 'pointer', 
-              fontSize: '0.95rem',
-              fontWeight: 500
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              transition: 'all 0.2s',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-gold)';
+              e.currentTarget.style.color = 'var(--color-gold)';
+              e.currentTarget.style.background = 'var(--color-gold-soft)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border)';
+              e.currentTarget.style.color = 'var(--color-text)';
+              e.currentTarget.style.background = 'var(--color-surface)';
             }}
           >
-            ← <span className="hide-mobile">Back to Home</span>
+            <ArrowLeft size={15} />
+            <span>Back</span>
           </button>
+
+          <div 
+            onClick={() => navigate('/')} 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer' }}
+          >
+            <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '28px', height: '28px' }} />
+            <span className="hide-mobile" style={{ fontWeight: 700, fontSize: '1.15rem', fontFamily: 'var(--font-heading)' }}>
+              Trade<span style={{ color: 'var(--color-gold)' }}>Sphere</span>
+            </span>
+          </div>
+
+          <span className="hide-mobile" style={{ 
+            padding: '3px 9px', 
+            background: 'rgba(212,175,55,0.1)', 
+            color: 'var(--color-gold)', 
+            borderRadius: '12px', 
+            fontSize: '0.72rem', 
+            fontWeight: 700, 
+            letterSpacing: '0.04em',
+            border: '1px solid rgba(212,175,55,0.25)' 
+          }}>
+            INTERACTIVE PREVIEW
+          </span>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button 
+            className="landing-btn landing-btn--primary"
             onClick={() => navigate('/register')} 
             style={{ 
-              background: 'var(--color-gold)', 
-              color: 'var(--color-bg)', 
-              border: 'none', 
-              borderRadius: '6px',
-              padding: '0.5rem 1rem',
-              cursor: 'pointer', 
-              fontSize: '0.95rem',
-              fontWeight: 600
+              padding: '0.5rem 1.15rem', 
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              borderRadius: 'var(--radius-md)'
             }}
           >
             Start Free Trial
@@ -224,194 +179,253 @@ export default function ExplorePlatform() {
       </header>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      <main style={{ flex: 1, padding: '2rem 5%', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
         
-        <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.75rem', color: '#fff' }}>Dashboard Overview</h1>
-          <p style={{ color: 'var(--color-text-dim)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
-            Hover over any card or chart below to see how TradeSphere calculates and visualizes your trading performance.
+        {/* Title Header */}
+        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.45rem', color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
+            Dashboard Overview
+          </h1>
+          <p style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', maxWidth: '620px', margin: '0 auto', lineHeight: 1.5 }}>
+            Interactive preview of TradeSphere's performance engine, analytics, and metrics.
           </p>
         </div>
 
         {/* Dashboard Grid Container */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Row 1: Top KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-            <TooltipCard 
-              title="Total Clients" 
-              value="14" 
-              subtitle="Active managed accounts" 
-              icon={<Users size={20} />} 
-              color="#3b82f6"
-              tooltipText="Manage multiple client portfolios from a single master account. Benefit: Streamlines operations for trading consultants and advisors."
-            />
-            <TooltipCard 
-              title="Total Trades" 
-              value="156" 
-              subtitle="Total active & past trades" 
-              icon={<Activity size={20} />} 
-              color="#a855f7"
-              tooltipText="Every trade is automatically logged and linked to its respective client. Benefit: Replaces manual spreadsheets with an automated, error-free journal."
-            />
-            <TooltipCard 
-              title="Total Capital" 
-              value="₹1.25Cr" 
-              subtitle="Aggregate managed funds" 
-              icon={<Coins size={20} />} 
-              color="#22c55e"
-              tooltipText="The sum of all active capital across your accounts. Benefit: Gives you a bird's eye view of your total market exposure."
-            />
-            <TooltipCard 
-              title="Realised P&L" 
-              value="+₹8.45L" 
-              subtitle="Aggregate gross closed P&L" 
-              icon={<TrendingUp size={20} />} 
-              color="#22c55e"
-              tooltipText="Your actual realized profits after closing positions. Benefit: Accurately tracks your net growth over time with precision."
-            />
-          </div>
-
-          {/* Row 2: Profitability & Averages */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-            {/* Profitability Gauge */}
-            <div style={{ gridColumn: 'span 2', background: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '2rem', position: 'relative' }} className="mockup-hover-card">
-               <div style={{ color: 'var(--color-text)', fontSize: '1.1rem', fontWeight: 600, marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Profitability</span>
-                  <PieChart size={20} color="var(--color-gold)" />
-               </div>
-               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px' }}>
-                  <div style={{ width: '240px', height: '120px', borderTopLeftRadius: '120px', borderTopRightRadius: '120px', border: '20px solid var(--color-success)', borderBottom: '0', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '120px', height: '120px', borderTopRightRadius: '120px', border: '20px solid var(--color-danger)', borderBottom: '0', borderLeft: '0', clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 100%)' }}></div>
-                    <div style={{ position: 'absolute', bottom: '0', left: '0', width: '100%', textAlign: 'center', transform: 'translateY(25px)' }}>
-                       <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Total Trades</div>
-                       <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#fff' }}>156</div>
-                    </div>
-                  </div>
-               </div>
-               <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '3rem' }}>
-                 <div style={{ textAlign: 'center' }}><div style={{ color: 'var(--color-success)', fontWeight: 700, fontSize: '1.3rem' }}>68%</div><div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>Wins: 106</div></div>
-                 <div style={{ textAlign: 'center' }}><div style={{ color: 'var(--color-danger)', fontWeight: 700, fontSize: '1.3rem' }}>32%</div><div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>Losses: 50</div></div>
-               </div>
-
-               {/* Hover Info */}
-               <div className="hover-info-layer" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(11,11,13,0.95)', borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
-                  <Target size={36} color="var(--color-gold)" style={{ marginBottom: '1rem' }} />
-                  <div style={{ fontWeight: 600, color: 'var(--color-gold)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Profitability Gauge</div>
-                  <div style={{ fontSize: '1rem', color: '#ccc', lineHeight: 1.6, maxWidth: '80%' }}>
-                    Visually separates your winning trades from losing trades.<br/><br/>
-                    <strong>Benefit:</strong> Quickly assess if your strategy yields a positive win rate at a single glance.
-                  </div>
-               </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <TooltipCard 
-                title="Average Win" 
-                value="+₹42,500" 
-                subtitle="Per winning trade" 
-                icon={<TrendingUp size={20} />} 
-                color="#22c55e"
-                tooltipText="The average amount you make when a trade is successful. Benefit: Helps you calculate your risk-to-reward metrics."
-              />
-              <TooltipCard 
-                title="Average Loss" 
-                value="-₹18,200" 
-                subtitle="Per losing trade" 
-                icon={<TrendingUp size={20} style={{ transform: 'scaleY(-1)' }} />} 
-                color="#ef4444"
-                tooltipText="The average amount you lose on unsuccessful trades. Benefit: Highlights if you are cutting your losses fast enough."
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <TooltipCard 
-                title="Win Ratio" 
-                value="68%" 
-                subtitle="Success frequency" 
-                icon={<Target size={20} />} 
-                color="var(--color-gold)"
-                tooltipText="Percentage of trades that resulted in a profit. Benefit: A critical metric to determine the consistency of your edge."
-              />
-              <TooltipCard 
-                title="Profit Factor" 
-                value="2.33" 
-                subtitle="(Gross Wins / Gross Losses)" 
-                icon={<BarChart2 size={20} />} 
-                color="var(--color-gold)"
-                tooltipText="Calculated as your gross profits divided by gross losses. A value > 1 means you are profitable. Benefit: The ultimate indicator of a strategy's viability."
-              />
-            </div>
-          </div>
-
-          {/* Row 3: Monthly P&L Chart */}
-          <div style={{ background: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '2rem', position: 'relative' }} className="mockup-hover-card">
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text)' }}>Monthly P&L</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-bg)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', cursor: 'pointer' }}>
-                2026 <ChevronDown size={14} />
+          {/* ── Stat Cards (Same 2x2 UI as Dashboard) ── */}
+          <div className="stats-grid market-overview-grid dashboard-kpi-grid">
+            {/* Total Clients */}
+            <div className="card stat-card dashboard-kpi-card dashboard-kpi-card--clients">
+              <div className="dashboard-kpi-card__top">
+                <div className="dashboard-kpi-card__icon-box" style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)' }}>
+                  <Users size={18} />
+                </div>
+                <span className="dashboard-kpi-card__badge" style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)' }}>
+                  MANAGED
+                </span>
+              </div>
+              <div className="dashboard-kpi-card__body">
+                <span className="dashboard-kpi-card__label">Total Clients</span>
+                <div className="dashboard-kpi-card__value text-gold">
+                  14
+                </div>
+              </div>
+              <div className="dashboard-kpi-card__footer">
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-gold)' }} />
+                <span>Active investor portfolios</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', paddingBottom: '2rem' }}>
-              <MonthBar month="Apr" value="1.7%" isPositive={false} height="15px" />
-              <MonthBar 
-                month="May" 
-                value="13.1%" 
-                isPositive={true} 
-                height="80px" 
-                tooltipData={{
-                  title: 'May Contributions',
-                  items: [
-                    { name: 'MARKSANS', val: '+7.4%', isPositive: true },
-                    { name: 'CGCL', val: '+3.8%', isPositive: true },
-                    { name: 'ADANIENT', val: '+3.5%', isPositive: true },
-                    { name: 'DRREDDY', val: '-1.6%', isPositive: false }
-                  ],
-                  avgCapital: '₹9,70,044'
-                }}
-              />
-              <MonthBar month="Jun" value="2.5%" isPositive={true} height="20px" />
-              <MonthBar month="Jul" value="4.5%" isPositive={true} height="35px" />
-              <MonthBar month="Aug" value="2.8%" isPositive={true} height="25px" />
+            {/* Total Trades */}
+            <div className="card stat-card dashboard-kpi-card dashboard-kpi-card--trades">
+              <div className="dashboard-kpi-card__top">
+                <div className="dashboard-kpi-card__icon-box" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8' }}>
+                  <TrendingUp size={18} />
+                </div>
+                <span className="dashboard-kpi-card__badge" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8' }}>
+                  VOLUME
+                </span>
+              </div>
+              <div className="dashboard-kpi-card__body">
+                <span className="dashboard-kpi-card__label">Total Trades</span>
+                <div className="dashboard-kpi-card__value" style={{ color: '#60A5FA' }}>
+                  156
+                </div>
+              </div>
+              <div className="dashboard-kpi-card__footer">
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60A5FA' }} />
+                <span>Lifetime closed & open positions</span>
+              </div>
             </div>
 
-            {/* Hover Info */}
-            <div className="hover-info-layer" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(11,11,13,0.95)', borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
-               <BarChart2 size={36} color="var(--color-gold)" style={{ marginBottom: '1rem' }} />
-               <div style={{ fontWeight: 600, color: 'var(--color-gold)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Monthly Performance</div>
-               <div style={{ fontSize: '1rem', color: '#ccc', lineHeight: 1.6, maxWidth: '80%' }}>
-                 Track your returns on a month-by-month basis to identify seasonal trends and consistency.<br/><br/>
-                 <strong>Benefit:</strong> Helps you evaluate long-term strategy performance and manage drawdowns effectively.
-               </div>
+            {/* Total Capital */}
+            <div className="card stat-card dashboard-kpi-card dashboard-kpi-card--capital">
+              <div className="dashboard-kpi-card__top">
+                <div className="dashboard-kpi-card__icon-box" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                  <Coins size={18} />
+                </div>
+                <span className="dashboard-kpi-card__badge" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                  POOLED AUM
+                </span>
+              </div>
+              <div className="dashboard-kpi-card__body">
+                <span className="dashboard-kpi-card__label">Total Capital</span>
+                <div className="dashboard-kpi-card__value text-success">
+                  ₹1.25Cr
+                </div>
+              </div>
+              <div className="dashboard-kpi-card__footer">
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)' }} />
+                <span>Aggregate managed portfolio funds</span>
+              </div>
+            </div>
+
+            {/* Realised P&L */}
+            <div className="card stat-card dashboard-kpi-card dashboard-kpi-card--pnl-pos">
+              <div className="dashboard-kpi-card__top">
+                <div className="dashboard-kpi-card__icon-box" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                  <BarChart2 size={18} />
+                </div>
+                <span className="dashboard-kpi-card__badge" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                  NET PROFIT
+                </span>
+              </div>
+              <div className="dashboard-kpi-card__body">
+                <span className="dashboard-kpi-card__label">
+                  Realised P&L
+                  <span className="custom-tooltip custom-tooltip--right" data-tooltip="* Realised P&L is gross (without tax and interest). Operating costs will be added in the future.">
+                    <Info size={12} color="var(--color-text-muted)" style={{ marginLeft: 4 }} />
+                  </span>
+                </span>
+                <div className="dashboard-kpi-card__value" style={{ color: '#34d399' }}>
+                  +₹8.45L
+                </div>
+              </div>
+              <div className="dashboard-kpi-card__footer" style={{ color: 'var(--color-success)' }}>
+                <Triangle size={8} fill="currentColor" />
+                <span>Profitable aggregate closed balance</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Trade Profitability Gauge & 4 Ratio Cards (Same 2x2 UI as Dashboard) ── */}
+          <Profitability summary={sampleSummary} />
+
+          {/* ── Monthly Performance Chart (Same UI as Dashboard) ── */}
+          <div className="card" style={{ padding: 'var(--space-lg)', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BarChart2 size={18} className="text-gold" />
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
+                  Monthly Return Performance
+                </h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.72rem', fontWeight: 600 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#34d399' }}>▲ Net Gain</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#f87171' }}>▼ Net Drawdown</span>
+                </div>
+                <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', color: 'var(--color-text)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600 }}>
+                  2026
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', height: '220px', position: 'relative', gap: '8px', padding: '30px 0' }}>
+              {/* Zero Line */}
+              <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--color-border)', zIndex: 0 }} />
+
+              {sampleMonthlyPerformance.map(m => {
+                const val = m.returnPercentage || 0;
+                const isPositive = val >= 0;
+                const heightPct = (Math.abs(val) / maxAbs) * 45; // 45% is max half-height
+
+                return (
+                  <div
+                    key={m.month}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: hoveredMonth === m.month ? 10 : 1 }}
+                    onMouseEnter={() => setHoveredMonth(m.month)}
+                    onMouseLeave={() => setHoveredMonth(null)}
+                  >
+                    {/* Tooltip */}
+                    {hoveredMonth === m.month && m.stocks && m.stocks.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        marginBottom: '15px',
+                        background: 'var(--color-surface-alt)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '12px',
+                        boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                        width: 'max-content',
+                        minWidth: '160px',
+                        maxWidth: '220px',
+                        pointerEvents: 'none',
+                        animation: 'fadeInUp 0.2s ease-out',
+                        zIndex: 20
+                      }}>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '6px' }}>
+                          {m.month} Contributions
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {m.stocks.map((stk, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                              <span style={{ color: 'var(--color-text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', paddingRight: '12px' }}>
+                                {stk.stock_name}
+                              </span>
+                              <span style={{
+                                color: stk.returnPercentage >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
+                                fontWeight: 600
+                              }}>
+                                {stk.returnPercentage > 0 ? '+' : ''}{stk.returnPercentage.toFixed(1)}%
+                              </span>
+                            </div>
+                          ))}
+                          {m.averageCapital > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid var(--color-border)' }}>
+                              <span style={{ color: 'var(--color-text-dim)' }}>Avg Capital:</span>
+                              <span style={{ fontWeight: 600 }}>₹{m.averageCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top Half (Positive) */}
+                    <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                      {isPositive && val > 0 && (
+                        <div style={{
+                          width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`,
+                          background: 'var(--color-success)',
+                          borderRadius: '4px 4px 0 0',
+                          position: 'relative',
+                          cursor: 'pointer',
+                          transition: 'filter 0.2s',
+                          filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
+                        }}>
+                          <span style={{ position: 'absolute', top: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-success)' }}>
+                            +{val.toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Half (Negative) */}
+                    <div style={{ height: '50%', width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+                      {!isPositive && val < 0 && (
+                        <div style={{
+                          width: '100%', maxWidth: '32px', height: `${heightPct * 2}%`,
+                          background: 'var(--color-danger)',
+                          borderRadius: '0 0 4px 4px',
+                          position: 'relative',
+                          cursor: 'pointer',
+                          transition: 'filter 0.2s',
+                          filter: hoveredMonth === m.month ? 'brightness(1.2)' : 'none'
+                        }}>
+                          <span style={{ position: 'absolute', bottom: '-22px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-danger)' }}>
+                            {val.toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Month Label */}
+                    <span style={{ position: 'absolute', bottom: '-10px', fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>
+                      {m.month}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
         </div>
 
-        <style dangerouslySetInnerHTML={{__html: `
-          .mockup-hover-card:hover > .hover-info-layer {
-            opacity: 1 !important;
-          }
-          @media (max-width: 768px) {
-            .hide-mobile {
-              display: none !important;
-            }
-            .explore-tooltip {
-              position: fixed !important;
-              bottom: 20px !important;
-              left: 50% !important;
-              transform: translateX(-50%) !important;
-              width: 90vw !important;
-              max-width: 400px;
-              z-index: 9999 !important;
-            }
-            .explore-tooltip-arrow {
-              display: none !important;
-            }
-          }
-        `}} />
       </main>
     </div>
   );

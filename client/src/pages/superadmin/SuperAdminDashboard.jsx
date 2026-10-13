@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { Shield, Users, CheckCircle, Snowflake, Search, Calendar, X, Key, Zap, Trash2 } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -367,7 +368,14 @@ export default function SuperAdminDashboard() {
                                             </td>
                                             <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>{fmtLakhsPlain(user.total_capital)}</td>
                                             <td style={{ color: 'var(--color-text-muted)' }}>
-                                                {user.last_login_at ? fmtDateTime(user.last_login_at) : 'Never'}
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span>{user.last_login_at ? fmtDateTime(user.last_login_at) : 'Never'}</span>
+                                                    {user.login_count !== undefined && (
+                                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-gold)' }}>
+                                                            Logged in {user.login_count || 0} {(user.login_count || 0) === 1 ? 'time' : 'times'}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td style={{ minWidth: '120px', textAlign: 'center' }}>
                                                 <button
@@ -395,7 +403,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* License Duration Update Modal */}
-            {userToUpdate && (
+            {userToUpdate && createPortal(
                 <div className="superadmin-overlay" style={{ zIndex: 1000 }}>
                     <div className="superadmin-modal-card superadmin-modal-card--small">
                         <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', marginBottom: 'var(--space-md)' }}>
@@ -469,11 +477,11 @@ export default function SuperAdminDashboard() {
                         </form>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             {/* Inspect User Activity & Workspace Details Modal */}
-            {selectedUser && (
-                <div className="superadmin-overlay">
+            {selectedUser && createPortal(
+                <div className="superadmin-overlay" style={{ zIndex: 1100 }}>
                     <div className="superadmin-modal-card superadmin-modal-card--large">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                             <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-gold)', margin: 0 }}>
@@ -741,7 +749,7 @@ export default function SuperAdminDashboard() {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             <style>{`
                 .superadmin-overlay {
@@ -749,11 +757,12 @@ export default function SuperAdminDashboard() {
                     inset: 0;
                     background-color: rgba(0, 0, 0, 0.75);
                     backdrop-filter: blur(8px);
-                    z-index: 999;
+                    z-index: 99999;
                     display: flex;
-                    align-items: center;
+                    align-items: flex-start;
                     justify-content: center;
-                    padding: 1.5rem;
+                    padding: 3rem 1.5rem 1.5rem 1.5rem;
+                    overflow-y: auto;
                 }
 
                 @media (max-width: 768px) {
@@ -761,8 +770,6 @@ export default function SuperAdminDashboard() {
                         background-color: #0B0B0D !important;
                         backdrop-filter: none !important;
                         padding: 1rem;
-                        align-items: flex-start;
-                        overflow-y: auto;
                     }
                 }
 

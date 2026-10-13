@@ -131,13 +131,25 @@ export default function OpenTrade() {
         }, 400);
     }
 
-    function handleSelectStock(suggestion) {
+    async function handleSelectStock(suggestion) {
         // Store the clean symbol (strip NSE: prefix for trade entry)
         const cleanSymbol = suggestion.symbol ? suggestion.symbol.replace(/^[A-Z]+:/, '') : suggestion.symbol;
         setForm(prev => ({ ...prev, stock_name: cleanSymbol }));
         setStockSuggestions([]);
         setShowSuggestions(false);
         if (errors.stock_name) setErrors(prev => ({ ...prev, stock_name: '' }));
+
+        // Auto-fetch latest live quote from Screener to auto-populate entry price
+        try {
+            const { data } = await api.get(`/watchlist/prices?symbols=${cleanSymbol}`);
+            if (data?.success && data?.data?.[cleanSymbol]) {
+                const liveP = typeof data.data[cleanSymbol] === 'object' ? data.data[cleanSymbol].price : data.data[cleanSymbol];
+                if (liveP && !isNaN(liveP)) {
+                    setForm(prev => ({ ...prev, stock_name: cleanSymbol, entry_price: Number(liveP).toFixed(2) }));
+                    if (errors.entry_price) setErrors(prev => ({ ...prev, entry_price: '' }));
+                }
+            }
+        } catch (_) {}
     }
 
     // Derived risk/reward preview

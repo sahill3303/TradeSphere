@@ -1,17 +1,43 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useConfirm } from '../../context/ConfirmContext';
-import { TrendingUp, Zap, Target, Scale, AlertTriangle } from 'lucide-react';
+import { TrendingUp, Zap, Target, Scale, Eye, Trash2, RotateCcw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, Trash2, RotateCcw } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { useMemo } from 'react';
 import './PaperTrade.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const STATUS_BADGE = { OPEN: 'badge--yellow', CLOSED: 'badge--green' };
 const MODE_COLOR = { LONG: 'var(--color-success)', SHORT: 'var(--color-danger)' };
+
+const TYPE_BADGE_MAP = {
+    'INTRADAY': 'badge--cyan',
+    'SWING': 'badge--purple',
+    'MTF': 'badge--gold',
+    'LONG TERM': 'badge--green',
+};
+
+function normalizeType(mode) {
+    if (!mode) return '';
+    const m = String(mode).trim().toUpperCase().replace(/[\s_-]+/g, '');
+    if (m === 'LONGTERM') return 'LONG TERM';
+    return m;
+}
+
+function formatTradeType(mode) {
+    const norm = normalizeType(mode);
+    if (norm === 'LONG TERM') return 'LONG TERM';
+    if (norm === 'INTRADAY') return 'INTRADAY';
+    if (norm === 'SWING') return 'SWING';
+    if (norm === 'MTF') return 'MTF';
+    return norm || 'SWING';
+}
+
+function matchTradeType(mode, target) {
+    if (!target) return true;
+    return normalizeType(mode) === normalizeType(target);
+}
 
 function fmtLakhs(val) {
     if (val === null || val === undefined) return '—';
@@ -59,6 +85,25 @@ function ActionBtn({ onClick, disabled, color, children }) {
     );
 }
 
+function SortHeader({ field, label, sortConfig, onSort, className, align = 'left' }) {
+    const isSorted = sortConfig.key === field;
+    return (
+        <th
+            className={className}
+            onClick={() => onSort(field)}
+            style={{ cursor: 'pointer', userSelect: 'none', textAlign: align }}
+            title={`Sort by ${label}`}
+        >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: align === 'right' ? 'flex-end' : 'flex-start' }}>
+                <span>{label}</span>
+                <span style={{ fontSize: '0.65rem', opacity: isSorted ? 1 : 0.35, color: isSorted ? 'var(--color-primary)' : 'inherit' }}>
+                    {isSorted ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}
+                </span>
+            </div>
+        </th>
+    );
+}
+
 export default function TradesList() {
     const navigate = useNavigate();
     const confirmAction = useConfirm();
@@ -68,10 +113,14 @@ export default function TradesList() {
     const [trades, setTrades] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // Filters and Sorting
     const [statusFilter, setStatusFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+
     const [deletingId, setDeletingId] = useState(null);
     const [clientTotalCapital, setClientTotalCapital] = useState(0);
-    const [dashboardStats, setDashboardStats] = useState(null);
 
     const [deleted, setDeleted] = useState([]);
     const [deletedLoading, setDeletedLoading] = useState(false);
@@ -110,6 +159,7 @@ export default function TradesList() {
         }
     }, [trades]);
 
+    // Live Metrics calculated on scopedTrades (scoped to selected typeFilter) so all stats update dynamically!
     const liveMetrics = useMemo(() => {
         let activeInvested = 0;
         let totalUnrealizedPnl = 0;
@@ -117,8 +167,16 @@ export default function TradesList() {
         let totalClosedCost = 0;
         let openTradesCount = 0;
         let closedTradesCount = 0;
+        let wins = 0;
+        let losses = 0;
+        let totalWinAmount = 0;
+        let totalLossAmount = 0;
 
-        trades.forEach(t => {
+        const scopedTrades = typeFilter 
+            ? trades.filter(t => matchTradeType(t.mode, typeFilter))
+            : trades;
+
+        scopedTrades.forEach(t => {
             const lev = t.leverage || 1;
             const invested = (t.entry_price * t.quantity) / lev;
             
@@ -141,14 +199,29 @@ export default function TradesList() {
             } else if (t.status === 'CLOSED') {
                 closedTradesCount++;
                 totalClosedCost += invested;
-                if (t.total_pnl !== undefined && t.total_pnl !== null) {
-                    totalRealizedPnl += Number(t.total_pnl);
+                const pnl = Number(t.total_pnl || 0);
+                totalRealizedPnl += pnl;
+
+                if (pnl > 0) {
+                    wins++;
+                    totalWinAmount += pnl;
+                } else if (pnl < 0) {
+                    losses++;
+                    totalLossAmount += Math.abs(pnl);
                 }
             }
         });
 
-        const unrealizedPnlPct = clientTotalCapital > 0 ? (totalUnrealizedPnl / clientTotalCapital) * 100 : (activeInvested > 0 ? (totalUnrealizedPnl / activeInvested) * 100 : 0);
-        const realizedPnlPct = clientTotalCapital > 0 ? (totalRealizedPnl / clientTotalCapital) * 100 : (totalClosedCost > 0 ? (totalRealizedPnl / totalClosedCost) * 100 : 0);
+        const unrealizedPnlPct = activeInvested > 0 ? (totalUnrealizedPnl / activeInvested) * 100 : 0;
+        const realizedPnlPct = totalClosedCost > 0 ? (totalRealizedPnl / totalClosedCost) * 100 : 0;
+
+        const closedTotal = wins + losses;
+        const winRate = closedTotal > 0 ? Math.round((wins / closedTotal) * 100) : 0;
+        const avgWin = wins > 0 ? (totalWinAmount / wins) : 0;
+        const avgLoss = losses > 0 ? -(totalLossAmount / losses) : 0;
+        const avgRRRatio = losses > 0 && avgWin > 0 
+            ? `1 : ${(avgWin / (totalLossAmount / losses)).toFixed(2)}` 
+            : (avgWin > 0 ? 'Infinity' : '1 : 0.00');
 
         return {
             activeInvested,
@@ -158,9 +231,15 @@ export default function TradesList() {
             realizedPnlPct,
             openTradesCount,
             closedTradesCount,
-            totalClosedCost
+            totalClosedCost,
+            wins,
+            losses,
+            winRate,
+            avgWin,
+            avgLoss,
+            avgRRRatio,
         };
-    }, [trades, prices]);
+    }, [trades, prices, typeFilter]);
 
     const formatCurrency = (val) => {
         if (val === undefined || val === null || isNaN(val)) return '₹0';
@@ -170,31 +249,170 @@ export default function TradesList() {
     const fetchTrades = useCallback(async () => {
         setLoading(true); setError('');
         try {
-            const params = statusFilter ? `?status=${statusFilter}&limit=50` : '?limit=50';
             const [{ data: tradesData }, { data: summaryData }] = await Promise.all([
-                api.get(`/trades${params}`),
+                api.get('/trades?limit=200'),
                 api.get('/dashboard/summary').catch(() => ({ data: { totalCapital: 0 } }))
             ]);
-            setTrades(tradesData.trades);
+            setTrades(tradesData.trades || []);
             if (summaryData) {
                 setClientTotalCapital(Number(summaryData.totalCapital || 0));
-                setDashboardStats(summaryData);
             }
         } catch { setError('Failed to load trades.'); }
         finally { setLoading(false); }
-    }, [statusFilter]);
+    }, []);
 
     const fetchDeleted = useCallback(async () => {
         setDeletedLoading(true); setDeletedError('');
         try {
             const { data } = await api.get('/trades/deleted');
-            setDeleted(data);
+            setDeleted(data || []);
         } catch { setDeletedError('Failed to load deleted trades.'); }
         finally { setDeletedLoading(false); }
     }, []);
 
     useEffect(() => { fetchTrades(); }, [fetchTrades]);
     useEffect(() => { if (activeTab === 'deleted') fetchDeleted(); }, [activeTab, fetchDeleted]);
+
+    // Trade Type Counts
+    const typeCounts = useMemo(() => {
+        const counts = { '': 0, 'INTRADAY': 0, 'SWING': 0, 'MTF': 0, 'LONG TERM': 0 };
+        trades.forEach(t => {
+            counts['']++;
+            const norm = normalizeType(t.mode);
+            if (counts[norm] !== undefined) {
+                counts[norm]++;
+            }
+        });
+        return counts;
+    }, [trades]);
+
+    // Status Counts (scoped to selected trade type)
+    const statusCounts = useMemo(() => {
+        const counts = { '': 0, 'OPEN': 0, 'CLOSED': 0 };
+        const base = typeFilter ? trades.filter(t => matchTradeType(t.mode, typeFilter)) : trades;
+        base.forEach(t => {
+            counts['']++;
+            if (t.status === 'OPEN') counts.OPEN++;
+            if (t.status === 'CLOSED') counts.CLOSED++;
+        });
+        return counts;
+    }, [trades, typeFilter]);
+
+    // Sorting Handler
+    const handleSort = (key) => {
+        setSortConfig(prev => {
+            if (prev.key === key) {
+                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
+    // Filtered trades based on statusFilter and typeFilter
+    const filteredTrades = useMemo(() => {
+        return trades.filter(t => {
+            if (statusFilter && t.status !== statusFilter) return false;
+            if (typeFilter && !matchTradeType(t.mode, typeFilter)) return false;
+            return true;
+        });
+    }, [trades, statusFilter, typeFilter]);
+
+    // Sorted trades
+    const sortedTrades = useMemo(() => {
+        let result = [...filteredTrades];
+        if (!sortConfig.key) return result;
+
+        result.sort((a, b) => {
+            let valA, valB;
+
+            switch (sortConfig.key) {
+                case 'stock_name':
+                    valA = a.stock_name || '';
+                    valB = b.stock_name || '';
+                    break;
+                case 'trade_type':
+                    valA = a.trade_type || '';
+                    valB = b.trade_type || '';
+                    break;
+                case 'mode':
+                    valA = formatTradeType(a.mode);
+                    valB = formatTradeType(b.mode);
+                    break;
+                case 'status':
+                    valA = a.status || '';
+                    valB = b.status || '';
+                    break;
+                case 'entry_price':
+                    valA = Number(a.entry_price || 0);
+                    valB = Number(b.entry_price || 0);
+                    break;
+                case 'quantity':
+                    valA = Number(a.quantity || 0);
+                    valB = Number(b.quantity || 0);
+                    break;
+                case 'capital':
+                    valA = (Number(a.entry_price || 0) * Number(a.quantity || 0)) / (a.leverage || 1);
+                    valB = (Number(b.entry_price || 0) * Number(b.quantity || 0)) / (b.leverage || 1);
+                    break;
+                case 'cmp': {
+                    const rawA = prices[a.stock_name];
+                    const rawB = prices[b.stock_name];
+                    valA = rawA ? parseFloat(String(rawA).replace(/,/g, '')) || 0 : 0;
+                    valB = rawB ? parseFloat(String(rawB).replace(/,/g, '')) || 0 : 0;
+                    break;
+                }
+                case 'unrealized_pnl': {
+                    const getUnreal = (t) => {
+                        if (t.status !== 'OPEN') return -999999;
+                        const raw = prices[t.stock_name];
+                        const cmp = raw ? parseFloat(String(raw).replace(/,/g, '')) : null;
+                        if (cmp !== null && !isNaN(cmp)) {
+                            return t.trade_type === 'LONG' ? (cmp - t.entry_price) * t.quantity : (t.entry_price - cmp) * t.quantity;
+                        }
+                        return 0;
+                    };
+                    valA = getUnreal(a);
+                    valB = getUnreal(b);
+                    break;
+                }
+                case 'date':
+                    valA = new Date(a.trade_date || a.created_at).getTime() || 0;
+                    valB = new Date(b.trade_date || b.created_at).getTime() || 0;
+                    break;
+                case 'pnl_pct': {
+                    const getPct = (t) => {
+                        const invested = (Number(t.entry_price || 0) * Number(t.quantity || 0)) / (t.leverage || 1);
+                        if (t.status === 'OPEN') {
+                            const raw = prices[t.stock_name];
+                            const cmp = raw ? parseFloat(String(raw).replace(/,/g, '')) : null;
+                            if (cmp !== null && !isNaN(cmp) && invested > 0) {
+                                const pnl = t.trade_type === 'LONG' ? (cmp - t.entry_price) * t.quantity : (t.entry_price - cmp) * t.quantity;
+                                return (pnl / invested) * 100;
+                            }
+                            return 0;
+                        }
+                        return invested > 0 ? (Number(t.total_pnl || 0) / invested) * 100 : 0;
+                    };
+                    valA = getPct(a);
+                    valB = getPct(b);
+                    break;
+                }
+                default:
+                    valA = a[sortConfig.key] || '';
+                    valB = b[sortConfig.key] || '';
+            }
+
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                const comp = valA.localeCompare(valB);
+                return sortConfig.direction === 'asc' ? comp : -comp;
+            }
+            if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return result;
+    }, [filteredTrades, sortConfig, prices]);
 
     async function handleDelete(tradeId, stockName) {
         confirmAction({
@@ -261,7 +479,7 @@ export default function TradesList() {
                 <TabBtn active={activeTab === 'deleted'} onClick={() => setActiveTab('deleted')}>Deleted Trades</TabBtn>
             </div>
 
-            {/* Top Summary KPI Cards */}
+            {/* Top Summary KPI Cards - Dynamically reflects selected typeFilter */}
             {activeTab === 'active' && !loading && trades.length > 0 && (
                 <div className="kpi-grid" style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
                     {/* Card 1: Invested Capital */}
@@ -304,6 +522,7 @@ export default function TradesList() {
                             <span style={{ marginLeft: '0.5rem' }}>({liveMetrics.closedTradesCount} Closed)</span>
                         </div>
                     </div>
+
                     {/* Card 3: Win Ratio */}
                     <div className="kpi-card">
                         <div>
@@ -311,12 +530,12 @@ export default function TradesList() {
                                 <span className="kpi-label">Win Ratio</span>
                                 <span className="kpi-icon"><Target size={18} /></span>
                             </div>
-                            <div className="kpi-value" style={{ color: dashboardStats?.winRate >= 50 ? '#34d399' : (dashboardStats?.winRate > 0 ? '#f87171' : 'inherit') }}>
-                                {dashboardStats ? dashboardStats.winRate : 0}%
+                            <div className="kpi-value" style={{ color: liveMetrics.winRate >= 50 ? '#34d399' : (liveMetrics.winRate > 0 ? '#f87171' : 'inherit') }}>
+                                {liveMetrics.winRate}%
                             </div>
                         </div>
                         <div className="kpi-subtext">
-                            <span>{dashboardStats?.wins || 0}W - {dashboardStats?.losses || 0}L (Closed Trades)</span>
+                            <span>{liveMetrics.wins}W - {liveMetrics.losses}L ({liveMetrics.closedTradesCount} Closed)</span>
                         </div>
                     </div>
 
@@ -328,13 +547,13 @@ export default function TradesList() {
                                 <span className="kpi-icon"><Scale size={18} /></span>
                             </div>
                             <div className="kpi-value">
-                                {dashboardStats && dashboardStats.avgLoss < 0 
-                                    ? `1 : ${Math.abs(dashboardStats.avgWin / dashboardStats.avgLoss).toFixed(2)}` 
-                                    : (dashboardStats?.avgWin > 0 ? 'Infinity' : '1 : 0.00')}
+                                {liveMetrics.avgRRRatio}
                             </div>
                         </div>
                         <div className="kpi-subtext">
-                            <span style={{ color: '#34d399' }}>Avg Win: {formatCurrency(dashboardStats?.avgWin || 0)}</span> | <span style={{ color: '#f87171' }}>Avg Loss: {formatCurrency(dashboardStats?.avgLoss || 0)}</span>
+                            <span style={{ color: '#34d399' }}>Avg Win: {formatCurrency(liveMetrics.avgWin)}</span>
+                            <span style={{ margin: '0 4px', opacity: 0.5 }}>|</span>
+                            <span style={{ color: '#f87171' }}>Avg Loss: {formatCurrency(liveMetrics.avgLoss)}</span>
                         </div>
                     </div>
                 </div>
@@ -342,50 +561,86 @@ export default function TradesList() {
 
             {activeTab === 'active' && (
                 <>
-                    <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', marginBottom: 'var(--space-md)' }}>
-                        {['', 'OPEN', 'CLOSED'].map(s => (
-                            <button key={s} onClick={() => setStatusFilter(s)} style={{
-                                padding: '0.3rem 0.9rem', borderRadius: '999px',
-                                border: `1.5px solid ${statusFilter === s ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                background: statusFilter === s ? 'var(--color-primary-soft)' : 'transparent',
-                                color: statusFilter === s ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                fontSize: 'var(--font-size-sm)', fontWeight: 500, cursor: 'pointer',
-                                transition: 'all var(--transition)',
-                            }}>{s === '' ? 'All' : s}</button>
-                        ))}
+                    {/* Dual Filter Pills: Trade Type and Status */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.85rem', marginBottom: 'var(--space-md)' }}>
+                        {/* Trade Type Filter Pills */}
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: '0.2rem' }}>
+                                Trade Type:
+                            </span>
+                            {[
+                                { key: '', label: 'All' },
+                                { key: 'INTRADAY', label: 'Intraday' },
+                                { key: 'SWING', label: 'Swing' },
+                                { key: 'MTF', label: 'MTF' },
+                                { key: 'LONG TERM', label: 'Long Term' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.key}
+                                    type="button"
+                                    className={`trade-filter-pill ${typeFilter === opt.key ? 'active' : ''}`}
+                                    onClick={() => setTypeFilter(opt.key)}
+                                >
+                                    {opt.label}
+                                    <span className="trade-filter-count">{typeCounts[opt.key] || 0}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Status Filter Pills */}
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: '0.2rem' }}>
+                                Status:
+                            </span>
+                            {[
+                                { key: '', label: 'All' },
+                                { key: 'OPEN', label: 'OPEN' },
+                                { key: 'CLOSED', label: 'CLOSED' },
+                            ].map(s => (
+                                <button
+                                    key={s.key}
+                                    type="button"
+                                    className={`trade-filter-pill ${statusFilter === s.key ? 'active' : ''}`}
+                                    onClick={() => setStatusFilter(s.key)}
+                                >
+                                    {s.label}
+                                    <span className="trade-filter-count">{statusCounts[s.key] || 0}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {loading && <p className="status-text">Loading trades…</p>}
                     {error && <div className="alert alert--error">{error}</div>}
 
-                    {!loading && !error && trades.length === 0 && (
+                    {!loading && !error && filteredTrades.length === 0 && (
                         <Card className="empty-state">
-                            <p>No trades found.</p>
+                            <p>No trades found for selected filter.</p>
                         </Card>
                     )}
 
-                    {!loading && !error && trades.length > 0 && (
+                    {!loading && !error && filteredTrades.length > 0 && (
                         <Card style={{ padding: 0, overflow: 'hidden' }}>
                             <div className="table-container">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Symbol</th>
-                                            <th>Dir</th>
-                                            <th className="hide-col-mobile">Entry</th>
-                                            <th className="hide-col-mobile">Qty</th>
-                                            <th className="hide-col-mobile">Capital</th>
-                                            <th className="hide-col-mobile">CMP</th>
-                                            <th className="hide-col-mobile">Unrealized P&L</th>
-                                            <th className="hide-col-mobile">Status</th>
-                                            <th className="hide-col-mobile">Entry Date</th>
-                                            <th>P&L</th>
-                                            <th>P&L %</th>
+                                            <SortHeader field="stock_name" label="Symbol" sortConfig={sortConfig} onSort={handleSort} />
+                                            <SortHeader field="trade_type" label="Dir" sortConfig={sortConfig} onSort={handleSort} />
+                                            <SortHeader field="entry_price" label="Entry" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="quantity" label="Qty" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="capital" label="Capital" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="cmp" label="CMP" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="unrealized_pnl" label="Unrealized P&L" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="status" label="Status" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="date" label="Entry Date" sortConfig={sortConfig} onSort={handleSort} className="hide-col-mobile" />
+                                            <SortHeader field="mode" label="Trade Type" sortConfig={sortConfig} onSort={handleSort} />
+                                            <SortHeader field="pnl_pct" label="P&L %" sortConfig={sortConfig} onSort={handleSort} />
                                             <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {trades.map(t => {
+                                        {sortedTrades.map(t => {
                                             const rawCmp = prices[t.stock_name];
                                             const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
                                             let unrealizedPnl = null;
@@ -408,6 +663,9 @@ export default function TradesList() {
                                             if (t.status === 'CLOSED') {
                                                 realizedPnlPct = invested > 0 ? (t.total_pnl / invested) * 100 : 0;
                                             }
+
+                                            const tradeModeDisp = formatTradeType(t.mode);
+                                            const tradeModeBadge = TYPE_BADGE_MAP[tradeModeDisp] || 'badge--yellow';
 
                                             return (
                                                 <tr key={t.trade_id}>
@@ -466,39 +724,58 @@ export default function TradesList() {
                                                     <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
                                                         {fmtDate(t.trade_date || t.created_at)}
                                                     </td>
-                                                    <td style={{
-                                                        fontWeight: 600,
-                                                        fontSize: '0.8rem',
-                                                        color: t.total_pnl > 0 ? 'var(--color-success)'
-                                                            : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit'
-                                                     }}>
-                                                        {t.status === 'OPEN' ? '—' : fmtLakhs(t.total_pnl)}
+
+                                                    {/* Trade Type Column (replaces old P&L column) */}
+                                                    <td>
+                                                        <span className={`badge ${tradeModeBadge}`} style={{ fontWeight: 600 }}>
+                                                            {tradeModeDisp}
+                                                        </span>
                                                     </td>
-                                                    <td style={{
-                                                        fontWeight: 600,
-                                                        fontSize: '0.8rem',
-                                                        color: t.status === 'OPEN' 
-                                                            ? (unrealizedPnlPct > 0 ? 'var(--color-success)' : unrealizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
-                                                            : (realizedPnlPct > 0 ? 'var(--color-success)' : realizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
-                                                     }}>
-                                                        {t.status === 'OPEN' 
-                                                            ? (unrealizedPnlPct !== null ? `${unrealizedPnlPct > 0 ? '+' : ''}${unrealizedPnlPct.toFixed(2)}%` : '—')
-                                                            : (realizedPnlPct !== null ? `${realizedPnlPct > 0 ? '+' : ''}${realizedPnlPct.toFixed(2)}%` : '—')
-                                                        }
+
+                                                    {/* P&L % Column (with monetary P&L amount subtitle) */}
+                                                    <td>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                            <span style={{
+                                                                fontWeight: 700,
+                                                                fontSize: '0.82rem',
+                                                                color: t.status === 'OPEN' 
+                                                                    ? (unrealizedPnlPct > 0 ? 'var(--color-success)' : unrealizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
+                                                                    : (realizedPnlPct > 0 ? 'var(--color-success)' : realizedPnlPct < 0 ? 'var(--color-danger)' : 'inherit')
+                                                            }}>
+                                                                {t.status === 'OPEN' 
+                                                                    ? (unrealizedPnlPct !== null ? `${unrealizedPnlPct > 0 ? '+' : ''}${unrealizedPnlPct.toFixed(2)}%` : '—')
+                                                                    : (realizedPnlPct !== null ? `${realizedPnlPct > 0 ? '+' : ''}${realizedPnlPct.toFixed(2)}%` : '—')
+                                                                }
+                                                            </span>
+                                                            <span style={{
+                                                                fontSize: '0.72rem',
+                                                                fontWeight: 500,
+                                                                color: t.status === 'OPEN'
+                                                                    ? (unrealizedPnl > 0 ? 'var(--color-success)' : unrealizedPnl < 0 ? 'var(--color-danger)' : 'var(--color-text-muted)')
+                                                                    : (t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'var(--color-text-muted)')
+                                                            }}>
+                                                                {t.status === 'OPEN'
+                                                                    ? (unrealizedPnl !== null ? fmtLakhs(unrealizedPnl) : '—')
+                                                                    : (t.total_pnl !== undefined && t.total_pnl !== null ? fmtLakhs(t.total_pnl) : '—')
+                                                                }
+                                                            </span>
+                                                        </div>
                                                     </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                        <Link to={`/trades/${t.trade_id}`} className="table-btn-icon" title="View">
-                                                            <Eye size={16} />
-                                                        </Link>
-                                                        <button onClick={() => handleDelete(t.trade_id, t.stock_name)}
-                                                            disabled={deletingId === t.trade_id} className="table-btn-icon danger" title="Delete">
-                                                            {deletingId === t.trade_id ? '⏳' : <Trash2 size={16} />}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )})}
+
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                            <Link to={`/trades/${t.trade_id}`} className="table-btn-icon" title="View">
+                                                                <Eye size={16} />
+                                                            </Link>
+                                                            <button onClick={() => handleDelete(t.trade_id, t.stock_name)}
+                                                                disabled={deletingId === t.trade_id} className="table-btn-icon danger" title="Delete">
+                                                                {deletingId === t.trade_id ? '⏳' : <Trash2 size={16} />}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
@@ -523,43 +800,49 @@ export default function TradesList() {
                                             <th>Symbol</th>
                                             <th>Dir</th>
                                             <th className="hide-col-mobile">Entry Date</th>
-                                            <th>P&L</th>
+                                            <th>Trade Type</th>
                                             <th>P&L %</th>
                                             <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {deleted.map(t => (
-                                            <tr key={t.trade_id} style={{ opacity: 0.8 }}>
-                                                <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
-                                                <td>
-                                                    <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
-                                                        {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
-                                                    </span>
-                                                </td>
-                                                <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
-                                                    {fmtDate(t.trade_date || t.created_at)}
-                                                </td>
-                                                <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
-                                                    {fmtLakhs(t.total_pnl)}
-                                                </td>
-                                                <td style={{ fontWeight: 600, color: 'inherit' }}>
-                                                    —
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                        <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
-                                                            disabled={restoringId === t.trade_id} color="var(--color-success)">
-                                                            {restoringId === t.trade_id ? '⏳' : <><RotateCcw size={14} style={{marginRight: '4px'}} /> Restore</>}
-                                                        </ActionBtn>
-                                                        <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
-                                                            disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
-                                                            {hardDeletingId === t.trade_id ? '⏳' : <><Trash2 size={14} style={{marginRight: '4px'}} /> Delete</>}
-                                                        </ActionBtn>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {deleted.map(t => {
+                                            const tradeModeDisp = formatTradeType(t.mode);
+                                            const tradeModeBadge = TYPE_BADGE_MAP[tradeModeDisp] || 'badge--yellow';
+                                            return (
+                                                <tr key={t.trade_id} style={{ opacity: 0.8 }}>
+                                                    <td style={{ fontWeight: 700 }}>{t.stock_name}</td>
+                                                    <td>
+                                                        <span style={{ color: MODE_COLOR[t.trade_type] || 'inherit', fontWeight: 600, fontSize: '0.7rem' }}>
+                                                            {t.trade_type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="hide-col-mobile" style={{ color: 'var(--color-text-muted)' }}>
+                                                        {fmtDate(t.trade_date || t.created_at)}
+                                                    </td>
+                                                    <td>
+                                                        <span className={`badge ${tradeModeBadge}`} style={{ fontWeight: 600 }}>
+                                                            {tradeModeDisp}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ fontWeight: 600, color: t.total_pnl > 0 ? 'var(--color-success)' : t.total_pnl < 0 ? 'var(--color-danger)' : 'inherit' }}>
+                                                        {fmtLakhs(t.total_pnl)}
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                            <ActionBtn onClick={() => handleRestore(t.trade_id, t.stock_name)}
+                                                                disabled={restoringId === t.trade_id} color="var(--color-success)">
+                                                                {restoringId === t.trade_id ? '⏳' : <><RotateCcw size={14} style={{marginRight: '4px'}} /> Restore</>}
+                                                            </ActionBtn>
+                                                            <ActionBtn onClick={() => handleHardDelete(t.trade_id, t.stock_name)}
+                                                                disabled={hardDeletingId === t.trade_id} color="var(--color-danger)">
+                                                                {hardDeletingId === t.trade_id ? '⏳' : <><Trash2 size={14} style={{marginRight: '4px'}} /> Delete</>}
+                                                            </ActionBtn>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

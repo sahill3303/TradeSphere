@@ -2,15 +2,9 @@ import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import './TickerBar.css';
 
-const TICKER_SYMBOLS = [
-    { label: 'GIFT NIFTY', yahoo: 'GIFT_NIFTY', prefix: '₹' },
-    { label: 'NIFTY 50', yahoo: '%5ENSEI', prefix: '₹' },
-    { label: 'SENSEX', yahoo: '%5EBSESN', prefix: '₹' },
-    { label: 'NIFTY BANK', yahoo: '%5ENSEBANK', prefix: '₹' },
-    { label: 'NIFTY IT', yahoo: '%5ECNXIT', prefix: '₹' },
-    { label: 'HDFC BANK', yahoo: 'HDFCBANK.NS', prefix: '₹' },
-    { label: 'DOW JONES', yahoo: '%5EDJI', prefix: '$' },
-    { label: 'NASDAQ', yahoo: '%5ENDX', prefix: '$' }
+// NIFTY 50 is shown first alongside all user watchlist stocks
+const DEFAULT_TICKER_ITEMS = [
+    { label: 'NIFTY 50', symbol: 'NIFTY 50', category: 'INDEX', prefix: '₹' },
 ];
 
 export default function TickerBar() {
@@ -22,58 +16,70 @@ export default function TickerBar() {
 
         const fetchAllPrices = async () => {
             try {
-                // 1. Fetch user's watchlist symbols
+                // 1. Fetch all watchlist symbols across all categories (Long, SSF, weekly, Reliance, etc.)
                 let watchlistItems = [];
                 try {
-                    const wlRes = await api.get('/watchlist');
-                    if (wlRes.data && wlRes.data.success) {
-                        watchlistItems = wlRes.data.data || [];
+                    const wlRes = await api.get('/watchlist/ticker-symbols');
+                    if (wlRes.data && wlRes.data.success && Array.isArray(wlRes.data.data)) {
+                        watchlistItems = wlRes.data.data;
                     }
-                } catch (wlErr) {
-                    console.error('Failed to fetch watchlist in ticker bar:', wlErr);
+                } catch (err) {
+                    // Fallback to /watchlist if ticker-symbols is not available
+                    try {
+                        const fallbackRes = await api.get('/watchlist');
+                        if (fallbackRes.data && fallbackRes.data.success && Array.isArray(fallbackRes.data.data)) {
+                            watchlistItems = fallbackRes.data.data;
+                        }
+                    } catch (_) {}
                 }
 
-                // 2. Map watchlist symbols to Yahoo format
+                // 2. Map watchlist symbols preserving category
                 const watchlistSymbols = watchlistItems.map(item => {
-                    const cleanSym = item.symbol.split(':').pop();
+                    const cleanSym = item.symbol.split(':').pop().trim().toUpperCase();
                     return {
                         label: cleanSym,
-                        yahoo: `${cleanSym}.NS`,
+                        symbol: cleanSym,
+                        name: item.name || cleanSym,
+                        category: item.category || 'WATCHLIST',
                         prefix: '₹'
                     };
                 });
 
-                // 3. Combine with default indices
-                const allSymbolsToFetch = [...TICKER_SYMBOLS];
+                // 3. Combine NIFTY 50 + All Watchlist stocks (all categories: Long, SSF, weekly, Reliance, etc.)
+                const allItemsToFetch = [...DEFAULT_TICKER_ITEMS];
                 watchlistSymbols.forEach(ws => {
-                    if (!allSymbolsToFetch.some(ts => ts.yahoo.toLowerCase() === ws.yahoo.toLowerCase())) {
-                        allSymbolsToFetch.push(ws);
+                    if (!allItemsToFetch.some(ts => ts.symbol.toUpperCase() === ws.symbol.toUpperCase())) {
+                        allItemsToFetch.push(ws);
                     }
                 });
 
-                // 4. Fetch prices in parallel
-                const results = await Promise.all(
-                    allSymbolsToFetch.map(async (item) => {
-                        try {
-                            const { data } = await api.get(`/dashboard/market-chart/${item.yahoo}?interval=1m&range=1d`);
-                            const change = data.currentPrice - data.previousClose;
-                            const changePct = data.previousClose ? (change / data.previousClose) * 100 : 0;
-                            return {
-                                label: item.label,
-                                price: data.currentPrice,
-                                changePct: changePct,
-                                prefix: item.prefix
-                            };
-                        } catch (err) {
-                            console.error(`Failed to fetch ticker for ${item.label}:`, err);
-                            return null;
-                        }
-                    })
-                );
+                // 4. Batch fetch prices
+                const symbolsParam = allItemsToFetch.map(item => item.symbol).join(',');
+                const { data } = await api.get(`/watchlist/prices?symbols=${encodeURIComponent(symbolsParam)}`);
 
-                if (isMounted) {
-                    setPrices(results.filter(Boolean));
-                    setLoading(false);
+                if (data && data.success && data.data) {
+                    const priceMap = data.data;
+                    const results = allItemsToFetch.map(item => {
+                        const quote = priceMap[item.symbol] || priceMap[item.label] || priceMap[item.symbol.toUpperCase()];
+                        if (!quote || quote.price == null) return null;
+
+                        const rawPct = quote.percentChange != null ? quote.percentChange : quote.changePct;
+                        const changeVal = parseFloat(rawPct) || 0;
+
+                        return {
+                            label: item.label,
+                            name: item.name,
+                            category: item.category,
+                            price: quote.price,
+                            changePct: changeVal,
+                            prefix: item.prefix || '₹'
+                        };
+                    }).filter(Boolean);
+
+                    if (isMounted && results.length > 0) {
+                        setPrices(results);
+                        setLoading(false);
+                    }
                 }
             } catch (err) {
                 console.error('Error fetching ticker prices:', err);
@@ -81,7 +87,7 @@ export default function TickerBar() {
         };
 
         fetchAllPrices();
-        const interval = setInterval(fetchAllPrices, 60000); // refresh every 1 min
+        const interval = setInterval(fetchAllPrices, 25000); // refresh every 25s
 
         // Listen for custom event when watchlist changes
         const handleWatchlistUpdate = () => {
@@ -99,7 +105,7 @@ export default function TickerBar() {
     if (loading || prices.length === 0) {
         return (
             <div className="ticker-bar">
-                <div className="ticker-loading">Loading live index prices…</div>
+                <div className="ticker-loading">Loading live prices…</div>
             </div>
         );
     }
@@ -112,12 +118,17 @@ export default function TickerBar() {
                         const isPositive = item.changePct >= 0;
                         return (
                             <div key={`list1-${idx}`} className="ticker-item">
+                                {item.category && item.category !== 'INDEX' && (
+                                    <span className={`ticker-item__cat cat--${item.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                                        {item.category}
+                                    </span>
+                                )}
                                 <span className="ticker-item__label">{item.label}</span>
                                 <span className="ticker-item__price">
-                                    {item.prefix}{Number(item.price).toLocaleString(item.prefix === '$' ? 'en-US' : 'en-IN', { maximumFractionDigits: 2 })}
+                                    {item.prefix}{Number(item.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                                 <span className={`ticker-item__change ${isPositive ? 'ticker-item__change--pos' : 'ticker-item__change--neg'}`}>
-                                    {isPositive ? '▲' : '▼'} {Math.abs(item.changePct).toFixed(2)}%
+                                    {isPositive ? '▲ +' : '▼ -'}{Math.abs(item.changePct).toFixed(2)}%
                                 </span>
                             </div>
                         );
@@ -129,12 +140,17 @@ export default function TickerBar() {
                         const isPositive = item.changePct >= 0;
                         return (
                             <div key={`list2-${idx}`} className="ticker-item">
+                                {item.category && item.category !== 'INDEX' && (
+                                    <span className={`ticker-item__cat cat--${item.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                                        {item.category}
+                                    </span>
+                                )}
                                 <span className="ticker-item__label">{item.label}</span>
                                 <span className="ticker-item__price">
-                                    {item.prefix}{Number(item.price).toLocaleString(item.prefix === '$' ? 'en-US' : 'en-IN', { maximumFractionDigits: 2 })}
+                                    {item.prefix}{Number(item.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                                 <span className={`ticker-item__change ${isPositive ? 'ticker-item__change--pos' : 'ticker-item__change--neg'}`}>
-                                    {isPositive ? '▲' : '▼'} {Math.abs(item.changePct).toFixed(2)}%
+                                    {isPositive ? '▲ +' : '▼ -'}{Math.abs(item.changePct).toFixed(2)}%
                                 </span>
                             </div>
                         );

@@ -1,3 +1,5 @@
+import { ArrowUpRight, ArrowDownRight, Target, Scale, Award } from 'lucide-react';
+
 export default function Profitability({ summary }) {
     if (!summary) return null;
 
@@ -17,9 +19,6 @@ export default function Profitability({ summary }) {
     const centerY = 95;
     const circumference = Math.PI * radius; // half circle
 
-    const winArc = (winPct / 100) * circumference;
-    const lossArc = (lossPct / 100) * circumference;
-
     // Helper: create arc path for semi-circle (left to right)
     const describeArc = (startAngle, endAngle) => {
         const startRad = (startAngle * Math.PI) / 180;
@@ -37,80 +36,98 @@ export default function Profitability({ summary }) {
     const winEndAngle = 180 + (winPct / 100) * 180;
     const lossStartAngle = 360 - (lossPct / 100) * 180;
 
+    // Factor rating
+    const pfNum = Number(profitFactor);
+    let pfRating = { label: 'Modest', color: 'var(--color-text-dim)' };
+    if (!isNaN(pfNum)) {
+        if (pfNum >= 2.0) pfRating = { label: 'Exceptional', color: '#10b981' };
+        else if (pfNum >= 1.5) pfRating = { label: 'Healthy', color: '#34d399' };
+        else if (pfNum >= 1.0) pfRating = { label: 'Profitable', color: 'var(--color-gold)' };
+        else pfRating = { label: 'Needs Focus', color: '#f87171' };
+    }
+
     return (
         <div className="profitability-grid">
-
             {/* Gauge Card */}
-            <div className="card" style={{
-                padding: 'var(--space-lg)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                <h3 style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    margin: '0 0 var(--space-md) 0',
-                    color: 'var(--color-text)',
-                    alignSelf: 'flex-start'
-                }}>Profitability</h3>
-
-                <svg width="200" height="110" viewBox="0 0 200 110" style={{ overflow: 'visible' }}>
-                    {/* Background track */}
-                    <path
-                        d={describeArc(180, 360)}
-                        fill="none"
-                        stroke="var(--color-surface-alt)"
-                        strokeWidth={strokeWidth}
-                        strokeLinecap="round"
-                    />
-                    {/* Win arc (green, from left) */}
-                    {winPct > 0 && (
-                        <path
-                            d={describeArc(180, Math.min(winEndAngle, 360))}
-                            fill="none"
-                            stroke="var(--color-success)"
-                            strokeWidth={strokeWidth}
-                            strokeLinecap="round"
-                            style={{
-                                transition: 'all 1s ease-out',
-                                filter: 'drop-shadow(0 0 4px rgba(34, 197, 94, 0.4))'
-                            }}
-                        />
-                    )}
-                    {/* Loss arc (red, from right) */}
-                    {lossPct > 0 && (
-                        <path
-                            d={describeArc(Math.max(lossStartAngle, 180), 360)}
-                            fill="none"
-                            stroke="var(--color-danger)"
-                            strokeWidth={strokeWidth}
-                            strokeLinecap="round"
-                            style={{
-                                transition: 'all 1s ease-out',
-                                filter: 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.4))'
-                            }}
-                        />
-                    )}
-                    {/* Center text */}
-                    <text x={centerX} y={centerY - 18} textAnchor="middle" fill="var(--color-text-dim)" fontSize="11" fontFamily="var(--font-body)">Total Trades</text>
-                    <text x={centerX} y={centerY + 5} textAnchor="middle" fill="var(--color-text)" fontSize="28" fontWeight="700" fontFamily="var(--font-heading)">{totalClosed}</text>
-                </svg>
-
-                {/* Bottom stats */}
-                <div className="profitability-stats">
-                    <div style={{ textAlign: 'center' }}>
-                        <span className="profitability-stat-value profitability-stat-value--win">{winPct.toFixed(0)}%</span>
-                        <br />
-                        <span className="profitability-stat-label">Wins: {safeWins}</span>
+            <div className="card profitability-gauge-card">
+                <div className="profitability-gauge-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Award size={18} className="text-gold" />
+                        <h3 className="profitability-gauge-title">Trade Profitability</h3>
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <span className="profitability-stat-value profitability-stat-value--loss">{lossPct.toFixed(0)}%</span>
-                        <br />
-                        <span className="profitability-stat-label">Losses: {safeLosses}</span>
+                    <span className="profitability-gauge-badge">
+                        {totalClosed} Closed Positions
+                    </span>
+                </div>
+
+                <div className="profitability-svg-wrapper">
+                    <svg width="220" height="120" viewBox="0 0 200 110" style={{ overflow: 'visible' }}>
+                        <defs>
+                            <linearGradient id="winGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#10B981" />
+                                <stop offset="100%" stopColor="#34D399" />
+                            </linearGradient>
+                            <linearGradient id="lossGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#EF4444" />
+                                <stop offset="100%" stopColor="#F87171" />
+                            </linearGradient>
+                        </defs>
+
+                        {/* Background track */}
+                        <path
+                            d={describeArc(180, 360)}
+                            fill="none"
+                            stroke="var(--color-surface-alt)"
+                            strokeWidth={strokeWidth}
+                            strokeLinecap="round"
+                        />
+                        {/* Win arc (green, from left) */}
+                        {winPct > 0 && (
+                            <path
+                                d={describeArc(180, Math.min(winEndAngle, 360))}
+                                fill="none"
+                                stroke="url(#winGaugeGrad)"
+                                strokeWidth={strokeWidth}
+                                strokeLinecap="round"
+                                style={{
+                                    transition: 'all 1s ease-out',
+                                    filter: 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.45))'
+                                }}
+                            />
+                        )}
+                        {/* Loss arc (red, from right) */}
+                        {lossPct > 0 && (
+                            <path
+                                d={describeArc(Math.max(lossStartAngle, 180), 360)}
+                                fill="none"
+                                stroke="url(#lossGaugeGrad)"
+                                strokeWidth={strokeWidth}
+                                strokeLinecap="round"
+                                style={{
+                                    transition: 'all 1s ease-out',
+                                    filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.45))'
+                                }}
+                            />
+                        )}
+                        {/* Center text: Win Rate is the hero metric */}
+                        <text x={centerX} y={centerY - 22} textAnchor="middle" fill="var(--color-text-dim)" fontSize="10" fontWeight="600" letterSpacing="0.06em" fontFamily="var(--font-heading)">
+                            WIN RATIO
+                        </text>
+                        <text x={centerX} y={centerY + 6} textAnchor="middle" fill="var(--color-text)" fontSize="28" fontWeight="800" fontFamily="var(--font-heading)">
+                            {totalClosed > 0 ? `${winPct.toFixed(0)}%` : '0%'}
+                        </text>
+                    </svg>
+                </div>
+
+                {/* Bottom stats pill badges */}
+                <div className="profitability-legend-pills">
+                    <div className="profitability-legend-pill profitability-legend-pill--win">
+                        <span className="legend-indicator-dot" />
+                        <span>Wins: <strong>{safeWins}</strong> ({winPct.toFixed(0)}%)</span>
+                    </div>
+                    <div className="profitability-legend-pill profitability-legend-pill--loss">
+                        <span className="legend-indicator-dot" />
+                        <span>Losses: <strong>{safeLosses}</strong> ({lossPct.toFixed(0)}%)</span>
                     </div>
                 </div>
             </div>
@@ -118,75 +135,72 @@ export default function Profitability({ summary }) {
             {/* Ratio Cards Grid */}
             <div className="ratio-cards-grid">
                 {/* Average Win */}
-                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
-                    <div style={{ background: 'rgba(34, 197, 94, 0.15)', color: 'var(--color-success)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                            <polyline points="17 6 23 6 23 12"></polyline>
-                        </svg>
+                <div className="card ratio-metric-card ratio-metric-card--win">
+                    <div className="ratio-metric-card__header">
+                        <div className="ratio-metric-icon ratio-metric-icon--win">
+                            <ArrowUpRight size={18} strokeWidth={2.5} />
+                        </div>
+                        <span className="ratio-metric-tag ratio-metric-tag--win">Profit Setup</span>
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: '2px' }}>
-                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Average Win</span>
+                    <div className="ratio-metric-card__body">
+                        <span className="ratio-metric-label">Average Win</span>
+                        <div className="ratio-metric-value text-success">
+                            +₹{Number(avgWin || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-success)' }}>
-                            +₹{Number(avgWin || 0).toLocaleString('en-IN')}
-                        </div>
+                        <span className="ratio-metric-sub">Average profit per win trade</span>
                     </div>
                 </div>
 
                 {/* Win Ratio */}
-                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
-                    <div style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: '2px' }}>
-                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Win Ratio</span>
+                <div className="card ratio-metric-card ratio-metric-card--ratio">
+                    <div className="ratio-metric-card__header">
+                        <div className="ratio-metric-icon ratio-metric-icon--ratio">
+                            <Target size={18} strokeWidth={2.5} />
                         </div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                        <span className="ratio-metric-tag ratio-metric-tag--ratio">Efficiency</span>
+                    </div>
+                    <div className="ratio-metric-card__body">
+                        <span className="ratio-metric-label">Win Ratio</span>
+                        <div className="ratio-metric-value text-gold">
                             {winRate != null ? `${winRate}%` : '0%'}
                         </div>
+                        <span className="ratio-metric-sub">Success frequency on closed trades</span>
                     </div>
                 </div>
 
                 {/* Average Loss */}
-                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
-                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'var(--color-danger)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-                            <polyline points="17 18 23 18 23 12"></polyline>
-                        </svg>
+                <div className="card ratio-metric-card ratio-metric-card--loss">
+                    <div className="ratio-metric-card__header">
+                        <div className="ratio-metric-icon ratio-metric-icon--loss">
+                            <ArrowDownRight size={18} strokeWidth={2.5} />
+                        </div>
+                        <span className="ratio-metric-tag ratio-metric-tag--loss">Risk Controlled</span>
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: '2px' }}>
-                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Average Loss</span>
+                    <div className="ratio-metric-card__body">
+                        <span className="ratio-metric-label">Average Loss</span>
+                        <div className="ratio-metric-value text-danger">
+                            -₹{Number(Math.abs(avgLoss || 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-danger)' }}>
-                            -₹{Number(Math.abs(avgLoss || 0)).toLocaleString('en-IN')}
-                        </div>
+                        <span className="ratio-metric-sub">Average drawdown per stopped trade</span>
                     </div>
                 </div>
 
                 {/* Profit Factor */}
-                <div className="kpi-card card" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'row', gap: '0.85rem', alignItems: 'center' }}>
-                    <div style={{ background: 'var(--color-gold-soft)', color: 'var(--color-gold)', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10"></line>
-                            <line x1="12" y1="20" x2="12" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: '2px' }}>
-                            <span style={{ color: 'var(--color-text-dim)', fontSize: '0.75rem', fontWeight: 500 }}>Profit Factor</span>
+                <div className="card ratio-metric-card ratio-metric-card--pf">
+                    <div className="ratio-metric-card__header">
+                        <div className="ratio-metric-icon ratio-metric-icon--pf">
+                            <Scale size={18} strokeWidth={2.5} />
                         </div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: (profitFactor ?? 0) >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                        <span className="ratio-metric-tag" style={{ color: pfRating.color, borderColor: pfRating.color }}>
+                            {pfRating.label}
+                        </span>
+                    </div>
+                    <div className="ratio-metric-card__body">
+                        <span className="ratio-metric-label">Profit Factor</span>
+                        <div className="ratio-metric-value" style={{ color: (profitFactor ?? 0) >= 1 ? 'var(--color-success)' : 'var(--color-danger)' }}>
                             {profitFactor == null ? '—' : profitFactor === Infinity ? '∞' : profitFactor}
                         </div>
+                        <span className="ratio-metric-sub">Gross profit / Gross loss ratio</span>
                     </div>
                 </div>
             </div>

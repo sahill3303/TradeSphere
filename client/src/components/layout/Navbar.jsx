@@ -1,27 +1,80 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation, NavLink } from 'react-router-dom';
-import { Menu, Sun, Moon, User, Settings, LogOut } from 'lucide-react';
+import { useLocation, NavLink, useNavigate } from 'react-router-dom';
+import { 
+    Menu, Sun, Moon, User, Settings, LogOut, 
+    ChevronDown, Briefcase, TrendingUp, Shield
+} from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import TS2Logo from '../../assets/TS2.png';
 
-const PAGE_TITLES = {
-    '/dashboard': 'Dashboard',
-    '/clients': 'Clients',
-    '/trades': 'Trades',
-    '/trades/open': 'Open Trade',
-    '/paper-trade': 'Paper Trading & Portfolio',
+const PAGE_CONFIG = {
+    '/dashboard': { title: 'Dashboard', section: 'Market' },
+    '/watchlist': { title: 'Watchlist', section: 'Market' },
+    '/intelligence': { title: 'Intelligence', section: 'Market' },
+    '/trades/open': { title: 'Open Trade', section: 'Trading' },
+    '/trades': { title: 'Trades', section: 'Trading' },
+    '/paper-trade': { title: 'Paper Trading', section: 'Trading' },
+    '/analysis': { title: 'Research', section: 'Research' },
+    '/notes': { title: 'Notes', section: 'Research' },
+    '/clients': { title: 'Clients', section: 'Management' },
+    '/settings': { title: 'Settings', section: 'System' },
+    '/profile': { title: 'Profile', section: 'Account' },
+    '/super-admin': { title: 'Super Admin', section: 'Administration' },
 };
+
+function getMarketStatus() {
+    try {
+        const now = new Date();
+        const istString = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+        const ist = new Date(istString);
+        const day = ist.getDay(); // 0: Sun, 6: Sat
+        const hours = ist.getHours();
+        const minutes = ist.getMinutes();
+        const totalMins = hours * 60 + minutes;
+
+        const isWeekend = day === 0 || day === 6;
+        const isPreMarket = !isWeekend && totalMins >= 540 && totalMins < 555; // 09:00 - 09:15 IST
+        const isLive = !isWeekend && totalMins >= 555 && totalMins < 930;      // 09:15 - 15:30 IST
+
+        const timeStr = ist.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        }).toUpperCase();
+
+        if (isLive) {
+            return { type: 'live', label: 'NSE LIVE', time: timeStr };
+        }
+        if (isPreMarket) {
+            return { type: 'pre', label: 'PRE-MARKET', time: timeStr };
+        }
+        return { type: 'closed', label: 'MARKET CLOSED', time: timeStr };
+    } catch {
+        return { type: 'closed', label: 'NSE CLOSED', time: '' };
+    }
+}
 
 export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) {
     const { pathname } = useLocation();
+    const navigate = useNavigate();
     const { toggleTheme, isDarkMode } = useTheme();
     const { user, logout } = useAuth();
     const confirm = useConfirm();
     
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const [marketStatus, setMarketStatus] = useState(getMarketStatus);
+
+    // Update market status every 30 seconds
+    useEffect(() => {
+        setMarketStatus(getMarketStatus());
+        const timer = setInterval(() => {
+            setMarketStatus(getMarketStatus());
+        }, 30000);
+        return () => clearInterval(timer);
+    }, []);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -44,44 +97,65 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
         });
     };
 
-    // Match longest prefix
-    const title = Object.entries(PAGE_TITLES)
-        .find(([path]) => pathname === path || pathname.startsWith(path + '/') || pathname === path)?.[1]
-        ?? 'TradeSphere';
+    // Current page configuration
+    const currentConfig = Object.entries(PAGE_CONFIG)
+        .find(([path]) => pathname === path || (path !== '/' && pathname.startsWith(path + '/')))?.[1]
+        ?? { title: 'TradeSphere', section: 'Terminal' };
 
     return (
         <header className="navbar">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                {/* Mobile & Desktop Sidebar Toggle */}
-                <button
-                    className="navbar__menu-btn"
-                    onClick={() => {
-                        if (window.innerWidth > 768) {
-                            onCollapseToggle();
-                        } else {
-                            onMenuToggle();
-                        }
-                    }}
-                    aria-label="Toggle sidebar"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                    <Menu size={24} />
-                </button>
+            {/* Left section: Sidebar toggle, Brand & Breadcrumbs */}
+            <div className="navbar__left">
+                {!pathname.startsWith('/super-admin') && (
+                    <button
+                        className="navbar__menu-btn"
+                        onClick={() => {
+                            if (window.innerWidth > 768) {
+                                onCollapseToggle();
+                            } else {
+                                onMenuToggle();
+                            }
+                        }}
+                        aria-label="Toggle sidebar"
+                        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    >
+                        <Menu size={20} />
+                    </button>
+                )}
 
-                {/* Brand Logo */}
-                <div className="navbar__brand-container">
-                    <img src={TS2Logo} alt="TradeSphere Logo" style={{ width: '36px', height: 'auto' }} />
-                    <span className="hide-mobile" style={{
-                        fontFamily: 'var(--font-heading)',
-                        fontSize: '1.25rem',
-                        fontWeight: 800,
-                        letterSpacing: '-0.02em',
-                        color: 'var(--color-text)',
-                    }}>Trade<span className="text-gold">Sphere</span></span>
+                <NavLink to="/dashboard" className="navbar__brand-container" title="TradeSphere Home">
+                    <img src={TS2Logo} alt="TradeSphere Logo" className="navbar__logo-img" />
+                    <span className="navbar__brand-text hide-mobile">
+                        Trade<span className="text-gold">Sphere</span>
+                    </span>
+                </NavLink>
+
+                {/* Sleek Breadcrumb for desktop navigation */}
+                <div className="navbar__divider hide-mobile" />
+                <div className="navbar__breadcrumb hide-mobile">
+                    <span className="navbar__breadcrumb-section">{currentConfig.section}</span>
+                    <span className="navbar__breadcrumb-sep">/</span>
+                    <span className="navbar__breadcrumb-current">{currentConfig.title}</span>
                 </div>
             </div>
 
+            {/* Center section: Live Market Status Indicator */}
+            <div className="navbar__center">
+                <div 
+                    className={`navbar__market-status navbar__market-status--${marketStatus.type}`}
+                    title="Indian Market Trading Hours: Mon-Fri 09:15 AM - 03:30 PM IST"
+                >
+                    <span className={`market-dot market-dot--${marketStatus.type}`} />
+                    <span className="market-label">{marketStatus.label}</span>
+                    {marketStatus.time && (
+                        <span className="market-time hide-mobile">{marketStatus.time} IST</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Right section: Theme switch, Profile */}
             <div className="navbar__actions">
+                {/* Theme Toggle Switch */}
                 <button 
                     className={`theme-toggle-switch ${isDarkMode ? 'theme-toggle-switch--dark' : 'theme-toggle-switch--light'}`}
                     onClick={toggleTheme}
@@ -89,86 +163,69 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle }) 
                 >
                     <div className="theme-toggle-switch__thumb"></div>
                     <div className="theme-toggle-switch__icons">
-                        <Sun size={14} className="theme-toggle-switch__icon theme-toggle-switch__icon--sun" />
-                        <Moon size={14} className="theme-toggle-switch__icon theme-toggle-switch__icon--moon" />
+                        <Sun size={13} className="theme-toggle-switch__icon theme-toggle-switch__icon--sun" />
+                        <Moon size={13} className="theme-toggle-switch__icon theme-toggle-switch__icon--moon" />
                     </div>
                 </button>
-                
-
 
                 {/* User Profile Dropdown */}
-                <div className="navbar__user-menu" ref={dropdownRef} style={{ position: 'relative' }}>
+                <div className="navbar__user-menu" ref={dropdownRef}>
                     <button 
-                        className="navbar__user-btn" 
+                        className={`navbar__user-btn ${dropdownOpen ? 'navbar__user-btn--active' : ''}`}
                         onClick={() => setDropdownOpen(!dropdownOpen)}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            padding: '0.3rem 0.75rem',
-                            paddingLeft: '0.3rem',
-                            borderRadius: '2rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                        }}
+                        aria-expanded={dropdownOpen}
+                        title="User account menu"
                     >
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: 'var(--color-gold-soft)',
-                            color: 'var(--color-gold)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: '700',
-                            fontSize: '0.85rem',
-                            lineHeight: 1
-                        }}>
+                        <div className="navbar__user-avatar">
                             {user?.name?.[0]?.toUpperCase() ?? 'U'}
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }} className="hide-mobile">
-                            {user?.name ?? 'User'}
-                        </span>
+                        <div className="navbar__user-info hide-mobile">
+                            <span className="navbar__user-name">
+                                {user?.name ? user.name.split(' ')[0] : 'User'}
+                            </span>
+                        </div>
+                        <ChevronDown 
+                            size={14} 
+                            className={`navbar__user-chevron ${dropdownOpen ? 'navbar__user-chevron--open' : ''} hide-mobile`} 
+                        />
                     </button>
 
-                    {/* Dropdown Box */}
+                    {/* Enhanced Dropdown Menu */}
                     {dropdownOpen && (
-                        <div className="navbar__dropdown" style={{
-                            position: 'absolute',
-                            top: 'calc(100% + 0.5rem)',
-                            right: 0,
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            boxShadow: 'var(--shadow-md)',
-                            minWidth: '200px',
-                            zIndex: 1000,
-                            padding: '0.5rem',
-                            animation: 'dropdownFadeIn 0.2s ease forwards'
-                        }}>
-                            <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-border)', marginBottom: '0.5rem' }}>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>{user?.name ?? 'User'}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{user?.email ?? ''}</div>
+                        <div className="navbar__dropdown">
+                            <div className="navbar__dropdown-header">
+                                <div className="navbar__dropdown-avatar">
+                                    {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                                </div>
+                                <div className="navbar__dropdown-user-details">
+                                    <div className="navbar__dropdown-name">{user?.name ?? 'User'}</div>
+                                    <div className="navbar__dropdown-email">{user?.email ?? ''}</div>
+                                </div>
                             </div>
                             
-                            <NavLink to="/profile" className="navbar__dropdown-item" onClick={() => setDropdownOpen(false)}>
-                                <User size={16} /> Profile
-                            </NavLink>
-                            <NavLink to="/settings" className="navbar__dropdown-item" onClick={() => setDropdownOpen(false)}>
-                                <Settings size={16} /> Settings
-                            </NavLink>
+                            <div className="navbar__dropdown-section">
+                                <NavLink to="/profile" className="navbar__dropdown-item" onClick={() => setDropdownOpen(false)}>
+                                    <User size={15} />
+                                    <span>My Profile</span>
+                                </NavLink>
+                                <NavLink to="/paper-trade" className="navbar__dropdown-item" onClick={() => setDropdownOpen(false)}>
+                                    <Briefcase size={15} />
+                                    <span>Paper Portfolio</span>
+                                </NavLink>
+                                <NavLink to="/settings" className="navbar__dropdown-item" onClick={() => setDropdownOpen(false)}>
+                                    <Settings size={15} />
+                                    <span>Preferences & Security</span>
+                                </NavLink>
+                            </div>
                             
-                            <div style={{ height: '1px', background: 'var(--color-border)', margin: '0.5rem 0' }}></div>
+                            <div className="navbar__dropdown-divider" />
                             
                             <button 
                                 className="navbar__dropdown-item navbar__dropdown-item--danger" 
                                 onClick={handleLogout}
-                                style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent' }}
                             >
-                                <LogOut size={16} /> Logout
+                                <LogOut size={15} />
+                                <span>Sign Out</span>
                             </button>
                         </div>
                     )}

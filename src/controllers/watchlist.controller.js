@@ -1,4 +1,5 @@
 import db from '../config/db.js';
+import { fetchBatchPrices } from '../services/screenerPrice.service.js';
 
 // Fetch all watchlist symbols for this user
 export const getWatchlist = async (req, res) => {
@@ -130,78 +131,32 @@ export const getPrices = async (req, res) => {
     if (!symbols) return res.json({ success: true, data: {} });
 
     try {
-        const symbolArray = symbols.split(',').filter(Boolean);
-        const cheerio = await import('cheerio');
-        const priceMap = {};
-
-        await Promise.all(symbolArray.map(async (sym) => {
-            try {
-                const cleanSymbol = sym.split(':').pop();
-                
-                // Construct Yahoo Finance Symbol
-                // If it starts with %5E (like %5ENSEI) or ^, or has a suffix (.NS, .BO), keep it.
-                // Otherwise, append .NS for Indian stocks.
-                const isYahooFormatted = cleanSymbol.includes('.') || cleanSymbol.startsWith('^') || cleanSymbol.startsWith('%5E');
-                const yahooSym = isYahooFormatted ? cleanSymbol : `${cleanSymbol}.NS`;
-                
-                const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=1m&range=1d`;
-                const response = await fetch(yahooUrl, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (response.ok) {
-                    const json = await response.json();
-                    const meta = json?.chart?.result?.[0]?.meta;
-                    const regularPrice = meta?.regularMarketPrice;
-                    const previousClose = meta?.previousClose || meta?.chartPreviousClose;
-
-                    if (regularPrice != null) {
-                        if (previousClose != null && previousClose > 0) {
-                            const change = regularPrice - previousClose;
-                            const percentChange = (change / previousClose) * 100;
-                            priceMap[sym] = {
-                                price: regularPrice.toFixed(2),
-                                change: change.toFixed(2),
-                                percentChange: percentChange.toFixed(2)
-                            };
-                        } else {
-                            priceMap[sym] = { price: regularPrice.toFixed(2) };
-                        }
-                        return;
-                    }
-                }
-
-                // FALLBACK: Screener.in scraping
-                const screenerRes = await fetch(`https://www.screener.in/company/${cleanSymbol}/consolidated/`, {
-                    headers: { 'User-Agent': 'Mozilla/5.0' }
-                });
-
-                if (!screenerRes.ok) {
-                    const fallbackResponse = await fetch(`https://www.screener.in/company/${cleanSymbol}/`, {
-                        headers: { 'User-Agent': 'Mozilla/5.0' }
-                    });
-                    if (!fallbackResponse.ok) return;
-                    const html = await fallbackResponse.text();
-                    const $ = cheerio.load(html);
-                    const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
-                    if (price) priceMap[sym] = { price };
-                    return;
-                }
-
-                const html = await screenerRes.text();
-                const $ = cheerio.load(html);
-                const price = $('#top-ratios li:contains("Current Price") .number').first().text().trim();
-                if (price) priceMap[sym] = { price };
-            } catch (err) {
-                console.error(`Failed to fetch price for ${sym}:`, err.message);
-            }
-        }));
-
+        const symbolArray = symbols.split(',').map(s => s.trim()).filter(Boolean);
+        const priceMap = await fetchBatchPrices(symbolArray);
         res.json({ success: true, data: priceMap });
     } catch (err) {
+        console.error('getPrices error:', err.message);
         res.status(500).json({ success: false, message: 'Failed to fetch prices' });
     }
 };
+
+// Fetch all ticker symbols for user across all categories (Long, SSF, weekly, Reliance, etc.)
+export const getTickerSymbols = async (req, res) => {
+    try {
+        let adminId = req.user?.id;
+        if (!adminId) {
+            const [adminRows] = await db.query("SELECT id FROM admins WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+            adminId = adminRows.length > 0 ? adminRows[0].id : 13;
+        }
+
+        const [rows] = await db.query(
+            'SELECT symbol, name, category FROM watchlist_symbols WHERE admin_id = ? ORDER BY category ASC, created_at DESC',
+            [adminId]
+        );
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('getTickerSymbols error:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch ticker symbols' });
+    }
+};
+

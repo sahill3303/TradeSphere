@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PreferencesProvider } from './context/PreferencesContext';
 import { ConfirmProvider } from './context/ConfirmContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
@@ -43,45 +44,47 @@ export default function App() {
       <ThemeProvider>
         <PreferencesProvider>
           <ConfirmProvider>
-            <BrowserRouter>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/welcome" element={<Welcome />} />
-                <Route path="/about" element={<AboutApp />} />
-                <Route path="/explore" element={<ExplorePlatform />} />
-                
-                {/* Info routes */}
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/support" element={<Support />} />
+            <ErrorBoundary>
+              <BrowserRouter>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/welcome" element={<Welcome />} />
+                  <Route path="/about" element={<AboutApp />} />
+                  <Route path="/explore" element={<ExplorePlatform />} />
+                  
+                  {/* Info routes */}
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/support" element={<Support />} />
 
-                {/* Protected routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-                  <Route path="/clients" element={<Layout><ClientsList /></Layout>} />
-                  <Route path="/clients/:id" element={<Layout><ClientDetails /></Layout>} />
-                  <Route path="/trades" element={<Layout><TradesList /></Layout>} />
-                  <Route path="/trades/open" element={<Layout><OpenTrade /></Layout>} />
-                  <Route path="/trades/:id" element={<Layout><TradeDetails /></Layout>} />
-                  <Route path="/paper-trade/open" element={<Layout><OpenPaperTrade /></Layout>} />
-                  <Route path="/paper-trade" element={<Layout><PaperTrade /></Layout>} />
-                  <Route path="/notes" element={<Layout><Notes /></Layout>} />
-                  <Route path="/analysis" element={<Layout><Analysis /></Layout>} />
-                  <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />
-                  <Route path="/intelligence" element={<Layout><Intelligence /></Layout>} />
-                  <Route path="/settings" element={<Layout><Settings /></Layout>} />
-                  <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                  <Route path="/super-admin" element={<Layout><SuperAdminDashboard /></Layout>} />
-                </Route>
+                  {/* Protected routes */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+                    <Route path="/clients" element={<Layout><ClientsList /></Layout>} />
+                    <Route path="/clients/:id" element={<Layout><ClientDetails /></Layout>} />
+                    <Route path="/trades" element={<Layout><TradesList /></Layout>} />
+                    <Route path="/trades/open" element={<Layout><OpenTrade /></Layout>} />
+                    <Route path="/trades/:id" element={<Layout><TradeDetails /></Layout>} />
+                    <Route path="/paper-trade/open" element={<Layout><OpenPaperTrade /></Layout>} />
+                    <Route path="/paper-trade" element={<Layout><PaperTrade /></Layout>} />
+                    <Route path="/notes" element={<Layout><Notes /></Layout>} />
+                    <Route path="/analysis" element={<Layout><Analysis /></Layout>} />
+                    <Route path="/watchlist" element={<Layout><Watchlist /></Layout>} />
+                    <Route path="/intelligence" element={<Layout><Intelligence /></Layout>} />
+                    <Route path="/settings" element={<Layout><Settings /></Layout>} />
+                    <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                    <Route path="/super-admin" element={<Layout><SuperAdminDashboard /></Layout>} />
+                  </Route>
 
-                {/* Fallback */}
-                <Route path="/" element={<Landing />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </BrowserRouter>
+                  {/* Fallback */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </BrowserRouter>
+            </ErrorBoundary>
           </ConfirmProvider>
         </PreferencesProvider>
       </ThemeProvider>
