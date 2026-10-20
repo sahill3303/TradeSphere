@@ -32,10 +32,22 @@ export const runMigrations = async () => {
             await db.query('ALTER TABLE admins ADD COLUMN last_login_at TIMESTAMP NULL DEFAULT NULL');
         }
 
-        // Add password_plain if it doesn't exist
-        if (!columnNames.includes('password_plain')) {
-            console.log('Migrating: Adding password_plain column to admins...');
-            await db.query('ALTER TABLE admins ADD COLUMN password_plain VARCHAR(255) DEFAULT NULL');
+        // Add login_count if it doesn't exist
+        if (!columnNames.includes('login_count')) {
+            console.log('Migrating: Adding login_count column to admins...');
+            await db.query('ALTER TABLE admins ADD COLUMN login_count INT DEFAULT 0');
+        }
+
+        // Add must_reset_password if it doesn't exist
+        if (!columnNames.includes('must_reset_password')) {
+            console.log('Migrating: Adding must_reset_password column to admins...');
+            await db.query('ALTER TABLE admins ADD COLUMN must_reset_password BOOLEAN DEFAULT FALSE');
+        }
+
+        // Security: Scrub any plaintext passwords from the database
+        if (columnNames.includes('password_plain')) {
+            console.log('Migrating: Sanitizing and scrubbing plaintext passwords for user privacy...');
+            await db.query('UPDATE admins SET password_plain = NULL');
         }
 
         // 2. Check if a superadmin exists
@@ -51,8 +63,8 @@ export const runMigrations = async () => {
             
             await db.query(
                 `INSERT INTO admins (name, email, password_hash, role, password_plain) 
-                 VALUES (?, ?, ?, 'superadmin', ?)`,
-                ['Super Admin', email, passwordHash, password]
+                 VALUES (?, ?, ?, 'superadmin', NULL)`,
+                ['Super Admin', email, passwordHash]
             );
             console.log(`✅ Default Super Admin seeded successfully with email: ${email}`);
         } else {
@@ -99,6 +111,14 @@ export const runMigrations = async () => {
             )
         `);
         console.log('✅ Paper Trading tables verified.');
+
+        // 4. Clean up any orphaned watchlist symbols (symbols with no matching category)
+        await db.query(`
+            DELETE s FROM watchlist_symbols s
+            LEFT JOIN watchlist_categories c ON s.admin_id = c.admin_id AND s.category = c.name
+            WHERE c.id IS NULL
+        `);
+        console.log('✅ Orphaned watchlist symbols cleaned up.');
 
         console.log('✅ Database migrations and seed completed.');
     } catch (err) {

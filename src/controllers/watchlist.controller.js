@@ -6,7 +6,11 @@ export const getWatchlist = async (req, res) => {
     try {
         const adminId = req.user.id;
         const [rows] = await db.query(
-            'SELECT * FROM watchlist_symbols WHERE admin_id = ? ORDER BY created_at DESC',
+            `SELECT s.* 
+             FROM watchlist_symbols s
+             INNER JOIN watchlist_categories c ON s.admin_id = c.admin_id AND s.category = c.name
+             WHERE s.admin_id = ? 
+             ORDER BY s.created_at DESC`,
             [adminId]
         );
         res.json({ success: true, data: rows });
@@ -24,6 +28,14 @@ export const addWatchlistSymbol = async (req, res) => {
     const adminId = req.user.id;
 
     try {
+        const [catExists] = await db.query(
+            'SELECT id FROM watchlist_categories WHERE name = ? AND admin_id = ?',
+            [cat, adminId]
+        );
+        if (catExists.length === 0) {
+            return res.status(400).json({ success: false, message: `Watchlist category '${cat}' does not exist` });
+        }
+
         await db.query(
             `INSERT INTO watchlist_symbols (symbol, name, category, admin_id) VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE name=VALUES(name), category=VALUES(category), created_at=CURRENT_TIMESTAMP`,
@@ -110,18 +122,22 @@ export const removeCategory = async (req, res) => {
     const adminId = req.user.id;
     try {
         const [rows] = await db.query(
-            'SELECT name FROM watchlist_categories WHERE id = ? AND admin_id = ?',
-            [id, adminId]
+            'SELECT id, name FROM watchlist_categories WHERE (id = ? OR name = ?) AND admin_id = ?',
+            [id, id, adminId]
         );
         if (rows.length > 0) {
+            const catName = rows[0].name;
+            const catId = rows[0].id;
             await db.query(
                 'DELETE FROM watchlist_symbols WHERE category = ? AND admin_id = ?',
-                [rows[0].name, adminId]
+                [catName, adminId]
             );
+            await db.query('DELETE FROM watchlist_categories WHERE id = ? AND admin_id = ?', [catId, adminId]);
+            return res.json({ success: true, message: `Watchlist '${catName}' and its stocks removed successfully` });
         }
-        await db.query('DELETE FROM watchlist_categories WHERE id = ? AND admin_id = ?', [id, adminId]);
-        res.json({ success: true, message: 'Category removed' });
+        res.status(404).json({ success: false, message: 'Watchlist category not found' });
     } catch (err) {
+        console.error('Failed to remove category:', err);
         res.status(500).json({ success: false, message: 'Failed to remove category' });
     }
 };
@@ -140,7 +156,7 @@ export const getPrices = async (req, res) => {
     }
 };
 
-// Fetch all ticker symbols for user across all categories (Long, SSF, weekly, Reliance, etc.)
+// Fetch all ticker symbols for user across all categories (Long, SSF, weekly, etc.)
 export const getTickerSymbols = async (req, res) => {
     try {
         let adminId = req.user?.id;
@@ -150,7 +166,11 @@ export const getTickerSymbols = async (req, res) => {
         }
 
         const [rows] = await db.query(
-            'SELECT symbol, name, category FROM watchlist_symbols WHERE admin_id = ? ORDER BY category ASC, created_at DESC',
+            `SELECT s.symbol, s.name, s.category 
+             FROM watchlist_symbols s
+             INNER JOIN watchlist_categories c ON s.admin_id = c.admin_id AND s.category = c.name
+             WHERE s.admin_id = ? 
+             ORDER BY s.category ASC, s.created_at DESC`,
             [adminId]
         );
         res.json({ success: true, data: rows });

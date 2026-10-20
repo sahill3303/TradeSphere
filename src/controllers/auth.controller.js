@@ -51,8 +51,8 @@ export const registerAdmin = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
 
         const [result] = await db.query(
-            'INSERT INTO admins (name, email, password_hash, preferences, subscription_expires_at, password_plain) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), ?)',
-            [name, email, passwordHash, JSON.stringify(DEFAULT_PREFERENCES), password]
+            'INSERT INTO admins (name, email, password_hash, preferences, subscription_expires_at, password_plain) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)',
+            [name, email, passwordHash, JSON.stringify(DEFAULT_PREFERENCES)]
         );
 
         const newAdminId = result.insertId;
@@ -134,6 +134,7 @@ export const loginAdmin = async (req, res) => {
                 role: admin.role,
                 is_frozen: admin.is_frozen,
                 subscription_expires_at: admin.subscription_expires_at,
+                must_reset_password: !!admin.must_reset_password,
                 preferences
             }
         });
@@ -147,7 +148,7 @@ export const loginAdmin = async (req, res) => {
 export const getMe = async (req, res) => {
     try {
         const [rows] = await db.query(
-            'SELECT id, name, email, role, preferences, is_frozen, subscription_expires_at FROM admins WHERE id = ?',
+            'SELECT id, name, email, role, preferences, is_frozen, subscription_expires_at, must_reset_password FROM admins WHERE id = ?',
             [req.user.id]
         );
 
@@ -255,9 +256,9 @@ export const changePassword = async (req, res) => {
         // Hash new password
         const passwordHash = await bcrypt.hash(newPassword, 10);
 
-        // Update password in DB
+        // Update password in DB and clear any forced reset flag
         await db.query(
-            'UPDATE admins SET password_hash = ? WHERE id = ?',
+            'UPDATE admins SET password_hash = ?, must_reset_password = FALSE, password_plain = NULL WHERE id = ?',
             [passwordHash, adminId]
         );
 
@@ -265,5 +266,38 @@ export const changePassword = async (req, res) => {
     } catch (err) {
         console.error('CHANGE PASSWORD ERROR:', err);
         res.status(500).json({ message: 'Failed to update password', error: err.message });
+    }
+};
+
+/**
+ * UPDATE TEMPORARY PASSWORD (Immediately after login when must_reset_password is TRUE)
+ */
+export const updateTemporaryPassword = async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        const adminId = req.user.id;
+
+        if (!newPassword) {
+            return res.status(400).json({ message: 'New password is required' });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ 
+                message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@, $, !, %, *, ?, &).' 
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        await db.query(
+            'UPDATE admins SET password_hash = ?, must_reset_password = FALSE, password_plain = NULL WHERE id = ?',
+            [passwordHash, adminId]
+        );
+
+        res.json({ message: 'Your permanent password has been set successfully! Your workspace is now secure.' });
+    } catch (err) {
+        console.error('UPDATE TEMPORARY PASSWORD ERROR:', err);
+        res.status(500).json({ message: 'Failed to update temporary password', error: err.message });
     }
 };

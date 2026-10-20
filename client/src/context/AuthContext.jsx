@@ -56,8 +56,13 @@ export function AuthProvider({ children }) {
         setUser(prev => prev ? { ...prev, name, preferences } : prev);
     }, []);
 
+    // Mark temporary password as updated (clears must_reset_password prompt)
+    const markPasswordUpdated = useCallback(() => {
+        setUser(prev => prev ? { ...prev, must_reset_password: false } : prev);
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUserPreferences, updateUserProfile }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout, updateUserPreferences, updateUserProfile, markPasswordUpdated }}>
             {children}
         </AuthContext.Provider>
     );

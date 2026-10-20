@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp, Trash2, X } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
 import api from '../../api/axios';
 import './Watchlist.css';
@@ -159,6 +159,40 @@ export default function Watchlist() {
         });
     };
 
+    const handleDeleteCategory = (categoryName) => {
+        const targetCategory = categories.find(c => c.name === categoryName);
+        if (!targetCategory) return;
+
+        const count = symbols.filter(s => s.category === categoryName).length;
+        const msg = count > 0
+            ? `Are you sure you want to delete the "${categoryName}" watchlist? This will permanently delete all ${count} stock${count > 1 ? 's' : ''} in this watchlist.`
+            : `Are you sure you want to delete the "${categoryName}" watchlist?`;
+
+        confirmAction({
+            title: 'Delete Watchlist',
+            message: msg,
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    const { data } = await api.delete(`/watchlist/categories/${targetCategory.id}`);
+                    if (data.success) {
+                        const updatedCats = categories.filter(c => c.id !== targetCategory.id);
+                        setCategories(updatedCats);
+                        setSymbols(prev => prev.filter(s => s.category !== categoryName));
+                        if (activeCategory === categoryName) {
+                            setActiveCategory(updatedCats.length > 0 ? updatedCats[0].name : '');
+                        }
+                        setIsEditing(false);
+                        window.dispatchEvent(new Event('watchlist-updated'));
+                        fetchData();
+                    }
+                } catch (error) {
+                    console.error('Failed to delete watchlist category', error);
+                }
+            }
+        });
+    };
+
     const createNewCategory = async (e) => {
         e.preventDefault();
         if (!newCategoryName.trim()) return;
@@ -239,13 +273,28 @@ export default function Watchlist() {
                     <div className="watchlist-tabs-header">
                         <div className="watchlist-tabs tabs-wrap">
                             {categories.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    className={`watchlist-tab ${activeCategory === cat.name ? 'active' : ''}`}
-                                    onClick={() => { setActiveCategory(cat.name); setIsEditing(false); }}
-                                >
-                                    {cat.name}
-                                </button>
+                                <div key={cat.id} className="watchlist-tab-item">
+                                    <button
+                                        type="button"
+                                        className={`watchlist-tab ${activeCategory === cat.name ? 'active' : ''}`}
+                                        onClick={() => { setActiveCategory(cat.name); }}
+                                    >
+                                        <span>{cat.name}</span>
+                                        {isEditing && (
+                                            <span
+                                                className="watchlist-tab__delete-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteCategory(cat.name);
+                                                }}
+                                                title={`Delete "${cat.name}" watchlist`}
+                                                aria-label={`Delete "${cat.name}" watchlist`}
+                                            >
+                                                <X size={12} />
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
                             ))}
                             <button className="watchlist-tab watchlist-tab--add hide-mobile" onClick={() => setShowNewCategoryModal(true)}>
                                 + New
@@ -253,10 +302,25 @@ export default function Watchlist() {
                         </div>
                         <div className="watchlist-tabs-actions">
                             {lastUpdated && <span className="watchlist-last-updated hide-mobile">Last Updated: {lastUpdated}</span>}
+                            
+                            {activeCategory && (
+                                <button
+                                    type="button"
+                                    className="btn btn--danger watchlist-action-delete"
+                                    onClick={() => handleDeleteCategory(activeCategory)}
+                                    title={`Delete entire "${activeCategory}" watchlist`}
+                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                                >
+                                    <Trash2 size={13} />
+                                    <span>Delete Watchlist</span>
+                                </button>
+                            )}
+
                             <button
+                                type="button"
                                 className={`btn ${isEditing ? 'btn--primary' : 'btn--secondary'}`}
                                 onClick={() => setIsEditing(!isEditing)}
-                                disabled={activeSymbols.length === 0}
+                                disabled={categories.length === 0}
                                 style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
                             >
                                 {isEditing ? 'Done' : 'Edit'}
@@ -267,10 +331,32 @@ export default function Watchlist() {
                     <div className="watchlist-main">
                         {loading ? (
                             <div className="watchlist-placeholder">Loading...</div>
+                        ) : categories.length === 0 ? (
+                            <div className="watchlist-placeholder">
+                                <div className="watchlist-placeholder-icon"><TrendingUp size={48} /></div>
+                                <p>No watchlists available.</p>
+                                <button
+                                    type="button"
+                                    className="btn btn--primary btn--small"
+                                    onClick={() => setShowNewCategoryModal(true)}
+                                    style={{ marginTop: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    + Create New Watchlist
+                                </button>
+                            </div>
                         ) : activeSymbols.length === 0 ? (
                             <div className="watchlist-placeholder">
                                 <div className="watchlist-placeholder-icon"><TrendingUp size={48} /></div>
                                 <p>No stocks in <strong>{activeCategory}</strong>.</p>
+                                <button
+                                    type="button"
+                                    className="btn btn--danger btn--small"
+                                    onClick={() => handleDeleteCategory(activeCategory)}
+                                    style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <Trash2 size={13} />
+                                    <span>Delete "{activeCategory}" Watchlist</span>
+                                </button>
                             </div>
                         ) : (
                             <div className="watchlist-table-container">

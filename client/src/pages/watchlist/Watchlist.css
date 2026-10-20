@@ -187,16 +187,25 @@
   gap: 4px;
 }
 
+.watchlist-tab-item {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
 .watchlist-tab {
   background: transparent;
   border: none;
   color: var(--color-text-dim);
-  padding: 0.5rem 1.25rem;
+  padding: 0.5rem 1.1rem;
   border-radius: var(--radius-lg);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .watchlist-tab:hover {
@@ -208,6 +217,44 @@
   background: var(--color-primary);
   color: #000;
   box-shadow: var(--shadow-sm);
+}
+
+.watchlist-tab__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  margin-left: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.watchlist-tab__delete-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  transform: scale(1.15);
+}
+
+.watchlist-tab.active .watchlist-tab__delete-btn {
+  background: rgba(0, 0, 0, 0.2);
+  color: #7f1d1d;
+}
+
+.watchlist-tab.active .watchlist-tab__delete-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.watchlist-action-delete {
+  transition: all 0.2s ease;
+}
+
+.watchlist-action-delete:hover {
+  transform: translateY(-1px);
 }
 
 .watchlist-tabs-actions {

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import TickerBar from './TickerBar';
+import ForcePasswordResetModal from '../auth/ForcePasswordResetModal';
 
 export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function Layout({ children }) {
     return (
         <div className={`layout ${isCollapsed ? 'layout--collapsed' : ''}`}>
             <div className="layout__topbar">
-                <TickerBar />
+                {!isSuperAdmin && <TickerBar />}
                 <Navbar 
                     onMenuToggle={toggleMobileMenu} 
                     isCollapsed={isCollapsed} 
@@ -62,6 +63,8 @@ export default function Layout({ children }) {
                     {children}
                 </main>
             </div>
+
+            <ForcePasswordResetModal />
         </div>
     );
 }

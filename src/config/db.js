@@ -40,6 +40,11 @@ if (process.env.MYSQL_URL || process.env.DATABASE_URL) {
     db = mysql.createPool(dbConfig);
 }
 
+// Ensure every connection in the pool uses Indian Standard Time (IST, UTC+5:30)
+db.on('connection', (connection) => {
+    connection.query("SET time_zone = '+05:30'");
+});
+
 // Test the connection on startup
 db.getConnection()
     .then(connection => {
