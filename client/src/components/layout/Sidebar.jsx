@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap, X } from 'lucide-react';
+import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap, X, PieChart } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -15,9 +15,10 @@ const navGroups = [
         ]
     },
     {
-        title: 'TRADING',
+        title: 'TRADES & PORTFOLIO',
         items: [
-            { to: '/trades',       label: 'Trades',       icon: '◈',  key: 'trades' },
+            { to: '/trades',       label: 'Trades',       icon: <Zap size={18} />,     key: 'trades' },
+            { to: '/portfolio',    label: 'Portfolio',    icon: <PieChart size={18} />, key: 'portfolio' },
             { to: '/paper-trade',  label: 'Paper Trading',icon: <Briefcase size={18} />, key: 'paperTrade' },
         ]
     },

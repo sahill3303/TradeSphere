@@ -1,6 +1,7 @@
 /**
- * Input — dark-themed input with label, error support, and password visibility toggle.
- * Props: id, label, error, type, value, onChange, placeholder, required, style, className
+ * Input — dark-themed input with label, error support, password toggle,
+ * wheel scroll disable for number inputs, and date min/max bounds.
+ * Props: id, label, error, type, value, onChange, placeholder, required, disabled, min, max, step, style, className
  */
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
@@ -15,12 +16,17 @@ export default function Input({
     placeholder = '',
     required = false,
     disabled = false,
+    min,
+    max,
+    step,
     autoComplete,
     style,
     className = '',
 }) {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
+    const isNumber = type === 'number';
+    const isDate = type === 'date';
 
     return (
         <div className={`form-group ${className}`} style={style}>
@@ -39,7 +45,11 @@ export default function Input({
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
+                    min={isDate ? (min || '2000-01-01') : min}
+                    max={isDate ? (max || '2099-12-31') : max}
+                    step={step}
                     autoComplete={autoComplete}
+                    onWheel={isNumber ? (e) => e.currentTarget.blur() : undefined}
                     className={`form-input${error ? ' form-input--error' : ''}${disabled ? ' form-input--disabled' : ''}`}
                 />
                 {isPassword && (

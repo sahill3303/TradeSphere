@@ -10,13 +10,25 @@ import {
     deleteTrade,
     getDeletedTrades,
     restoreTrade,
-    hardDeleteTrade
+    hardDeleteTrade,
+    getTradeLists,
+    createTradeList,
+    deleteTradeList,
+    addTradesToList,
+    removeTradesFromList
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
 
 // Apply verifyToken to ALL routes in this router
 router.use(verifyToken);
+
+// 🔹 TRADE LISTS (TAGS) — Must come before /:trade_id
+router.get('/lists', getTradeLists);
+router.post('/lists', createTradeList);
+router.delete('/lists/:list_id', deleteTradeList);
+router.post('/lists/:list_id/trades', addTradesToList);
+router.delete('/lists/:list_id/trades', removeTradesFromList);
 
 // 🔹 OPEN TRADE
 router.post('/', openTrade);
@@ -36,7 +48,7 @@ router.get('/deleted', getDeletedTrades);
 // 🔹 GET TRADE BY ID
 router.get('/:trade_id', getTradeById);
 
-// 🔹 UPDATE TRADE (ONLY IF OPEN)
+// 🔹 UPDATE TRADE (EVERYTHING EDITABLE)
 router.patch('/:trade_id', updateTrade);
 
 // 🔹 DELETE TRADE
@@ -49,6 +61,3 @@ router.patch('/:trade_id/restore', restoreTrade);
 router.delete('/:trade_id/permanent', hardDeleteTrade);
 
 export default router;
-
-
-// review all trade routes overall

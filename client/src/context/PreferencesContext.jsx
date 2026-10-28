@@ -12,6 +12,7 @@ const DEFAULT_FEATURES = {
     watchlist: true,
     clients: true,
     trades: true,
+    portfolio: true,
     paperTrade: true,
     analysis: true,
     notes: true

@@ -1,0 +1,558 @@
+/* ──────────────────────────────────────────────────────────
+   OpenTrade.css — Clean, Modern, Professional Trade Ticket UI
+────────────────────────────────────────────────────────── */
+
+/* Hide spin buttons and wheel behavior */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.open-trade-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-bottom: var(--space-xl);
+}
+
+.open-trade-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.open-trade-header__left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.open-trade-header__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.open-trade-header__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.open-trade-header__subtitle {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.open-trade-header__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.open-trade-header__badge--buy {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.open-trade-header__badge--sell {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Form Layout */
+.open-trade-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--space-lg);
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .open-trade-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.open-trade-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* Card Section Header */
+.trade-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.trade-card-header__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.trade-card-header__subtitle {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Segmented Buttons for Trade Type */
+.segmented-control {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--color-surface-alt);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    gap: 4px;
+}
+
+.segmented-btn {
+    padding: 0.55rem 0.5rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.segmented-btn:hover:not(.segmented-btn--active) {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.segmented-btn--active {
+    background: var(--color-primary);
+    color: #000 !important;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
+}
+
+/* Mode Switchers */
+.mode-toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+}
+
+.mode-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: 1.5px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+.mode-toggle-btn--buy.mode-toggle-btn--active {
+    background: var(--color-success-soft);
+    border-color: var(--color-success);
+    color: var(--color-success);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+.mode-toggle-btn--sell.mode-toggle-btn--active {
+    background: var(--color-danger-soft);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Long Term Buy Only Notice Banner */
+.long-term-buy-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-success-soft);
+    border: 1.5px solid var(--color-success);
+    color: var(--color-success);
+}
+
+.long-term-buy-banner__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.long-term-buy-banner__tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--color-success);
+}
+
+/* Live Quote Pill */
+.live-quote-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--color-primary);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.live-quote-pill:hover {
+    background: rgba(212, 175, 55, 0.2);
+    transform: translateY(-1px);
+}
+
+.live-quote-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success);
+    box-shadow: 0 0 6px var(--color-success);
+}
+
+/* Clients Multi-Select */
+.clients-selection-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+}
+
+.clients-quick-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.clients-quick-btn {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.clients-quick-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+}
+
+.clients-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.client-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.client-chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.client-chip--selected {
+    border-color: var(--color-gold);
+    background: var(--color-gold-soft);
+    color: var(--color-gold);
+    font-weight: 600;
+}
+
+/* Strategy Pills */
+.strategy-pills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.strategy-pill {
+    padding: 0.38rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.strategy-pill:hover {
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.strategy-pill--selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: 600;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.15);
+}
+
+/* Mood Pills */
+.mood-pill {
+    padding: 0.38rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.mood-pill:hover {
+    border-color: var(--color-warning);
+    color: var(--color-text);
+}
+
+.mood-pill--selected {
+    border-color: var(--color-warning);
+    background: var(--color-warning-soft);
+    color: var(--color-warning);
+    font-weight: 600;
+}
+
+/* Conviction Slider */
+.conviction-slider-container {
+    background: var(--color-surface-alt);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.conviction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.conviction-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/* Inline Calculated Badges */
+.calc-badge {
+    font-size: 0.72rem;
+    margin-top: 4px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.calc-badge--profit {
+    color: var(--color-success);
+}
+
+.calc-badge--loss {
+    color: var(--color-danger);
+}
+
+.calc-badge--capital {
+    color: var(--color-primary);
+}
+
+/* Trade Preview Ticket */
+.trade-ticket {
+    position: sticky;
+    top: calc(var(--navbar-height) + var(--space-md));
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.ticket-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.ticket-header-banner {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ticket-header-banner--buy {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+    border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--color-success);
+}
+
+.ticket-header-banner--sell {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+    border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--color-danger);
+}
+
+.ticket-body {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.ticket-symbol-display {
+    text-align: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ticket-symbol-text {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--color-text);
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.ticket-symbol-sub {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.ticket-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.ticket-stat-box {
+    background: var(--color-surface-alt);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.ticket-stat-label {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.ticket-stat-value {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.ticket-pnl-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+}
+
+.ticket-pnl-item {
+    text-align: center;
+}
+
+.ticket-rr-meter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(212, 175, 55, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.ticket-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.optional-badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+}
