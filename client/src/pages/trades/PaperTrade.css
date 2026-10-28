@@ -236,6 +236,43 @@
     color: #ffffff;
 }
 
+/* ── View Mode Switcher Toggle ── */
+.view-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.view-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-dim, #94a3b8);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.view-mode-btn.active {
+    background: var(--color-surface-alt, #1e293b);
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* ── Interactive Order Pad & Drawer ── */
 .order-form-card {
     background: var(--color-surface);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { Rocket } from 'lucide-react';
 import Card from '../../components/ui/Card';
@@ -51,6 +51,7 @@ function validate(f) {
 
 export default function OpenTrade() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [form, setForm] = useState(BLANK);
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
@@ -78,6 +79,20 @@ export default function OpenTrade() {
            })
            .catch(err => console.error("Failed to load clients", err));
     }, []);
+
+    useEffect(() => {
+        const typeParam = searchParams.get('type');
+        if (typeParam) {
+            const cleanType = typeParam.toUpperCase().trim();
+            if (['INTRADAY', 'MTF', 'SWING', 'LONG TERM'].includes(cleanType)) {
+                setForm(prev => ({
+                    ...prev,
+                    trade_type: cleanType,
+                    leverage: (cleanType === 'SWING' || cleanType === 'LONG TERM') ? '0' : prev.leverage
+                }));
+            }
+        }
+    }, [searchParams]);
 
     // Close suggestions when clicking outside
     useEffect(() => {
