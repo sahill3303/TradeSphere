@@ -4,7 +4,7 @@ import {
     TrendingUp, Zap, Target, Scale, Eye, Trash2, RotateCcw, 
     Shield, ScrollText, Globe, Rocket, Plus, RefreshCw, X, 
     LayoutGrid, Table as TableIcon, Layers, Pencil, Check,
-    MoreVertical, Tag, CheckSquare
+    MoreVertical, Tag, CheckSquare, PieChart
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -42,8 +42,36 @@ function formatTradeType(mode) {
 
 function isInvestment(trade) {
     if (!trade) return false;
-    const norm = normalizeType(trade.mode);
-    return norm === 'LONG TERM' || trade.holding_type === 'INVESTMENT';
+    if (trade.holding_type === 'INVESTMENT') return true;
+    const normMode = normalizeType(trade.mode);
+    const normType = normalizeType(trade.trade_type);
+    return normMode === 'LONG TERM' || normMode === 'INVESTMENT' || normType === 'LONG TERM' || normType === 'INVESTMENT';
+}
+
+function isPartialTrade(trade) {
+    if (!trade) return false;
+    const r = String(trade.exit_reason || '').toUpperCase();
+    const n = String(trade.exit_notes || '').toUpperCase();
+    return r.includes('PARTIAL') || r.includes('TARGET_1') || r.includes('TARGET_2') || n.includes('PARTIAL');
+}
+
+function formatExitReason(reason) {
+    if (!reason) return 'Manual closure';
+    const map = {
+        'TARGET_HIT': 'Target Hit / Profit Booked',
+        'PARTIAL_PROFIT': 'Partial Profit Booking',
+        'TARGET_1': 'Target 1 Hit (Partial)',
+        'TARGET_2': 'Target 2 Hit (Partial)',
+        'PARTIAL_SL': 'Partial Stop Loss / Trimming',
+        'TRAILING_SL': 'Trailing Stop Hit',
+        'RISK_REDUCTION': 'Risk Reduction',
+        'SL_HIT': 'Stop Loss Hit',
+        'MANUAL': 'Manual Early Exit',
+        'EOD': 'End of Day (Intraday)',
+        'NEWS': 'News / Fundamental',
+        'OTHER': 'Other Reason'
+    };
+    return map[reason] || reason;
 }
 
 function isTrading(trade) {
@@ -136,13 +164,73 @@ export default function TradesList() {
     const [openMenuTradeId, setOpenMenuTradeId] = useState(null);
     const [viewTradeModal, setViewTradeModal] = useState(null);
 
-    // Close 3-dots menu on window click
+    // Modal Trade Notes state
+    const [modalTradeNotes, setModalTradeNotes] = useState([]);
+    const [loadingModalNotes, setLoadingModalNotes] = useState(false);
+    const [newModalNoteText, setNewModalNoteText] = useState('');
+    const [addingModalNote, setAddingModalNote] = useState(false);
+    const [modalNoteError, setModalNoteError] = useState('');
+
+    // Fetch notes whenever viewTradeModal opens
     useEffect(() => {
-        const handleDocClick = () => setOpenMenuTradeId(null);
-        if (openMenuTradeId) {
-            window.addEventListener('click', handleDocClick);
-            return () => window.removeEventListener('click', handleDocClick);
+        if (!viewTradeModal) {
+            setModalTradeNotes([]);
+            setNewModalNoteText('');
+            setModalNoteError('');
+            return;
         }
+        setLoadingModalNotes(true);
+        setModalNoteError('');
+        api.get(`/trades/${viewTradeModal.trade_id}`)
+            .then(({ data }) => {
+                if (data?.notes) {
+                    setModalTradeNotes(data.notes);
+                }
+                if (data?.clients && (!viewTradeModal.clients || viewTradeModal.clients.length === 0)) {
+                    setViewTradeModal(prev => prev ? ({ ...prev, clients: data.clients }) : null);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load trade notes:', err);
+            })
+            .finally(() => {
+                setLoadingModalNotes(false);
+            });
+    }, [viewTradeModal?.trade_id]);
+
+    const handleAddModalNote = async (e) => {
+        e.preventDefault();
+        if (!newModalNoteText.trim() || !viewTradeModal) return;
+        setAddingModalNote(true);
+        setModalNoteError('');
+        try {
+            await api.post(`/trades/${viewTradeModal.trade_id}/notes`, {
+                note_text: newModalNoteText.trim()
+            });
+            const newNote = {
+                note_id: Date.now(),
+                trade_id: viewTradeModal.trade_id,
+                note_text: newModalNoteText.trim(),
+                created_at: new Date().toISOString()
+            };
+            setModalTradeNotes(prev => [...prev, newNote]);
+            setNewModalNoteText('');
+        } catch (err) {
+            setModalNoteError(err.response?.data?.message || 'Failed to add note.');
+        } finally {
+            setAddingModalNote(false);
+        }
+    };
+
+    // Close 3-dots menu on outside click
+    useEffect(() => {
+        if (!openMenuTradeId) return;
+        const handleDocClick = (e) => {
+            if (e.target && e.target.closest && e.target.closest('.trade-dots-container')) return;
+            setOpenMenuTradeId(null);
+        };
+        document.addEventListener('click', handleDocClick);
+        return () => document.removeEventListener('click', handleDocClick);
     }, [openMenuTradeId]);
 
     // Sub-filters for Active Trading tab
@@ -188,10 +276,10 @@ export default function TradesList() {
         }
     }, []);
 
-    // Fetch trade lists (tags)
+    // Fetch trade lists (tags) — scoped to TRADES
     const fetchTradeLists = useCallback(async () => {
         try {
-            const { data } = await api.get('/trades/lists');
+            const { data } = await api.get('/trades/lists?type=TRADES');
             if (data.success) {
                 setTradeLists(data.lists || []);
             }
@@ -266,10 +354,11 @@ export default function TradesList() {
         return () => clearInterval(interval);
     }, [trades]);
 
-    // Base trades scoped by active list (if list selected)
+    // Base trades scoped by active list (excluding Long-Term / Investment trades from Trades section)
     const scopedBaseTrades = useMemo(() => {
-        if (!selectedListId) return trades;
-        return trades.filter(t => t.lists?.some(l => l.list_id === selectedListId));
+        const tradingOnly = trades.filter(t => !isInvestment(t));
+        if (!selectedListId) return tradingOnly;
+        return tradingOnly.filter(t => t.lists?.some(l => l.list_id === selectedListId));
     }, [trades, selectedListId]);
 
     // Active List metadata & dynamic live metrics
@@ -345,30 +434,24 @@ export default function TradesList() {
 
     // Tab counts
     const tabCounts = useMemo(() => {
-        const trading = scopedBaseTrades.filter(t => isTrading(t) && t.status === 'OPEN').length;
-        const investment = scopedBaseTrades.filter(t => isInvestment(t) && t.status === 'OPEN').length;
+        const trading = scopedBaseTrades.filter(t => t.status === 'OPEN').length;
         const closed = scopedBaseTrades.filter(t => t.status === 'CLOSED').length;
         const all = scopedBaseTrades.filter(t => t.status === 'OPEN').length;
-        const del = deleted.length;
-        return { trading, investment, closed, all, deleted: del };
+        const del = deleted.filter(t => !isInvestment(t)).length;
+        return { trading, closed, all, deleted: del };
     }, [scopedBaseTrades, deleted]);
 
-    // Setup Type counts across current view (Long Term, Swing, Intraday, MTF)
+    // Setup Type counts across current view (Swing, Intraday, MTF)
     const setupCounts = useMemo(() => {
         let base = scopedBaseTrades;
-        if (activeTab === 'TRADING') {
+        if (activeTab === 'TRADING' || activeTab === 'ALL') {
             base = scopedBaseTrades.filter(t => t.status === 'OPEN');
-        } else if (activeTab === 'INVESTMENT') {
-            base = scopedBaseTrades.filter(t => isInvestment(t) && t.status === 'OPEN');
         } else if (activeTab === 'CLOSED') {
             base = scopedBaseTrades.filter(t => t.status === 'CLOSED');
-        } else if (activeTab === 'ALL') {
-            base = scopedBaseTrades.filter(t => t.status === 'OPEN');
         }
 
         return {
             '': base.length,
-            'LONG TERM': base.filter(t => matchesSetupType(t, 'LONG TERM')).length,
             'SWING': base.filter(t => matchesSetupType(t, 'SWING')).length,
             'INTRADAY': base.filter(t => matchesSetupType(t, 'INTRADAY')).length,
             'MTF': base.filter(t => matchesSetupType(t, 'MTF')).length,
@@ -393,16 +476,12 @@ export default function TradesList() {
             scopedTrades = scopedBaseTrades.filter(t => {
                 if (t.status !== 'OPEN') return false;
                 if (activeSubFilter) return matchesSetupType(t, activeSubFilter);
-                return isTrading(t);
+                return true;
             });
-        } else if (activeTab === 'INVESTMENT') {
-            scopedTrades = scopedBaseTrades.filter(t => isInvestment(t) && t.status === 'OPEN');
         } else if (activeTab === 'CLOSED') {
             scopedTrades = scopedBaseTrades.filter(t => {
                 if (t.status !== 'CLOSED') return false;
                 if (activeSubFilter) return matchesSetupType(t, activeSubFilter);
-                if (closedSubFilter === 'TRADING') return isTrading(t);
-                if (closedSubFilter === 'INVESTMENT') return isInvestment(t);
                 return true;
             });
         } else if (activeTab === 'ALL') {
@@ -686,7 +765,10 @@ export default function TradesList() {
         if (!newListForm.name.trim()) return;
         setCreatingList(true);
         try {
-            const { data } = await api.post('/trades/lists', newListForm);
+            const { data } = await api.post('/trades/lists', {
+                ...newListForm,
+                type: 'TRADES'
+            });
             if (data.success && data.list) {
                 const newListId = data.list.list_id;
                 if (selectedTradeIds.size > 0) {
@@ -720,6 +802,15 @@ export default function TradesList() {
         }
     };
 
+    const handleRemoveSingleTradeFromList = async (tradeId) => {
+        try {
+            await api.delete(`/trades/${tradeId}/list`);
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
+        } catch (err) {
+            console.error('Failed to remove trade from list', err);
+        }
+    };
+
     const handleDeleteList = async (listId, listName) => {
         const ok = await confirmAction({
             title: `Delete List "${listName}"?`,
@@ -738,33 +829,44 @@ export default function TradesList() {
         }
     };
 
-    // Category switch between Swing & Long-Term
-    const handleCategorySwitch = async (trade) => {
-        const isCurrentInvestment = isInvestment(trade);
-        const targetType = isCurrentInvestment ? 'SWING' : 'LONG TERM';
-        const titleMsg = isCurrentInvestment ? 'Move to Active Trading (Swing)?' : 'Move to Long-Term Portfolio?';
-        const bodyMsg = isCurrentInvestment 
-            ? `Convert "${trade.stock_name}" to an Active Swing Trading setup?`
-            : `Hold "${trade.stock_name}" as high-conviction equity in your Long-Term Portfolio?`;
-
-        confirmAction({
-            title: titleMsg,
-            message: bodyMsg,
-            variant: 'warning',
-            onConfirm: async () => {
-                try {
-                    await api.patch(`/trades/${trade.trade_id}`, { mode: targetType });
-                    await fetchTrades();
-                } catch (err) {
-                    confirmAction({
-                        title: 'Error',
-                        message: err.response?.data?.message || 'Failed to switch position category.',
-                        variant: 'danger',
-                        alertOnly: true
-                    });
-                }
-            }
+    // Move trade to dedicated Investment Portfolio
+    const handleMoveToPortfolio = async (trade) => {
+        const ok = await confirmAction({
+            title: 'Move to Portfolio',
+            message: `Move "${trade.stock_name}" from active trades to your Long-Term Portfolio? It will be managed under the Portfolio section.`,
+            confirmLabel: 'Move to Portfolio',
+            variant: 'primary',
         });
+        if (!ok) return;
+
+        try {
+            await api.patch(`/trades/${trade.trade_id}`, {
+                mode: 'LONG TERM',
+                holding_type: 'INVESTMENT',
+                leverage: 1
+            });
+            // Optimistically update local state so it immediately transitions out of active trades
+            setTrades(prev => prev.map(t => t.trade_id === trade.trade_id ? { ...t, mode: 'LONG TERM', holding_type: 'INVESTMENT' } : t));
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
+            await confirmAction({
+                title: 'Moved to Portfolio',
+                message: `"${trade.stock_name}" has been successfully moved to your Long-Term Portfolio! It will now be tracked under the Portfolio section.`,
+                variant: 'primary',
+                alertOnly: true,
+                confirmLabel: 'Got it'
+            });
+        } catch (err) {
+            confirmAction({
+                title: 'Error',
+                message: err.response?.data?.message || 'Failed to move trade to portfolio.',
+                variant: 'danger',
+                alertOnly: true
+            });
+        }
+    };
+
+    const handleCategorySwitch = async (trade) => {
+        return handleMoveToPortfolio(trade);
     };
 
     // Open Exit Modal
@@ -799,14 +901,36 @@ export default function TradesList() {
             return;
         }
 
+        const qty = exitForm.quantity ? Number(exitForm.quantity) : exitTradeModal.quantity;
+        if (isNaN(qty) || qty <= 0 || qty > exitTradeModal.quantity) {
+            confirmAction({
+                title: 'Invalid Quantity',
+                message: `Exit quantity must be between 1 and ${exitTradeModal.quantity}.`,
+                variant: 'danger',
+                alertOnly: true
+            });
+            return;
+        }
+
+        const isPartial = qty < exitTradeModal.quantity;
+        if (isPartial && (!exitForm.exit_notes || !exitForm.exit_notes.trim())) {
+            confirmAction({
+                title: 'Notes Required for Partial Booking',
+                message: 'Please provide a note/reason explaining this partial booking (e.g. why partial booking, Target 1 achieved, risk management) so it is recorded in your trade journal history.',
+                variant: 'warning',
+                alertOnly: true
+            });
+            return;
+        }
+
         setExitSubmitting(true);
         try {
             await api.patch(`/trades/${exitTradeModal.trade_id}/exit`, {
                 exit_price: Number(exitForm.exit_price),
-                exit_reason: exitForm.exit_reason,
+                exit_reason: isPartial ? (exitForm.exit_reason || 'PARTIAL_PROFIT') : exitForm.exit_reason,
                 exit_date: exitForm.exit_date,
                 exit_notes: exitForm.exit_notes ? exitForm.exit_notes.trim() : null,
-                quantity: exitForm.quantity ? Number(exitForm.quantity) : exitTradeModal.quantity
+                quantity: qty
             });
             setExitTradeModal(null);
             await fetchTrades();
@@ -904,27 +1028,18 @@ export default function TradesList() {
             {/* Top Workspace Header */}
             <div className="paper-trade-header">
                 <div>
-                    <h2>Trades & Portfolio</h2>
+                    <h2>Trades & Journal</h2>
                     <p>
-                        Track active intraday/swing setups, build and monitor your long-term equity portfolio with live unrealized P&L, and log historical exits.
+                        Track active intraday, swing & MTF setups, manage lists, and record exit execution.
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    {activeTab === 'INVESTMENT' ? (
-                        <button 
-                            className="btn-paper-action btn-add-funds"
-                            onClick={() => navigate('/trades/open?type=LONG+TERM')}
-                        >
-                            <Plus size={16} style={{ marginRight: '6px' }} /> + Open Long-Term Position
-                        </button>
-                    ) : (
-                        <button 
-                            className="btn-paper-action btn-new-trade"
-                            onClick={() => navigate('/trades/open')}
-                        >
-                            <span><Rocket size={16} style={{ marginRight: '6px' }} /> + Open Trade</span>
-                        </button>
-                    )}
+                    <button 
+                        className="btn-paper-action btn-new-trade"
+                        onClick={() => navigate('/trades/open')}
+                    >
+                        <span><Rocket size={16} style={{ marginRight: '6px' }} /> + Open Trade</span>
+                    </button>
                 </div>
             </div>
 
@@ -1054,7 +1169,7 @@ export default function TradesList() {
                     className={`trade-list-tab ${selectedListId === null ? 'trade-list-tab--active' : ''}`}
                     onClick={() => setSelectedListId(null)}
                 >
-                    All Trades <span className="trade-list-badge-count">{trades.length}</span>
+                    All Trades <span className="trade-list-badge-count">{scopedBaseTrades.length}</span>
                 </button>
                 {tradeLists.map(list => (
                     <button
@@ -1159,18 +1274,9 @@ export default function TradesList() {
                             className={`paper-tab-btn ${activeTab === 'TRADING' ? 'active' : ''}`}
                             onClick={() => setActiveTab('TRADING')}
                         >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={16} /> Active Trading</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={16} /> Active Trades</span>
                             <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
                                 ({tabCounts.trading})
-                            </span>
-                        </button>
-                        <button 
-                            className={`paper-tab-btn ${activeTab === 'INVESTMENT' ? 'active-green' : ''}`}
-                            onClick={() => setActiveTab('INVESTMENT')}
-                        >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Shield size={16} /> Long-Term Portfolio</span>
-                            <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
-                                ({tabCounts.investment})
                             </span>
                         </button>
                         <button 
@@ -1180,15 +1286,6 @@ export default function TradesList() {
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ScrollText size={16} /> Historical Journal Log</span>
                             <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
                                 ({tabCounts.closed})
-                            </span>
-                        </button>
-                        <button 
-                            className={`paper-tab-btn ${activeTab === 'ALL' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('ALL')}
-                        >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={16} /> All Open Positions</span>
-                            <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
-                                ({tabCounts.all})
                             </span>
                         </button>
                         <button 
@@ -1229,15 +1326,14 @@ export default function TradesList() {
                     </div>
                 </div>
 
-                {/* Setup Type Filter: Long Term | Swing | Intraday | MTF */}
+                {/* Setup Type Filter: Swing | Intraday | MTF */}
                 {activeTab !== 'DELETED' && (
                     <div className="trade-filter-container">
                         <span className="trade-filter-label">
                             Setup Type:
                         </span>
                         {[
-                            { key: '', label: activeTab === 'CLOSED' ? 'All Closed' : activeTab === 'ALL' ? 'All Open' : 'All' },
-                            { key: 'LONG TERM', label: 'Long Term' },
+                            { key: '', label: activeTab === 'CLOSED' ? 'All Closed' : 'All Trades' },
                             { key: 'SWING', label: 'Swing' },
                             { key: 'INTRADAY', label: 'Intraday' },
                             { key: 'MTF', label: 'MTF' },
@@ -1263,22 +1359,18 @@ export default function TradesList() {
                 ) : filteredTrades.length === 0 ? (
                     <div className="empty-state-box">
                         <div className="empty-state-icon">
-                            {activeTab === 'INVESTMENT' ? <Shield size={42} /> : activeTab === 'CLOSED' ? <ScrollText size={42} /> : activeTab === 'DELETED' ? <Trash2 size={42} /> : <Target size={42} />}
+                            {activeTab === 'CLOSED' ? <ScrollText size={42} /> : activeTab === 'DELETED' ? <Trash2 size={42} /> : <Target size={42} />}
                         </div>
                         <h4>
-                            {activeTab === 'INVESTMENT' 
-                                ? 'No Long-Term Portfolio Holdings Yet' 
-                                : activeTab === 'CLOSED' 
+                            {activeTab === 'CLOSED' 
                                 ? 'No Historical Closed Trades Logged' 
                                 : activeTab === 'DELETED'
                                 ? 'Trash is Empty'
                                 : 'No Active Trading Setups Found'}
                         </h4>
                         <p>
-                            {activeTab === 'INVESTMENT' 
-                                ? 'Build and track your conviction equity portfolio with real-time unrealized P&L. Open a trade and select "LONG TERM" trade type, or convert any active swing position to Long-Term.'
-                                : activeTab === 'CLOSED'
-                                ? 'When you exit positions, they will be archived here in your historical trade log with final realized return.'
+                            {activeTab === 'CLOSED'
+                                ? 'When you exit trading positions, they will be archived here in your historical trade log with final realized return.'
                                 : activeTab === 'DELETED'
                                 ? 'Deleted trades will appear here for restoration or permanent removal.'
                                 : 'Track intraday, swing, or MTF setups. Click "+ Open Trade" above to log a new position.'}
@@ -1317,7 +1409,7 @@ export default function TradesList() {
                                 const isSelected = selectedTradeIds.has(t.trade_id);
 
                                 return (
-                                    <div key={t.trade_id} className="portfolio-asset-card" style={{ border: isSelected ? '1.5px solid var(--color-primary)' : undefined }}>
+                                    <div key={t.trade_id} className={`portfolio-asset-card ${openMenuTradeId === t.trade_id ? 'has-menu-open' : ''}`} style={{ border: isSelected ? '1.5px solid var(--color-primary)' : undefined }}>
                                         <div>
                                             <div className="asset-card-top">
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1431,8 +1523,15 @@ export default function TradesList() {
                                             </div>
 
                                             {t.status === 'CLOSED' ? (
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '0.45rem 0.65rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.04)' }}>
-                                                    <span style={{ color: '#cbd5e1' }}>Exit: {t.exit_reason || 'Manual'}</span>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', padding: '0.45rem 0.65rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <span style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                        {isPartialTrade(t) && (
+                                                            <span style={{ background: 'rgba(212, 175, 55, 0.2)', color: 'var(--color-primary)', padding: '1px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, border: '1px solid rgba(212, 175, 55, 0.4)' }}>
+                                                                ⚡ Partial Booking
+                                                            </span>
+                                                        )}
+                                                        <span>Exit: {formatExitReason(t.exit_reason)}</span>
+                                                    </span>
                                                     <span style={{ color: '#94a3b8' }}>{fmtDate(t.exit_date)}</span>
                                                 </div>
                                             ) : (t.target || t.stop_loss) ? (
@@ -1442,10 +1541,25 @@ export default function TradesList() {
                                                 </div>
                                             ) : null}
 
-                                            {(t.exit_notes || t.entry_notes) && (
-                                                <div style={{ fontSize: '0.82rem', color: '#94a3b8', background: 'rgba(0,0,0,0.18)', padding: '0.65rem 0.8rem', borderRadius: '8px', marginBottom: '1.25rem', borderLeft: `3px solid ${t.status === 'CLOSED' ? '#38bdf8' : '#10b981'}`, fontStyle: 'italic' }}>
-                                                    "{t.status === 'CLOSED' ? (t.exit_notes || t.entry_notes) : t.entry_notes}"
-                                                </div>
+                                            {t.status === 'CLOSED' ? (
+                                                t.exit_notes ? (
+                                                    <div style={{ fontSize: '0.82rem', color: '#e2e8f0', background: 'rgba(212, 175, 55, 0.05)', padding: '0.65rem 0.8rem', borderRadius: '8px', marginBottom: '1.25rem', borderLeft: '3px solid var(--color-primary)' }}>
+                                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+                                                            {isPartialTrade(t) ? '⚡ Partial Booking Note & Reason:' : 'Exit Notes:'}
+                                                        </div>
+                                                        <div style={{ fontStyle: 'italic' }}>"{t.exit_notes}"</div>
+                                                    </div>
+                                                ) : t.entry_notes ? (
+                                                    <div style={{ fontSize: '0.82rem', color: '#94a3b8', background: 'rgba(0,0,0,0.18)', padding: '0.65rem 0.8rem', borderRadius: '8px', marginBottom: '1.25rem', borderLeft: '3px solid #38bdf8', fontStyle: 'italic' }}>
+                                                        "{t.entry_notes}"
+                                                    </div>
+                                                ) : null
+                                            ) : (
+                                                t.entry_notes && (
+                                                    <div style={{ fontSize: '0.82rem', color: '#94a3b8', background: 'rgba(0,0,0,0.18)', padding: '0.65rem 0.8rem', borderRadius: '8px', marginBottom: '1.25rem', borderLeft: '3px solid #10b981', fontStyle: 'italic' }}>
+                                                        "{t.entry_notes}"
+                                                    </div>
+                                                )
                                             )}
                                         </div>
 
@@ -1532,8 +1646,21 @@ export default function TradesList() {
                                                                             setShowAddToListModal(true);
                                                                         }}
                                                                     >
-                                                                        <Tag size={15} /> Add to List
+                                                                        <Tag size={15} /> {(t.lists && t.lists.length > 0) ? 'Change List' : 'Add to List'}
                                                                     </button>
+                                                                    {((t.lists && t.lists.length > 0) || selectedListId) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            className="trade-dropdown-item"
+                                                                            style={{ color: '#f59e0b' }}
+                                                                            onClick={() => {
+                                                                                setOpenMenuTradeId(null);
+                                                                                handleRemoveSingleTradeFromList(t.trade_id);
+                                                                            }}
+                                                                        >
+                                                                            <Tag size={15} /> Remove from List
+                                                                        </button>
+                                                                    )}
                                                                     <Link
                                                                         to={`/trades/${t.trade_id}?edit=true`}
                                                                         className="trade-dropdown-item item-primary"
@@ -1547,10 +1674,10 @@ export default function TradesList() {
                                                                             className="trade-dropdown-item"
                                                                             onClick={() => {
                                                                                 setOpenMenuTradeId(null);
-                                                                                handleCategorySwitch(t);
+                                                                                handleMoveToPortfolio(t);
                                                                             }}
                                                                         >
-                                                                            <RotateCcw size={15} /> {isInvest ? 'Convert to Swing' : 'Convert to Long-Term'}
+                                                                            <PieChart size={15} /> Move to Portfolio
                                                                         </button>
                                                                     )}
                                                                     <div className="trade-dropdown-divider" />
@@ -1683,7 +1810,12 @@ export default function TradesList() {
                                                     <div 
                                                         className={`symbol-type-tag ${isInvest ? 'tag-investment' : 'tag-trading'}`}
                                                         style={{ cursor: t.status === 'OPEN' ? 'pointer' : 'default', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                                                        onClick={() => t.status === 'OPEN' && handleCategorySwitch(t)}
+                                                        onClick={(e) => {
+                                                            if (t.status === 'OPEN') {
+                                                                e.stopPropagation();
+                                                                handleCategorySwitch(t);
+                                                            }
+                                                        }}
                                                         title={t.status === 'OPEN' ? `Click to switch to ${isInvest ? 'Active Trading (Swing)' : 'Long-Term Portfolio'}` : 'Closed trade'}
                                                     >
                                                         <span>{isInvest ? <><Shield size={12} style={{ marginRight: '3px', verticalAlign: 'middle' }} /> Long-Term</> : <><Zap size={12} style={{ marginRight: '3px', verticalAlign: 'middle' }} /> {formatTradeType(t.mode)}</>}</span>
@@ -1711,10 +1843,17 @@ export default function TradesList() {
                                                                 {isPos ? '+' : ''}{fmtLakhs(pnl)} ({isPos ? '+' : ''}{pnlPct.toFixed(2)}%)
                                                             </span>
                                                         </td>
-                                                        <td data-label="Exit Reason" style={{ fontSize: '0.85rem', color: '#cbd5e1', maxWidth: '180px' }}>
-                                                            <div>{t.exit_reason || 'Manual closure'}</div>
+                                                        <td data-label="Exit Reason" style={{ fontSize: '0.85rem', color: '#cbd5e1', maxWidth: '240px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                                {isPartialTrade(t) && (
+                                                                    <span style={{ background: 'rgba(212, 175, 55, 0.2)', color: 'var(--color-primary)', padding: '1px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, border: '1px solid rgba(212, 175, 55, 0.4)' }}>
+                                                                        ⚡ Partial Booking
+                                                                    </span>
+                                                                )}
+                                                                <span style={{ fontWeight: 600 }}>{formatExitReason(t.exit_reason)}</span>
+                                                            </div>
                                                             {t.exit_notes && (
-                                                                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>
+                                                                <div style={{ fontSize: '0.75rem', color: '#fef08a', fontStyle: 'italic', marginTop: '3px', background: 'rgba(212, 175, 55, 0.08)', padding: '3px 6px', borderRadius: '4px', borderLeft: '2px solid var(--color-primary)' }}>
                                                                     "{t.exit_notes}"
                                                                 </div>
                                                             )}
@@ -1807,8 +1946,21 @@ export default function TradesList() {
                                                                             setShowAddToListModal(true);
                                                                         }}
                                                                     >
-                                                                        <Tag size={15} /> Add to List
+                                                                        <Tag size={15} /> {(t.lists && t.lists.length > 0) ? 'Change List' : 'Add to List'}
                                                                     </button>
+                                                                    {((t.lists && t.lists.length > 0) || selectedListId) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            className="trade-dropdown-item"
+                                                                            style={{ color: '#f59e0b' }}
+                                                                            onClick={() => {
+                                                                                setOpenMenuTradeId(null);
+                                                                                handleRemoveSingleTradeFromList(t.trade_id);
+                                                                            }}
+                                                                        >
+                                                                            <Tag size={15} /> Remove from List
+                                                                        </button>
+                                                                    )}
                                                                     <Link
                                                                         to={`/trades/${t.trade_id}?edit=true`}
                                                                         className="trade-dropdown-item item-primary"
@@ -1822,10 +1974,10 @@ export default function TradesList() {
                                                                             className="trade-dropdown-item"
                                                                             onClick={() => {
                                                                                 setOpenMenuTradeId(null);
-                                                                                handleCategorySwitch(t);
+                                                                                handleMoveToPortfolio(t);
                                                                             }}
                                                                         >
-                                                                            <RotateCcw size={15} /> {isInvest ? 'Move to Swing' : 'Move to Long-Term'}
+                                                                            <PieChart size={15} /> Move to Portfolio
                                                                         </button>
                                                                     )}
                                                                     <div className="trade-dropdown-divider" />
@@ -1895,28 +2047,40 @@ export default function TradesList() {
                             </h3>
                             <button className="btn-close-pad" onClick={() => setShowAddToListModal(false)}><X size={16} /></button>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '1rem 0' }}>
+                        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                            Note: Each trade belongs to at most one list at a time. Selecting a list will assign or move the trade.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0.5rem 0 1rem 0' }}>
                             {tradeLists.length === 0 ? (
                                 <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', textAlign: 'center', margin: '1rem 0' }}>
                                     No custom lists created yet. Create your first list below!
                                 </p>
                             ) : (
-                                tradeLists.map(list => (
-                                    <button
-                                        key={list.list_id}
-                                        type="button"
-                                        className="trade-list-tab"
-                                        onClick={() => handleAddSelectedToList(list.list_id)}
-                                        style={{ justifyContent: 'space-between', padding: '0.65rem 1rem', width: '100%', borderRadius: 'var(--radius-sm)' }}
-                                        disabled={addingToList}
-                                    >
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span className="trade-list-color-dot" style={{ background: list.color }} />
-                                            <strong style={{ color: 'var(--color-text)' }}>{list.name}</strong>
-                                        </span>
-                                        <span className="trade-list-badge-count">{list.trade_count} trades</span>
-                                    </button>
-                                ))
+                                tradeLists.map(list => {
+                                    const singleTrade = selectedTradeIds.size === 1 ? trades.find(t => selectedTradeIds.has(t.trade_id)) : null;
+                                    const isCurrent = singleTrade?.lists?.some(l => l.list_id === list.list_id);
+                                    return (
+                                        <button
+                                            key={list.list_id}
+                                            type="button"
+                                            className="trade-list-tab"
+                                            onClick={() => handleAddSelectedToList(list.list_id)}
+                                            style={{ justifyContent: 'space-between', padding: '0.65rem 1rem', width: '100%', borderRadius: 'var(--radius-sm)' }}
+                                            disabled={addingToList}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span className="trade-list-color-dot" style={{ background: list.color }} />
+                                                <strong style={{ color: 'var(--color-text)' }}>{list.name}</strong>
+                                                {isCurrent && (
+                                                    <span style={{ fontSize: '0.72rem', color: 'var(--color-gold)', fontWeight: 600, background: 'rgba(212,175,55,0.12)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                        Current List
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span className="trade-list-badge-count">{list.trade_count} trades</span>
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                         <div className="modal-footer" style={{ marginTop: '1.25rem' }}>
@@ -2031,6 +2195,29 @@ export default function TradesList() {
                                 </div>
                             </div>
 
+                            {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitTradeModal.quantity && (
+                                <div style={{
+                                    background: 'rgba(212, 175, 55, 0.12)',
+                                    border: '1px solid rgba(212, 175, 55, 0.35)',
+                                    borderRadius: '8px',
+                                    padding: '0.65rem 0.85rem',
+                                    marginBottom: '0.85rem',
+                                    fontSize: '0.82rem',
+                                    color: '#fef08a'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '3px' }}>
+                                        <Zap size={14} /> Partial Profit / Loss Booking Detected
+                                    </div>
+                                    <div>
+                                        You are booking <strong>{exitForm.quantity} qty</strong> of <strong>{exitTradeModal.quantity} qty</strong>.
+                                        The remaining <strong>{exitTradeModal.quantity - Number(exitForm.quantity)} qty</strong> will remain active in your open trades.
+                                    </div>
+                                    <div style={{ marginTop: '3px', color: '#cbd5e1', fontSize: '0.78rem' }}>
+                                        * A journal note & reason is required below so this partial profit/loss booking is recorded in your history.
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="exit-form-grid">
                                 <div className="form-field-group">
                                     <label className="form-label">Exit Price ₹ *</label>
@@ -2055,6 +2242,11 @@ export default function TradesList() {
                                         min="1"
                                         required 
                                     />
+                                    {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitTradeModal.quantity && (
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', marginTop: '4px', display: 'block' }}>
+                                            Partial Exit: {exitTradeModal.quantity - Number(exitForm.quantity)} qty will remain open
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="form-field-group">
@@ -2077,6 +2269,12 @@ export default function TradesList() {
                                         value={exitForm.exit_reason} 
                                         onChange={(e) => setExitForm(prev => ({ ...prev, exit_reason: e.target.value }))}
                                     >
+                                        <option value="PARTIAL_PROFIT">Partial Profit Booking</option>
+                                        <option value="TARGET_1">Target 1 Hit (Partial Exit)</option>
+                                        <option value="TARGET_2">Target 2 Hit (Partial Exit)</option>
+                                        <option value="PARTIAL_SL">Partial Stop Loss / Trimming</option>
+                                        <option value="TRAILING_SL">Trailing Stop Hit</option>
+                                        <option value="RISK_REDUCTION">Risk Reduction / Reversal</option>
                                         <option value="TARGET_HIT">Target Hit / Profit Booked</option>
                                         <option value="SL_HIT">Stop Loss Hit</option>
                                         <option value="MANUAL">Manual Early Exit</option>
@@ -2089,12 +2287,19 @@ export default function TradesList() {
 
                             {/* Exit Notes */}
                             <div className="form-field-group" style={{ marginBottom: '0.85rem' }}>
-                                <label className="form-label">Exit Notes / Learnings (Optional)</label>
+                                <label className="form-label">
+                                    {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitTradeModal.quantity
+                                        ? 'Partial Booking Reason & Journal Notes * (Required)'
+                                        : 'Exit Notes / Learnings (Optional)'}
+                                </label>
                                 <textarea
                                     className="exit-notes-input"
                                     value={exitForm.exit_notes || ''}
                                     onChange={(e) => setExitForm(prev => ({ ...prev, exit_notes: e.target.value }))}
-                                    placeholder="Remarks on trade execution, psychology, or rationale..."
+                                    placeholder={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitTradeModal.quantity
+                                        ? 'Why partial booking? (e.g. Target 1 reached (+12%), locking partial profits and holding rest for T2 with trailing SL at entry...)'
+                                        : 'Remarks on trade execution, psychology, or rationale...'}
+                                    required={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitTradeModal.quantity}
                                 />
                             </div>
 
@@ -2234,21 +2439,111 @@ export default function TradesList() {
                             </div>
                         )}
 
+                        {/* Trade Notes & Journal */}
+                        <div className="clean-section-box" style={{ marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                                <div className="clean-section-title" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <ScrollText size={14} /> Trade Notes & Journal {modalTradeNotes.length > 0 && `(${modalTradeNotes.length})`}
+                                </div>
+                            </div>
+
+                            {/* Notes Timeline / List */}
+                            {loadingModalNotes ? (
+                                <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', padding: '0.4rem 0' }}>
+                                    Loading notes...
+                                </div>
+                            ) : modalTradeNotes.length > 0 ? (
+                                <div className="clean-notes-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.85rem', maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>
+                                    {modalTradeNotes.map((n, i) => (
+                                        <div key={n.note_id || i} style={{
+                                            background: 'rgba(255, 255, 255, 0.03)',
+                                            borderLeft: '3px solid var(--color-primary)',
+                                            borderRadius: '6px',
+                                            padding: '0.5rem 0.75rem',
+                                            fontSize: '0.84rem'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                                <div style={{ color: '#e2e8f0', flex: 1, wordBreak: 'break-word', lineHeight: 1.4 }}>
+                                                    {n.note_text}
+                                                </div>
+                                                <span style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                                    {n.created_at ? new Date(n.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
+
+                            {/* Add Note Form */}
+                            {modalNoteError && (
+                                <div style={{ fontSize: '0.78rem', color: '#ef4444', marginBottom: '0.4rem' }}>
+                                    {modalNoteError}
+                                </div>
+                            )}
+                            <form onSubmit={handleAddModalNote} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                                <textarea
+                                    className="form-input"
+                                    rows={2}
+                                    value={newModalNoteText}
+                                    onChange={(e) => { setNewModalNoteText(e.target.value); setModalNoteError(''); }}
+                                    placeholder="Add a new update, thesis review, or journal note…"
+                                    style={{ flex: 1, fontSize: '0.84rem', resize: 'vertical', minHeight: '44px', padding: '0.5rem 0.65rem' }}
+                                />
+                                <button
+                                    type="submit"
+                                    className="btn-paper-action"
+                                    disabled={addingModalNote || !newModalNoteText.trim()}
+                                    style={{
+                                        background: 'var(--color-primary)',
+                                        color: '#000',
+                                        fontWeight: 700,
+                                        fontSize: '0.82rem',
+                                        padding: '0.55rem 0.95rem',
+                                        borderRadius: '8px',
+                                        height: '42px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        whiteSpace: 'nowrap',
+                                        opacity: (!newModalNoteText.trim() || addingModalNote) ? 0.5 : 1,
+                                        cursor: (!newModalNoteText.trim() || addingModalNote) ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    <Plus size={14} /> {addingModalNote ? 'Adding…' : 'Add Note'}
+                                </button>
+                            </form>
+                        </div>
+
                         {/* Modal Actions Footer: Clean UI with NO edit button, but Book Profits/Exit if open */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                             {viewTradeModal.status === 'OPEN' && (
-                                <button
-                                    type="button"
-                                    className="btn-paper-action btn-exit-trade"
-                                    style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}
-                                    onClick={() => {
-                                        const t = viewTradeModal;
-                                        setViewTradeModal(null);
-                                        handleOpenExitModal(t);
-                                    }}
-                                >
-                                    <TrendingUp size={16} style={{ marginRight: '6px' }} /> Book Profits / Exit
-                                </button>
+                                <>
+                                    <button
+                                        type="button"
+                                        className="btn-paper-action"
+                                        style={{ padding: '0.65rem 1.15rem', fontSize: '0.88rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--color-primary)', border: '1px solid rgba(212, 175, 55, 0.4)' }}
+                                        onClick={() => {
+                                            const t = viewTradeModal;
+                                            setViewTradeModal(null);
+                                            handleMoveToPortfolio(t);
+                                        }}
+                                    >
+                                        <PieChart size={16} style={{ marginRight: '6px' }} /> Move to Portfolio
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-paper-action btn-exit-trade"
+                                        style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}
+                                        onClick={() => {
+                                            const t = viewTradeModal;
+                                            setViewTradeModal(null);
+                                            handleOpenExitModal(t);
+                                        }}
+                                    >
+                                        <TrendingUp size={16} style={{ marginRight: '6px' }} /> Book Profits / Exit
+                                    </button>
+                                </>
                             )}
                             <button
                                 type="button"

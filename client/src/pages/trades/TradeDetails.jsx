@@ -7,7 +7,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
 const NIFTY_MOODS = ['BULLISH', 'BEARISH', 'SIDEWAYS', 'VOLATILE', 'NEUTRAL'];
-const EXIT_REASONS = ['TARGET_HIT', 'SL_HIT', 'MANUAL', 'EOD', 'NEWS', 'OTHER'];
+const EXIT_REASONS = ['PARTIAL_PROFIT', 'TARGET_1', 'TARGET_2', 'PARTIAL_SL', 'TRAILING_SL', 'RISK_REDUCTION', 'TARGET_HIT', 'SL_HIT', 'MANUAL', 'EOD', 'NEWS', 'OTHER'];
 const EMOTIONS = ['CALM', 'GREEDY', 'FEARFUL', 'CONFIDENT', 'IMPULSIVE', 'DISCIPLINED'];
 const STRATEGIES = ['BREAKOUT', 'REVERSAL', 'TREND_FOLLOW', 'SCALP', 'SWING', 'NEWS_PLAY', 'VALUE_INVESTING', 'GROWTH', 'OTHER'];
 const TRADE_TYPES = ['INTRADAY', 'SWING', 'MTF', 'LONG TERM'];
@@ -154,30 +154,48 @@ export default function TradeDetails() {
             return;
         }
 
+        const finalNotes = exitForm.exit_notes || exitForm.conclusion || '';
+        const exitQty = Number(exitForm.quantity) || trade.quantity;
+        const isPartial = exitQty < trade.quantity;
+        if (isPartial && !finalNotes.trim()) {
+            setExitError('Please provide a note/reason explaining this partial booking.');
+            return;
+        }
+
         setExitSubmitting(true);
         try {
-            const finalNotes = exitForm.exit_notes || exitForm.conclusion || '';
             const { data } = await api.patch(`/trades/${id}/exit`, {
                 exit_price: Number(exitForm.exit_price),
-                quantity: Number(exitForm.quantity) || trade.quantity,
+                quantity: exitQty,
                 exit_nifty_mood: exitForm.exit_nifty_mood,
-                exit_reason: exitForm.exit_reason || 'TARGET_HIT',
+                exit_reason: isPartial ? (exitForm.exit_reason || 'PARTIAL_PROFIT') : (exitForm.exit_reason || 'TARGET_HIT'),
                 exit_emotion: exitForm.exit_emotion || 'DISCIPLINED',
                 conclusion: finalNotes,
                 exit_notes: finalNotes,
                 exit_date: actualExitDate,
             });
-            setTrade(prev => ({ 
-                ...prev, 
-                status: 'CLOSED', 
-                total_pnl: data.total_pnl, 
-                quantity: data.quantity || prev.quantity, 
-                ...exitForm, 
-                conclusion: finalNotes,
-                exit_notes: finalNotes,
-                exit_date: actualExitDate, 
-                exit_price: Number(exitForm.exit_price) 
-            }));
+            if (data.is_partial) {
+                setTrade(prev => ({ 
+                    ...prev, 
+                    quantity: data.remaining_quantity 
+                }));
+                api.get(`/trades/${id}`).then(({ data: d }) => {
+                    if (d?.trade) setTrade(d.trade);
+                    if (d?.notes) setNotes(d.notes);
+                }).catch(() => {});
+            } else {
+                setTrade(prev => ({ 
+                    ...prev, 
+                    status: 'CLOSED', 
+                    total_pnl: data.total_pnl, 
+                    quantity: data.quantity || prev.quantity, 
+                    ...exitForm, 
+                    conclusion: finalNotes,
+                    exit_notes: finalNotes,
+                    exit_date: actualExitDate, 
+                    exit_price: Number(exitForm.exit_price) 
+                }));
+            }
             setShowExitForm(false);
         } catch (err) { setExitError(err.response?.data?.message || 'Failed to exit trade.'); }
         finally { setExitSubmitting(false); }
@@ -697,6 +715,23 @@ export default function TradeDetails() {
                         Exit Trade Position ({trade.stock_name})
                     </h3>
                     {exitError && <div className="alert alert--error" style={{ marginBottom: 'var(--space-sm)' }}>{exitError}</div>}
+                    {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < trade.quantity && (
+                        <div style={{
+                            background: 'rgba(212, 175, 55, 0.12)',
+                            border: '1px solid rgba(212, 175, 55, 0.35)',
+                            borderRadius: '8px',
+                            padding: '0.65rem 0.85rem',
+                            marginBottom: 'var(--space-md)',
+                            fontSize: '0.84rem',
+                            color: '#fef08a'
+                        }}>
+                            <strong>⚡ Partial Booking:</strong> You are booking <strong>{exitForm.quantity} qty</strong> of <strong>{trade.quantity} qty</strong>.
+                            The remaining <strong>{trade.quantity - Number(exitForm.quantity)} qty</strong> will remain active in this position.
+                            <div style={{ marginTop: '2px', color: '#cbd5e1', fontSize: '0.78rem' }}>
+                                * Please supply the partial booking reason and note below.
+                            </div>
+                        </div>
+                    )}
                     <form onSubmit={handleExit} noValidate>
                         <div className="form-grid">
                             <Input id="exit_price" label="Exit Price ₹ *" type="number" step="any"
@@ -704,7 +739,7 @@ export default function TradeDetails() {
                                 placeholder="0.00" required />
                             <Input id="quantity" label="Exit Quantity *" type="number"
                                 value={exitForm.quantity} onChange={handleExitChange}
-                                placeholder="Full quantity by default" required />
+                                placeholder={`Full position (${trade.quantity} qty) by default`} required />
                             <Input id="exit_date" label="Exit Date *" type="date" min="2000-01-01" max="2099-12-31"
                                 value={trade.mode === 'INTRADAY' && trade.trade_date ? new Date(trade.trade_date).toISOString().split('T')[0] : exitForm.exit_date} 
                                 onChange={handleExitChange} required 
@@ -712,7 +747,7 @@ export default function TradeDetails() {
                             <div className="form-group">
                                 <label className="form-label">Exit Reason <span className="required-mark">*</span></label>
                                 <select id="exit_reason" className="form-input" value={exitForm.exit_reason} onChange={handleExitChange}>
-                                    {EXIT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                                    {EXIT_REASONS.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
                                 </select>
                             </div>
                             <div className="form-group">
@@ -729,10 +764,19 @@ export default function TradeDetails() {
                             </div>
                         </div>
                         <div className="form-group" style={{ marginTop: 'var(--space-sm)' }}>
-                            <label htmlFor="exit_notes" className="form-label">Exit Notes / Learnings (Optional)</label>
+                            <label htmlFor="exit_notes" className="form-label">
+                                {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < trade.quantity
+                                    ? 'Partial Booking Reason & Journal Notes * (Required)'
+                                    : 'Exit Notes / Learnings (Optional)'}
+                            </label>
                             <textarea id="exit_notes" className="form-input"
                                 value={exitForm.exit_notes} onChange={handleExitChange}
-                                placeholder="What did you learn from this trade? Key exit remarks..." rows={2} />
+                                placeholder={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < trade.quantity
+                                    ? 'Reason for partial booking, why taking partial profits now, strategy for rest...'
+                                    : 'What did you learn from this trade? Key exit remarks...'}
+                                rows={2}
+                                required={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < trade.quantity}
+                            />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
                             <Button type="button" variant="secondary" onClick={() => setShowExitForm(false)} disabled={exitSubmitting}>Cancel</Button>

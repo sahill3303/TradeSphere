@@ -270,8 +270,9 @@ export default function OpenTrade() {
                 leverage: (form.trade_type === 'SWING' || form.trade_type === 'LONG TERM') ? 1 : Number(form.leverage || 1),
                 client_ids: form.client_ids,
             });
-            const fromPortfolio = searchParams.get('from') === 'portfolio' || (searchParams.get('type') || '').toUpperCase() === 'LONG TERM';
-            navigate(fromPortfolio ? '/portfolio' : '/trades');
+            const isLongTerm = form.trade_type === 'LONG TERM';
+            const toPortfolio = searchParams.get('from') === 'portfolio' || isLongTerm;
+            navigate(toPortfolio ? '/portfolio' : '/trades');
         } catch (err) {
             setSubmitError(err.response?.data?.message || 'Failed to open trade.');
         } finally {

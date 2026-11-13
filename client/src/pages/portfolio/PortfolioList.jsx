@@ -20,8 +20,9 @@ function normalizeType(mode) {
 function isInvestment(trade) {
     if (!trade) return false;
     if (trade.holding_type === 'INVESTMENT') return true;
-    const norm = normalizeType(trade.mode);
-    return norm === 'LONG TERM' || norm === 'INVESTMENT';
+    const normMode = normalizeType(trade.mode);
+    const normType = normalizeType(trade.trade_type);
+    return normMode === 'LONG TERM' || normMode === 'INVESTMENT' || normType === 'LONG TERM' || normType === 'INVESTMENT';
 }
 
 function formatCurrency(val) {
@@ -84,7 +85,7 @@ export default function PortfolioList() {
     const [openMenuTradeId, setOpenMenuTradeId] = useState(null);
     const [viewTradeModal, setViewTradeModal] = useState(null);
     const [exitModalTrade, setExitModalTrade] = useState(null);
-    const [exitForm, setExitForm] = useState({ exit_price: '', exit_date: new Date().toISOString().split('T')[0], exit_reason: 'Target Reached', exit_notes: '' });
+    const [exitForm, setExitForm] = useState({ exit_price: '', exit_date: new Date().toISOString().split('T')[0], exit_reason: 'Target Reached', exit_notes: '', quantity: '' });
     const [exitingTrade, setExitingTrade] = useState(false);
     const [exitError, setExitError] = useState('');
     const [selectedTradeIds, setSelectedTradeIds] = useState(new Set());
@@ -111,15 +112,15 @@ export default function PortfolioList() {
         }
     }, []);
 
-    // Fetch Trade Lists (Tags)
+    // Fetch Trade Lists (Tags) — scoped to PORTFOLIO
     const fetchTradeLists = useCallback(async () => {
         try {
-            const { data } = await api.get('/trades/lists');
+            const { data } = await api.get('/trades/lists?type=PORTFOLIO');
             if (data.success) {
                 setTradeLists(data.lists || []);
             }
         } catch (err) {
-            console.error('Failed to load trade lists:', err);
+            console.error('Failed to load portfolio trade lists:', err);
         }
     }, []);
 
@@ -197,7 +198,7 @@ export default function PortfolioList() {
         if (selectedListId) {
             const listObj = tradeLists.find(l => l.list_id === selectedListId);
             const taggedIds = new Set(listObj?.trade_ids || []);
-            base = base.filter(t => taggedIds.has(t.trade_id));
+            base = base.filter(t => t.lists?.some(l => l.list_id === selectedListId) || taggedIds.has(t.trade_id));
         }
 
         if (searchQuery.trim()) {
@@ -511,6 +512,39 @@ export default function PortfolioList() {
         }));
     };
 
+    // Move trade to active trades (Swing)
+    const handleMoveToTrades = async (trade) => {
+        const ok = await confirmAction({
+            title: 'Move to Active Trades',
+            message: `Move "${trade.stock_name}" from Long-Term Portfolio to Active Trades (Swing)?`,
+            confirmLabel: 'Move to Trades',
+            variant: 'primary',
+        });
+        if (!ok) return;
+
+        try {
+            await api.patch(`/trades/${trade.trade_id}`, {
+                mode: 'SWING',
+                holding_type: 'TRADING'
+            });
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
+            await confirmAction({
+                title: 'Moved to Active Trades',
+                message: `"${trade.stock_name}" has been moved to Active Trades. You can now view and manage it under the Trades section.`,
+                variant: 'primary',
+                alertOnly: true,
+                confirmLabel: 'Got it'
+            });
+        } catch (err) {
+            confirmAction({
+                title: 'Error',
+                message: err.response?.data?.message || 'Failed to move trade to active trades.',
+                variant: 'danger',
+                alertOnly: true
+            });
+        }
+    };
+
     // Exit Position Modal Submit
     const handleExitSubmit = async (e) => {
         e.preventDefault();
@@ -522,19 +556,32 @@ export default function PortfolioList() {
             return;
         }
 
+        const qty = exitForm.quantity ? Number(exitForm.quantity) : exitModalTrade.quantity;
+        if (isNaN(qty) || qty <= 0 || qty > exitModalTrade.quantity) {
+            setExitError(`Exit quantity must be between 1 and ${exitModalTrade.quantity}.`);
+            return;
+        }
+
+        const isPartial = qty < exitModalTrade.quantity;
+        if (isPartial && (!exitForm.exit_notes || !exitForm.exit_notes.trim())) {
+            setExitError('Please provide a note/reason explaining this partial booking.');
+            return;
+        }
+
         setExitingTrade(true);
         setExitError('');
 
         try {
-            await api.put(`/trades/${exitModalTrade.trade_id}/exit`, {
+            await api.patch(`/trades/${exitModalTrade.trade_id}/exit`, {
                 exit_price: p,
                 exit_date: exitForm.exit_date,
-                exit_reason: exitForm.exit_reason,
-                exit_notes: exitForm.exit_notes ? exitForm.exit_notes.trim() : ''
+                exit_reason: isPartial ? (exitForm.exit_reason || 'PARTIAL_PROFIT') : exitForm.exit_reason,
+                exit_notes: exitForm.exit_notes ? exitForm.exit_notes.trim() : '',
+                quantity: qty
             });
 
             setExitModalTrade(null);
-            fetchTrades();
+            await fetchTrades();
         } catch (err) {
             setExitError(err.response?.data?.message || 'Failed to exit position.');
         } finally {
@@ -567,13 +614,42 @@ export default function PortfolioList() {
             await api.post(`/trades/lists/${listId}/trades`, { trade_ids: ids });
             setShowAddToListModal(false);
             setSelectedTradeIds(new Set());
-            fetchTradeLists();
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
         } catch (err) {
             console.error('Failed to add to list:', err);
         }
     };
 
-    // Create New List
+    // Remove Single Holding From List
+    const handleRemoveSingleHoldingFromList = async (tradeId) => {
+        try {
+            await api.delete(`/trades/${tradeId}/list`);
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
+        } catch (err) {
+            console.error('Failed to remove from list:', err);
+        }
+    };
+
+    // Delete List
+    const handleDeleteList = async (listId, listName) => {
+        const ok = await confirmAction({
+            title: `Delete List "${listName}"?`,
+            message: 'This will remove the list tag. The holdings will remain in your portfolio.',
+            variant: 'danger',
+            confirmText: 'Delete List'
+        });
+        if (!ok) return;
+
+        try {
+            await api.delete(`/trades/lists/${listId}`);
+            if (selectedListId === listId) setSelectedListId(null);
+            await Promise.all([fetchTrades(), fetchTradeLists()]);
+        } catch (err) {
+            console.error('Failed to delete list:', err);
+        }
+    };
+
+    // Create New List (PORTFOLIO type)
     const handleCreateList = async (e) => {
         e.preventDefault();
         if (!newListName.trim()) return;
@@ -583,17 +659,73 @@ export default function PortfolioList() {
                 name: newListName.trim(),
                 description: newListDesc.trim(),
                 color: newListColor,
+                type: 'PORTFOLIO'
             });
-            if (data.success) {
+            if (data.success && data.list) {
+                const newListId = data.list.list_id;
+                if (selectedTradeIds.size > 0) {
+                    await api.post(`/trades/lists/${newListId}/trades`, {
+                        trade_ids: Array.from(selectedTradeIds)
+                    });
+                    setSelectedTradeIds(new Set());
+                }
                 setNewListName('');
                 setNewListDesc('');
                 setShowCreateListModal(false);
-                fetchTradeLists();
+                await Promise.all([fetchTrades(), fetchTradeLists()]);
+                setSelectedListId(newListId);
             }
         } catch (err) {
             console.error('Failed to create list:', err);
         }
     };
+
+    // Active List metadata & metrics
+    const activeListData = useMemo(() => {
+        if (!selectedListId) return null;
+        const baseList = tradeLists.find(l => l.list_id === selectedListId) || null;
+        if (!baseList) return null;
+
+        const listHoldings = scopedHoldings;
+        let activeCount = 0;
+        let closedCount = 0;
+        let totalInvested = 0;
+        let currentValuation = 0;
+        let totalUnrealizedPnl = 0;
+        let totalRealizedPnl = 0;
+
+        listHoldings.forEach(t => {
+            const qty = Number(t.quantity || 0);
+            const entry = Number(t.entry_price || 0);
+            const invested = entry * qty;
+            totalInvested += invested;
+
+            if (t.status === 'OPEN') {
+                activeCount++;
+                const rawCmp = prices[t.stock_name];
+                const cmp = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) || entry : entry;
+                currentValuation += cmp * qty;
+                totalUnrealizedPnl += (cmp - entry) * qty;
+            } else if (t.status === 'CLOSED') {
+                closedCount++;
+                totalRealizedPnl += Number(t.total_pnl || 0);
+            }
+        });
+
+        const unrealizedPct = totalInvested > 0 ? (totalUnrealizedPnl / totalInvested) * 100 : 0;
+
+        return {
+            ...baseList,
+            holding_count: listHoldings.length,
+            active_count: activeCount,
+            closed_count: closedCount,
+            total_invested: totalInvested,
+            current_valuation: currentValuation,
+            unrealized_pnl: totalUnrealizedPnl,
+            unrealized_pct: unrealizedPct,
+            total_realized_pnl: totalRealizedPnl,
+        };
+    }, [tradeLists, selectedListId, scopedHoldings, prices]);
 
     return (
         <div className="portfolio-page">
@@ -984,6 +1116,60 @@ export default function PortfolioList() {
                 </button>
             </div>
 
+            {/* Active List Stats Banner */}
+            {activeListData && (
+                <div className="active-list-banner">
+                    <div className="active-list-info">
+                        <h4 className="active-list-title">
+                            <span className="trade-list-color-dot" style={{ background: activeListData.color, width: 12, height: 12 }} />
+                            {activeListData.name}
+                        </h4>
+                        {activeListData.description && (
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                {activeListData.description}
+                            </p>
+                        )}
+                    </div>
+                    <div className="active-list-stats">
+                        <div className="active-list-stat-item">
+                            <span className="active-list-stat-label">Holdings</span>
+                            <span className="active-list-stat-value">
+                                {activeListData.holding_count} <span className="active-list-subvalue">({activeListData.active_count} Active, {activeListData.closed_count} Exited)</span>
+                            </span>
+                        </div>
+                        <div className="active-list-stat-item">
+                            <span className="active-list-stat-label">Current Value</span>
+                            <span className="active-list-stat-value">
+                                {formatCurrency(activeListData.current_valuation)}
+                            </span>
+                        </div>
+                        <div className="active-list-stat-item">
+                            <span className="active-list-stat-label">Unrealized Gain</span>
+                            <span className="active-list-stat-value" style={{ color: activeListData.unrealized_pnl >= 0 ? '#34d399' : '#f87171' }}>
+                                {activeListData.unrealized_pnl >= 0 ? '+' : ''}{formatCurrency(activeListData.unrealized_pnl)}
+                                <span className="active-list-subvalue" style={{ color: activeListData.unrealized_pnl >= 0 ? '#34d399' : '#f87171', marginLeft: '6px' }}>
+                                    ({activeListData.unrealized_pnl >= 0 ? '+' : ''}{activeListData.unrealized_pct.toFixed(2)}%)
+                                </span>
+                            </span>
+                        </div>
+                        <div className="active-list-stat-item">
+                            <span className="active-list-stat-label">Realized Return</span>
+                            <span className="active-list-stat-value" style={{ color: activeListData.total_realized_pnl >= 0 ? '#34d399' : '#f87171' }}>
+                                {activeListData.total_realized_pnl >= 0 ? '+' : ''}{formatCurrency(activeListData.total_realized_pnl)}
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-paper-action"
+                            onClick={() => handleDeleteList(activeListData.list_id, activeListData.name)}
+                            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '0.78rem', padding: '0.35rem 0.75rem', cursor: 'pointer', borderRadius: '6px', marginLeft: 'auto' }}
+                        >
+                            <Trash2 size={13} style={{ marginRight: '4px' }} /> Delete List
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* ── Workspace Controls Bar & Active Tabs ────────────────────── */}
             <div className="portfolio-controls-bar">
                 <div className="portfolio-tabs">
@@ -1150,7 +1336,8 @@ export default function PortfolioList() {
                                                                         exit_price: cmp.toFixed(2),
                                                                         exit_date: new Date().toISOString().split('T')[0],
                                                                         exit_reason: 'Target Reached',
-                                                                        exit_notes: ''
+                                                                        exit_notes: '',
+                                                                        quantity: t.quantity
                                                                     });
                                                                 }}
                                                             >
@@ -1167,8 +1354,22 @@ export default function PortfolioList() {
                                                                 setShowAddToListModal(true);
                                                             }}
                                                         >
-                                                            <Tag size={15} /> Add to List
+                                                            <Tag size={15} /> {(t.lists && t.lists.length > 0) ? 'Change List' : 'Add to List'}
                                                         </button>
+
+                                                        {((t.lists && t.lists.length > 0) || selectedListId) && (
+                                                            <button
+                                                                type="button"
+                                                                className="trade-dropdown-item"
+                                                                style={{ color: '#f59e0b' }}
+                                                                onClick={() => {
+                                                                    setOpenMenuTradeId(null);
+                                                                    handleRemoveSingleHoldingFromList(t.trade_id);
+                                                                }}
+                                                            >
+                                                                <Tag size={15} /> Remove from List
+                                                            </button>
+                                                        )}
 
                                                         <Link
                                                             to={`/trades/${t.trade_id}?edit=true&from=portfolio`}
@@ -1177,6 +1378,19 @@ export default function PortfolioList() {
                                                         >
                                                             <Pencil size={15} /> Edit Holding
                                                         </Link>
+
+                                                        {t.status === 'OPEN' && (
+                                                            <button
+                                                                type="button"
+                                                                className="trade-dropdown-item"
+                                                                onClick={() => {
+                                                                    setOpenMenuTradeId(null);
+                                                                    handleMoveToTrades(t);
+                                                                }}
+                                                            >
+                                                                <TrendingUp size={15} /> Move to Active Trades (Swing)
+                                                            </button>
+                                                        )}
 
                                                         <div className="trade-dropdown-divider" />
                                                         <button
@@ -1400,7 +1614,8 @@ export default function PortfolioList() {
                                                                             exit_price: cmp.toFixed(2),
                                                                             exit_date: new Date().toISOString().split('T')[0],
                                                                             exit_reason: 'Target Reached',
-                                                                            exit_notes: ''
+                                                                            exit_notes: '',
+                                                                            quantity: t.quantity
                                                                         });
                                                                     }}
                                                                 >
@@ -1417,8 +1632,22 @@ export default function PortfolioList() {
                                                                     setShowAddToListModal(true);
                                                                 }}
                                                             >
-                                                                <Tag size={15} /> Add to List
+                                                                <Tag size={15} /> {(t.lists && t.lists.length > 0) ? 'Change List' : 'Add to List'}
                                                             </button>
+
+                                                            {((t.lists && t.lists.length > 0) || selectedListId) && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="trade-dropdown-item"
+                                                                    style={{ color: '#f59e0b' }}
+                                                                    onClick={() => {
+                                                                        setOpenMenuTradeId(null);
+                                                                        handleRemoveSingleHoldingFromList(t.trade_id);
+                                                                    }}
+                                                                >
+                                                                    <Tag size={15} /> Remove from List
+                                                                </button>
+                                                            )}
 
                                                             <Link
                                                                 to={`/trades/${t.trade_id}?edit=true&from=portfolio`}
@@ -1427,6 +1656,19 @@ export default function PortfolioList() {
                                                             >
                                                                 <Pencil size={15} /> Edit Holding
                                                             </Link>
+
+                                                            {t.status === 'OPEN' && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="trade-dropdown-item"
+                                                                    onClick={() => {
+                                                                        setOpenMenuTradeId(null);
+                                                                        handleMoveToTrades(t);
+                                                                    }}
+                                                                >
+                                                                    <TrendingUp size={15} /> Move to Active Trades (Swing)
+                                                                </button>
+                                                            )}
 
                                                             <div className="trade-dropdown-divider" />
                                                             <button
@@ -1494,7 +1736,25 @@ export default function PortfolioList() {
                                 </div>
                             </div>
 
-                            <div className="exit-form-grid">
+                            {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitModalTrade.quantity && (
+                                <div style={{
+                                    background: 'rgba(212, 175, 55, 0.12)',
+                                    border: '1px solid rgba(212, 175, 55, 0.35)',
+                                    borderRadius: '8px',
+                                    padding: '0.65rem 0.85rem',
+                                    marginBottom: '0.85rem',
+                                    fontSize: '0.82rem',
+                                    color: '#fef08a'
+                                }}>
+                                    <strong>⚡ Partial Booking Detected:</strong> Booking <strong>{exitForm.quantity}</strong> of <strong>{exitModalTrade.quantity} shares</strong>.
+                                    The remaining <strong>{exitModalTrade.quantity - Number(exitForm.quantity)} shares</strong> will remain in your portfolio.
+                                    <div style={{ marginTop: '2px', color: '#cbd5e1', fontSize: '0.78rem' }}>
+                                        * Please provide the partial booking reason and thesis below.
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="exit-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
                                 <div>
                                     <label className="form-label" style={{ fontSize: '0.78rem' }}>Exit Price (₹) *</label>
                                     <input
@@ -1506,6 +1766,18 @@ export default function PortfolioList() {
                                         placeholder="e.g. 2850.00"
                                         required
                                         autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Exit Quantity *</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={exitForm.quantity}
+                                        onChange={(e) => setExitForm(prev => ({ ...prev, quantity: e.target.value }))}
+                                        max={exitModalTrade.quantity}
+                                        min="1"
+                                        required
                                     />
                                 </div>
                                 <div>
@@ -1527,6 +1799,7 @@ export default function PortfolioList() {
                                     value={exitForm.exit_reason}
                                     onChange={(e) => setExitForm(prev => ({ ...prev, exit_reason: e.target.value }))}
                                 >
+                                    <option value="Partial Profit Booking">Partial Profit Booking</option>
                                     <option value="Target Reached">Target Reached / Profit Booked</option>
                                     <option value="Fundamental Change">Fundamental Thesis Changed</option>
                                     <option value="Portfolio Rebalancing">Portfolio Rebalancing</option>
@@ -1537,12 +1810,19 @@ export default function PortfolioList() {
                             </div>
 
                             <div style={{ marginBottom: '1.25rem' }}>
-                                <label className="form-label" style={{ fontSize: '0.78rem' }}>Exit Notes & Thesis</label>
+                                <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                                    {Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitModalTrade.quantity
+                                        ? 'Partial Booking Reason & Thesis * (Required for partial booking)'
+                                        : 'Exit Notes & Thesis'}
+                                </label>
                                 <textarea
                                     className="exit-notes-input"
-                                    placeholder="Record reason for exit, performance notes, learnings..."
+                                    placeholder={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitModalTrade.quantity
+                                        ? 'Reason for partial booking, why taking partial profits now, thesis for remaining shares...'
+                                        : 'Record reason for exit, performance notes, learnings...'}
                                     value={exitForm.exit_notes}
                                     onChange={(e) => setExitForm(prev => ({ ...prev, exit_notes: e.target.value }))}
+                                    required={Number(exitForm.quantity) > 0 && Number(exitForm.quantity) < exitModalTrade.quantity}
                                 />
                             </div>
 
@@ -1663,7 +1943,8 @@ export default function PortfolioList() {
                                             exit_price: cmp.toFixed(2),
                                             exit_date: new Date().toISOString().split('T')[0],
                                             exit_reason: 'Target Reached',
-                                            exit_notes: ''
+                                            exit_notes: '',
+                                            quantity: t.quantity
                                         });
                                     }}
                                 >
@@ -1702,28 +1983,44 @@ export default function PortfolioList() {
                             </button>
                         </div>
 
+                        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: '#94a3b8' }}>
+                            Note: Each holding belongs to at most one list at a time. Selecting a list will assign or move the holding.
+                        </p>
                         {tradeLists.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '1.5rem 0', color: '#94a3b8', fontSize: '0.88rem' }}>
                                 No lists created yet. Create your first list below.
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', maxHeight: '240px', overflowY: 'auto' }}>
-                                {tradeLists.map(list => (
-                                    <button
-                                        key={list.list_id}
-                                        type="button"
-                                        className="trade-dropdown-item"
-                                        style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}
-                                        onClick={() => handleAssignToList(list.list_id)}
-                                    >
-                                        <span className="trade-list-color-dot" style={{ background: list.color || 'var(--color-primary)' }} />
-                                        <div style={{ flex: 1, textAlign: 'left' }}>
-                                            <div style={{ fontWeight: 600, color: '#f8fafc' }}>{list.name}</div>
-                                            {list.description && <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{list.description}</div>}
-                                        </div>
-                                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{list.trade_count} holdings</span>
-                                    </button>
-                                ))}
+                                {tradeLists.map(list => {
+                                    const singleHolding = selectedTradeIds.size === 1 ? trades.find(t => selectedTradeIds.has(t.trade_id)) : null;
+                                    const isCurrent = singleHolding?.lists?.some(l => l.list_id === list.list_id);
+                                    return (
+                                        <button
+                                            key={list.list_id}
+                                            type="button"
+                                            className="trade-dropdown-item"
+                                            style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                                            onClick={() => handleAssignToList(list.list_id)}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, textAlign: 'left' }}>
+                                                <span className="trade-list-color-dot" style={{ background: list.color || 'var(--color-primary)' }} />
+                                                <div>
+                                                    <div style={{ fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        {list.name}
+                                                        {isCurrent && (
+                                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 600, background: 'rgba(212,175,55,0.12)', padding: '1px 5px', borderRadius: '4px' }}>
+                                                                Current List
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {list.description && <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{list.description}</div>}
+                                                </div>
+                                            </div>
+                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{list.trade_count} holdings</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 

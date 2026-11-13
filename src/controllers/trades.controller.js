@@ -96,7 +96,7 @@ export const addTradeNote = async (req, res) => {
             });
         }
 
-        // Check if trade exists & is OPEN (scoped to admin)
+        // Check if trade exists (scoped to admin)
         const [[trade]] = await db.query(
             `SELECT status FROM trades 
              WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
@@ -106,12 +106,6 @@ export const addTradeNote = async (req, res) => {
         if (!trade) {
             return res.status(404).json({
                 message: "Trade not found"
-            });
-        }
-
-        if (trade.status !== 'OPEN') {
-            return res.status(400).json({
-                message: "Cannot add note to closed trade"
             });
         }
 
@@ -164,7 +158,7 @@ export const exitTrade = async (req, res) => {
 
         // Fetch trade (scoped to admin)
         const [[trade]] = await db.query(
-            `SELECT trade_type, entry_price, quantity, status
+            `SELECT *
              FROM trades
              WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
             [trade_id, req.user.id]
@@ -182,21 +176,141 @@ export const exitTrade = async (req, res) => {
             });
         }
 
-        const { trade_type, entry_price } = trade;
         const finalQuantity = exitQuantity ? Number(exitQuantity) : trade.quantity;
 
+        if (isNaN(finalQuantity) || finalQuantity <= 0 || finalQuantity > trade.quantity) {
+            return res.status(400).json({
+                message: `Exit quantity must be between 1 and ${trade.quantity}`
+            });
+        }
+
+        const { trade_type, entry_price } = trade;
         let pnl = 0;
 
         if (trade_type === 'LONG') {
-            pnl = (exit_price - entry_price) * finalQuantity;
+            pnl = (Number(exit_price) - Number(entry_price)) * finalQuantity;
         } else {
-            pnl = (entry_price - exit_price) * finalQuantity;
+            pnl = (Number(entry_price) - Number(exit_price)) * finalQuantity;
         }
 
         pnl = Number(pnl.toFixed(2));
 
         const finalNotes = exit_notes || conclusion || null;
+        const actualExitDate = exit_date || new Date().toISOString().split('T')[0];
 
+        const isPartial = finalQuantity < trade.quantity;
+        const effectiveExitReason = isPartial 
+            ? (exit_reason || 'PARTIAL_PROFIT') 
+            : (exit_reason || null);
+
+        if (isPartial) {
+            const remainingQuantity = trade.quantity - finalQuantity;
+
+            // 1. Create a new CLOSED trade record for the exited portion
+            const [insertResult] = await db.query(
+                `INSERT INTO trades (
+                    stock_name, trade_type, mode, leverage, entry_price,
+                    quantity, target, stop_loss, strategy, conviction_level,
+                    entry_nifty_mood, entry_notes, trade_date, status,
+                    exit_price, exit_nifty_mood, exit_reason, exit_emotion,
+                    conclusion, exit_notes, total_pnl, exit_date, closed_at,
+                    admin_id, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CLOSED', ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+                [
+                    trade.stock_name,
+                    trade.trade_type,
+                    trade.mode,
+                    trade.leverage || 1,
+                    trade.entry_price,
+                    finalQuantity,
+                    trade.target,
+                    trade.stop_loss,
+                    trade.strategy,
+                    trade.conviction_level,
+                    trade.entry_nifty_mood,
+                    trade.entry_notes,
+                    trade.trade_date,
+                    exit_price,
+                    exit_nifty_mood || null,
+                    effectiveExitReason,
+                    exit_emotion || null,
+                    finalNotes,
+                    finalNotes,
+                    pnl,
+                    actualExitDate,
+                    req.user.id,
+                    trade.created_at || new Date()
+                ]
+            );
+
+            const newClosedTradeId = insertResult.insertId;
+
+            // Copy client mappings
+            const [clients] = await db.query(
+                `SELECT client_id FROM trade_clients WHERE trade_id = ?`,
+                [trade_id]
+            );
+            if (clients.length > 0) {
+                const clientValues = clients.map(c => [newClosedTradeId, c.client_id]);
+                await db.query(`INSERT INTO trade_clients (trade_id, client_id) VALUES ?`, [clientValues]);
+            }
+
+            // Copy trade list mappings
+            const [lists] = await db.query(
+                `SELECT list_id FROM trade_list_items WHERE trade_id = ?`,
+                [trade_id]
+            );
+            if (lists.length > 0) {
+                const listValues = lists.map(l => [l.list_id, newClosedTradeId]);
+                await db.query(`INSERT INTO trade_list_items (list_id, trade_id) VALUES ?`, [listValues]);
+            }
+
+            // Copy existing trade notes
+            const [notes] = await db.query(
+                `SELECT note_text, created_at FROM trade_notes WHERE trade_id = ?`,
+                [trade_id]
+            );
+            if (notes.length > 0) {
+                const noteValues = notes.map(n => [newClosedTradeId, n.note_text, n.created_at]);
+                await db.query(`INSERT INTO trade_notes (trade_id, note_text, created_at) VALUES ?`, [noteValues]);
+            }
+
+            // Add note on closed trade record
+            const closedPartialNote = `⚡ Partial Exit Booked: ${finalQuantity} qty @ ₹${Number(exit_price).toFixed(2)} (${pnl >= 0 ? '+' : ''}₹${pnl.toLocaleString('en-IN')}). Reason: ${effectiveExitReason}.${finalNotes ? ` Notes: "${finalNotes}"` : ''} (Original position was ${trade.quantity} qty)`;
+            await db.query(
+                `INSERT INTO trade_notes (trade_id, note_text)
+                 VALUES (?, ?)`,
+                [newClosedTradeId, closedPartialNote]
+            );
+
+            // 2. Keep the original trade OPEN with the remaining quantity
+            await db.query(
+                `UPDATE trades
+                 SET quantity = ?
+                 WHERE trade_id = ? AND admin_id = ?`,
+                [remainingQuantity, trade_id, req.user.id]
+            );
+
+            // Add note on open trade record
+            const openPartialNote = `⚡ Partial Profit/Loss Booked: Sold ${finalQuantity} qty @ ₹${Number(exit_price).toFixed(2)} (${pnl >= 0 ? '+' : ''}₹${pnl.toLocaleString('en-IN')}). ${remainingQuantity} qty remaining in position. Reason: ${effectiveExitReason}.${finalNotes ? ` Notes: "${finalNotes}"` : ''}`;
+            await db.query(
+                `INSERT INTO trade_notes (trade_id, note_text)
+                 VALUES (?, ?)`,
+                [trade_id, openPartialNote]
+            );
+
+            return res.json({
+                message: `Partially exited ${finalQuantity} qty. ${remainingQuantity} qty remaining.`,
+                is_partial: true,
+                exited_trade_id: newClosedTradeId,
+                remaining_quantity: remainingQuantity,
+                exited_quantity: finalQuantity,
+                total_pnl: pnl
+            });
+        }
+
+        // Full exit: close original trade
         await db.query(
             `UPDATE trades
              SET exit_price = ?,
@@ -219,7 +333,7 @@ export const exitTrade = async (req, res) => {
                 finalNotes,
                 finalNotes,
                 pnl,
-                exit_date || null,
+                actualExitDate,
                 finalQuantity,
                 trade_id,
                 req.user.id
@@ -228,6 +342,7 @@ export const exitTrade = async (req, res) => {
 
         res.json({
             message: "Trade closed successfully",
+            is_partial: false,
             total_pnl: pnl,
             quantity: finalQuantity
         });
@@ -625,32 +740,48 @@ export const hardDeleteTrade = async (req, res) => {
 // 🔹 TRADE LISTS (TAGS) CONTROLLERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// GET ALL TRADE LISTS WITH AGGREGATED STATS
+// 🔹 TRADE LISTS (TAGS)
 export const getTradeLists = async (req, res) => {
     try {
         const adminId = req.user.id;
+        const type = req.query.type ? String(req.query.type).trim().toUpperCase() : null;
+
+        let typeCondition = '';
+        const params = [adminId, adminId];
+        if (type) {
+            typeCondition = 'AND (l.type = ? OR (l.type IS NULL AND ? = "TRADES"))';
+            params.push(type, type);
+        }
+
         const [lists] = await db.query(`
             SELECT 
                 l.list_id,
                 l.name,
                 l.description,
                 l.color,
+                COALESCE(l.type, 'TRADES') AS type,
                 l.created_at,
                 COUNT(DISTINCT t.trade_id) AS trade_count,
                 SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_count,
                 SUM(CASE WHEN t.status = 'CLOSED' THEN 1 ELSE 0 END) AS closed_count,
                 COALESCE(SUM(t.entry_price * t.quantity), 0) AS total_capital,
                 COALESCE(SUM(t.total_pnl), 0) AS total_pnl,
-                SUM(CASE WHEN t.status = 'CLOSED' AND t.total_pnl > 0 THEN 1 ELSE 0 END) AS win_count
+                SUM(CASE WHEN t.status = 'CLOSED' AND t.total_pnl > 0 THEN 1 ELSE 0 END) AS win_count,
+                COALESCE(GROUP_CONCAT(DISTINCT t.trade_id), '') AS trade_ids_str
             FROM trade_lists l
             LEFT JOIN trade_list_items li ON l.list_id = li.list_id
             LEFT JOIN trades t ON li.trade_id = t.trade_id AND t.is_deleted = FALSE AND t.admin_id = ?
-            WHERE l.admin_id = ?
+            WHERE l.admin_id = ? ${typeCondition}
             GROUP BY l.list_id
             ORDER BY l.created_at DESC
-        `, [adminId, adminId]);
+        `, params);
 
-        res.json({ success: true, lists });
+        const mappedLists = lists.map(l => ({
+            ...l,
+            trade_ids: l.trade_ids_str ? l.trade_ids_str.split(',').map(Number) : []
+        }));
+
+        res.json({ success: true, lists: mappedLists });
     } catch (err) {
         console.error('getTradeLists error:', err);
         res.status(500).json({ success: false, message: 'Failed to fetch trade lists', error: err.message });
@@ -661,14 +792,16 @@ export const getTradeLists = async (req, res) => {
 export const createTradeList = async (req, res) => {
     try {
         const adminId = req.user.id;
-        const { name, description, color } = req.body;
+        const { name, description, color, type } = req.body;
         if (!name || !name.trim()) {
             return res.status(400).json({ success: false, message: 'List name is required' });
         }
 
+        const listType = (type || 'TRADES').trim().toUpperCase();
+
         const [result] = await db.query(
-            `INSERT INTO trade_lists (admin_id, name, description, color) VALUES (?, ?, ?, ?)`,
-            [adminId, name.trim(), description ? description.trim() : null, color || '#d4af37']
+            `INSERT INTO trade_lists (admin_id, name, description, color, type) VALUES (?, ?, ?, ?, ?)`,
+            [adminId, name.trim(), description ? description.trim() : null, color || '#d4af37', listType]
         );
 
         res.status(201).json({
@@ -678,7 +811,8 @@ export const createTradeList = async (req, res) => {
                 list_id: result.insertId,
                 name: name.trim(),
                 description: description ? description.trim() : null,
-                color: color || '#d4af37'
+                color: color || '#d4af37',
+                type: listType
             }
         });
     } catch (err) {
@@ -693,6 +827,13 @@ export const deleteTradeList = async (req, res) => {
         const adminId = req.user.id;
         const { list_id } = req.params;
 
+        // 1. Delete associated trade_list_items first so foreign key constraints never block deletion
+        await db.query(
+            `DELETE FROM trade_list_items WHERE list_id = ?`,
+            [list_id]
+        );
+
+        // 2. Delete the list record
         const [result] = await db.query(
             `DELETE FROM trade_lists WHERE list_id = ? AND admin_id = ?`,
             [list_id, adminId]
@@ -709,7 +850,7 @@ export const deleteTradeList = async (req, res) => {
     }
 };
 
-// ADD TRADES TO LIST
+// ADD TRADES TO LIST (Enforces: each trade belongs to at most ONE list)
 export const addTradesToList = async (req, res) => {
     try {
         const adminId = req.user.id;
@@ -729,14 +870,20 @@ export const addTradesToList = async (req, res) => {
             return res.status(404).json({ success: false, message: 'List not found' });
         }
 
-        // Insert ignoring duplicate associations
+        // Remove these trades from any previous list so a trade can only belong to ONE list
+        await db.query(
+            `DELETE FROM trade_list_items WHERE trade_id IN (?)`,
+            [trade_ids]
+        );
+
+        // Insert new association
         const values = trade_ids.map(tid => [list_id, tid]);
         await db.query(
             `INSERT IGNORE INTO trade_list_items (list_id, trade_id) VALUES ?`,
             [values]
         );
 
-        res.json({ success: true, message: `Added ${trade_ids.length} trade(s) to list` });
+        res.json({ success: true, message: `Moved ${trade_ids.length} trade(s) to list` });
     } catch (err) {
         console.error('addTradesToList error:', err);
         res.status(500).json({ success: false, message: 'Failed to add trades to list', error: err.message });
@@ -771,5 +918,27 @@ export const removeTradesFromList = async (req, res) => {
     } catch (err) {
         console.error('removeTradesFromList error:', err);
         res.status(500).json({ success: false, message: 'Failed to remove trades from list', error: err.message });
+    }
+};
+
+// REMOVE SINGLE TRADE FROM ANY LIST
+export const removeTradeFromAllLists = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const { trade_id } = req.params;
+
+        const [[trade]] = await db.query(
+            `SELECT trade_id FROM trades WHERE trade_id = ? AND admin_id = ?`,
+            [trade_id, adminId]
+        );
+        if (!trade) {
+            return res.status(404).json({ success: false, message: 'Trade not found' });
+        }
+
+        await db.query(`DELETE FROM trade_list_items WHERE trade_id = ?`, [trade_id]);
+        res.json({ success: true, message: 'Trade removed from list' });
+    } catch (err) {
+        console.error('removeTradeFromAllLists error:', err);
+        res.status(500).json({ success: false, message: 'Failed to remove trade from list', error: err.message });
     }
 };

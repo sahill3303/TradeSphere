@@ -15,7 +15,8 @@ import {
     createTradeList,
     deleteTradeList,
     addTradesToList,
-    removeTradesFromList
+    removeTradesFromList,
+    removeTradeFromAllLists
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
@@ -29,6 +30,8 @@ router.post('/lists', createTradeList);
 router.delete('/lists/:list_id', deleteTradeList);
 router.post('/lists/:list_id/trades', addTradesToList);
 router.delete('/lists/:list_id/trades', removeTradesFromList);
+router.delete('/:trade_id/list', removeTradeFromAllLists);
+router.delete('/trades/:trade_id/list', removeTradeFromAllLists);
 
 // 🔹 OPEN TRADE
 router.post('/', openTrade);
@@ -38,6 +41,7 @@ router.post('/:trade_id/notes', addTradeNote);
 
 // 🔹 EXIT TRADE
 router.patch('/:trade_id/exit', exitTrade);
+router.put('/:trade_id/exit', exitTrade);
 
 // 🔹 GET ALL TRADES
 router.get('/', getAllTrades);

@@ -404,6 +404,28 @@
     animation: fadeIn 0.15s ease-out;
 }
 
+/* Card Mode Specific: Open dropdown upwards above footer button & elevate card stacking */
+.portfolio-asset-card {
+    overflow: visible !important;
+}
+
+.portfolio-asset-card.has-menu-open {
+    z-index: 60 !important;
+}
+
+.portfolio-asset-card .trade-dots-container {
+    position: relative;
+    z-index: 65;
+}
+
+.portfolio-asset-card .trade-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
 .trade-dropdown-item {
     display: flex;
     align-items: center;
@@ -582,5 +604,23 @@
     font-weight: 600;
     margin-right: 6px;
     margin-bottom: 6px;
+}
+
+.clean-notes-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.clean-notes-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.clean-notes-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 4px;
+}
+
+.clean-notes-list::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
 }
 

@@ -120,6 +120,47 @@ export const runMigrations = async () => {
         `);
         console.log('✅ Orphaned watchlist symbols cleaned up.');
 
+        // 5. Verify Trade Lists & Tagging Tables
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS trade_lists (
+                list_id INT AUTO_INCREMENT PRIMARY KEY,
+                admin_id INT NOT NULL,
+                name VARCHAR(100) NOT NULL,
+                description TEXT DEFAULT NULL,
+                color VARCHAR(20) DEFAULT '#d4af37',
+                type VARCHAR(20) DEFAULT 'TRADES',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (admin_id),
+                FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
+            )
+        `);
+
+        try {
+            const [listCols] = await db.query(
+                `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trade_lists'`
+            );
+            const listColNames = listCols.map(c => c.COLUMN_NAME.toLowerCase());
+            if (!listColNames.includes('type')) {
+                console.log('Migrating: Adding type column to trade_lists...');
+                await db.query(`ALTER TABLE trade_lists ADD COLUMN type VARCHAR(20) DEFAULT 'TRADES'`);
+            }
+        } catch (e) {
+            console.error('trade_lists column migration notice:', e.message);
+        }
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS trade_list_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                list_id INT NOT NULL,
+                trade_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_list_trade (list_id, trade_id),
+                INDEX (trade_id),
+                FOREIGN KEY (list_id) REFERENCES trade_lists(list_id) ON DELETE CASCADE
+            )
+        `);
+        console.log('✅ Trade lists and list items tables verified.');
+
         console.log('✅ Database migrations and seed completed.');
     } catch (err) {
         console.error('❌ Migration failed:', err);
