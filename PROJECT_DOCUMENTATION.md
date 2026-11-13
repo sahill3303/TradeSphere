@@ -123,7 +123,14 @@ The core tables include:
 
 ---
 
-## 7. Future Scopes
+## 7. Extended Architecture & Guides
+- **[Corporate Action 3-Layer Architecture Guide](./CORPORATE_ACTIONS_GUIDE.md)**: Stock splits, bonus issues, reverse consolidations, mathematical capital invariance, automated watchdog detection, and Indian tax compliance.
+- **[Portfolio Management & Alpha Benchmark Guide](./PORTFOLIO_MANAGEMENT_GUIDE.md)**: Mathematical formulas, Alpha calculations, tax tracking (STCG/LTCG), and portfolio risk rules.
+- **[Database Schema Documentation](./DATABASE_SCHEMA.md)**: Full relational schema and multi-tenant design.
+
+---
+
+## 8. Future Scopes
 - **Automated Broker Integration**: Syncing trades directly from Zerodha/Upstox.
 - **Mobile App**: React Native version for on-the-go tracking.
 - **Advanced AI Forecasting**: Predictive modeling for stock movements based on historical logs.

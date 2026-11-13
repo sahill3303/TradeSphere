@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { LineChart, Users, Target, BookOpen, Briefcase, FileText, Palette, Compass, Sparkles, Flame, Lock, CheckCircle, Circle, Moon, Sun, Microscope } from 'lucide-react';
+import { LineChart, Users, Target, BookOpen, Briefcase, FileText, Palette, Compass, Sparkles, Flame, Lock, CheckCircle, Circle, Moon, Sun, Microscope, ScrollText } from 'lucide-react';
 import { usePreferences } from '../../context/PreferencesContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -113,7 +113,7 @@ export default function Settings() {
     const features = [
         { id: 'watchlist', label: 'Watchlist', icon: <LineChart size={18} />, desc: 'Track your customized stock lists and prices.' },
         { id: 'clients', label: 'Clients', icon: '◎', desc: 'Manage client portfolios and onboarding.' },
-        { id: 'trades', label: 'Trades', icon: '◈', desc: 'Log and monitor active or past trades.' },
+        { id: 'trades', label: 'Trades', icon: <ScrollText size={18} />, desc: 'Log and monitor active or past trades.' },
         { id: 'paperTrade', label: 'Paper Trading', icon: <Briefcase size={18} />, desc: 'Simulated trading journal & long-term conviction portfolio.' },
         { id: 'analysis', label: 'Research', icon: <Microscope size={18} />, desc: 'Perform AI-driven stock research and analysis.' },
         { id: 'notes', label: 'Notes', icon: <FileText size={18} />, desc: 'Keep a personal trading journal.' },

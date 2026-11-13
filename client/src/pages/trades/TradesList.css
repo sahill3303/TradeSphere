@@ -397,11 +397,21 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
-    min-width: 190px;
+    min-width: 230px;
+    max-height: min(440px, 80vh);
+    overflow-y: auto;
     padding: 6px;
-    z-index: 100;
+    z-index: 1000;
     backdrop-filter: blur(12px);
     animation: fadeIn 0.15s ease-out;
+}
+
+.trade-dropdown-menu::-webkit-scrollbar {
+    width: 4px;
+}
+.trade-dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
 }
 
 /* Card Mode Specific: Open dropdown upwards above footer button & elevate card stacking */
@@ -442,6 +452,7 @@
     cursor: pointer;
     text-decoration: none;
     transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 .trade-dropdown-item:hover {

@@ -139,9 +139,9 @@ export default function TradeDetails() {
     async function handleExit(e) {
         e.preventDefault();
         setExitError('');
-        
+
         const actualExitDate = trade.mode === 'INTRADAY' && trade.trade_date
-            ? new Date(trade.trade_date).toISOString().split('T')[0] 
+            ? new Date(trade.trade_date).toISOString().split('T')[0]
             : exitForm.exit_date;
 
         if (!exitForm.exit_price || isNaN(exitForm.exit_price) || +exitForm.exit_price <= 0) {
@@ -176,25 +176,25 @@ export default function TradeDetails() {
                 exit_date: actualExitDate,
             });
             if (data.is_partial) {
-                setTrade(prev => ({ 
-                    ...prev, 
-                    quantity: data.remaining_quantity 
+                setTrade(prev => ({
+                    ...prev,
+                    quantity: data.remaining_quantity
                 }));
                 api.get(`/trades/${id}`).then(({ data: d }) => {
                     if (d?.trade) setTrade(d.trade);
                     if (d?.notes) setNotes(d.notes);
-                }).catch(() => {});
+                }).catch(() => { });
             } else {
-                setTrade(prev => ({ 
-                    ...prev, 
-                    status: 'CLOSED', 
-                    total_pnl: data.total_pnl, 
-                    quantity: data.quantity || prev.quantity, 
-                    ...exitForm, 
+                setTrade(prev => ({
+                    ...prev,
+                    status: 'CLOSED',
+                    total_pnl: data.total_pnl,
+                    quantity: data.quantity || prev.quantity,
+                    ...exitForm,
                     conclusion: finalNotes,
                     exit_notes: finalNotes,
-                    exit_date: actualExitDate, 
-                    exit_price: Number(exitForm.exit_price) 
+                    exit_date: actualExitDate,
+                    exit_price: Number(exitForm.exit_price)
                 }));
             }
             setShowExitForm(false);
@@ -206,12 +206,12 @@ export default function TradeDetails() {
     function openEditForm() {
         if (!trade) return;
         const normMode = normalizeType(trade.mode);
-        const tradeDateStr = trade.trade_date 
-            ? new Date(trade.trade_date).toISOString().split('T')[0] 
+        const tradeDateStr = trade.trade_date
+            ? new Date(trade.trade_date).toISOString().split('T')[0]
             : (trade.created_at ? new Date(trade.created_at).toISOString().split('T')[0] : '');
 
-        const exitDateStr = trade.exit_date 
-            ? new Date(trade.exit_date).toISOString().split('T')[0] 
+        const exitDateStr = trade.exit_date
+            ? new Date(trade.exit_date).toISOString().split('T')[0]
             : '';
 
         setEditForm({
@@ -359,10 +359,10 @@ export default function TradeDetails() {
     if (loading) {
         return (
             <div className="page" style={{ maxWidth: 1100, margin: '0 auto', paddingTop: '2rem' }}>
-                <LoadingState 
-                    caption="Loading trade setup details & execution ledger..." 
-                    subcaption="Retrieving position metrics, client allocations and journal notes" 
-                    minHeight="420px" 
+                <LoadingState
+                    caption="Loading trade setup details & execution ledger..."
+                    subcaption="Retrieving position metrics, client allocations and journal notes"
+                    minHeight="420px"
                 />
             </div>
         );
@@ -394,12 +394,12 @@ export default function TradeDetails() {
                         </Button>
                     )}
                     {trade.status === 'OPEN' && (
-                        <Button variant="danger" onClick={() => { 
+                        <Button variant="danger" onClick={() => {
                             setShowExitForm(s => {
                                 if (!s) setExitForm(prev => ({ ...prev, quantity: trade.quantity }));
                                 return !s;
-                            }); 
-                            setShowEditForm(false); 
+                            });
+                            setShowEditForm(false);
                         }}>
                             {showExitForm ? 'Cancel Exit' : <><Lock size={14} style={{ marginRight: '6px' }} /> Book Profits / Exit</>}
                         </Button>
@@ -593,7 +593,7 @@ export default function TradeDetails() {
                                             key={c.client_id}
                                             type="button"
                                             onClick={() => setEditForm(prev => {
-                                                const newIds = isSel 
+                                                const newIds = isSel
                                                     ? prev.client_ids.filter(id => id !== c.client_id)
                                                     : [...(prev.client_ids || []), c.client_id];
                                                 return { ...prev, client_ids: newIds };
@@ -752,8 +752,8 @@ export default function TradeDetails() {
                                 value={exitForm.quantity} onChange={handleExitChange}
                                 placeholder={`Full position (${trade.quantity} qty) by default`} required />
                             <Input id="exit_date" label="Exit Date *" type="date" min="2000-01-01" max="2099-12-31"
-                                value={trade.mode === 'INTRADAY' && trade.trade_date ? new Date(trade.trade_date).toISOString().split('T')[0] : exitForm.exit_date} 
-                                onChange={handleExitChange} required 
+                                value={trade.mode === 'INTRADAY' && trade.trade_date ? new Date(trade.trade_date).toISOString().split('T')[0] : exitForm.exit_date}
+                                onChange={handleExitChange} required
                                 disabled={trade.mode === 'INTRADAY'} />
                             <div className="form-group">
                                 <label className="form-label">Exit Reason <span className="required-mark">*</span></label>

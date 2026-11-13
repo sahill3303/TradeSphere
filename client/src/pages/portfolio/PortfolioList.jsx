@@ -4,12 +4,14 @@ import api from '../../api/axios';
 import {
     PieChart, Shield, TrendingUp, TrendingDown, Plus, LayoutGrid, Table as TableIcon,
     Search, Calendar, ArrowUpRight, ArrowDownRight, MoreVertical, Eye,
-    Trash2, Tag, Check, RefreshCw, Layers, Award, Sparkles, AlertCircle, X, Pencil
+    Trash2, Tag, Check, RefreshCw, Layers, Award, Sparkles, AlertCircle, X, Pencil, ScrollText, Split
 } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
 import { KpiSkeleton, CardSkeleton, TableSkeleton, ChartSkeleton } from '../../components/common/Skeleton';
+import CorporateActionModal, { detectPotentialSplit } from '../../components/common/CorporateActionModal';
 import './PortfolioList.css';
 import '../trades/TradesList.css';
+import '../trades/PaperTrade.css';
 
 function normalizeType(mode) {
     if (!mode) return '';
@@ -85,6 +87,7 @@ export default function PortfolioList() {
     // Modals
     const [openMenuTradeId, setOpenMenuTradeId] = useState(null);
     const [viewTradeModal, setViewTradeModal] = useState(null);
+    const [corporateActionModal, setCorporateActionModal] = useState(null);
     const [exitModalTrade, setExitModalTrade] = useState(null);
     const [exitForm, setExitForm] = useState({ exit_price: '', exit_date: new Date().toISOString().split('T')[0], exit_reason: 'Target Reached', exit_notes: '', quantity: '' });
     const [exitingTrade, setExitingTrade] = useState(false);
@@ -95,6 +98,80 @@ export default function PortfolioList() {
     const [newListName, setNewListName] = useState('');
     const [newListDesc, setNewListDesc] = useState('');
     const [newListColor, setNewListColor] = useState('#d4af37');
+
+    // Modal Holding / Trade Notes state
+    const [modalTradeNotes, setModalTradeNotes] = useState([]);
+    const [loadingModalNotes, setLoadingModalNotes] = useState(false);
+    const [newModalNoteText, setNewModalNoteText] = useState('');
+    const [addingModalNote, setAddingModalNote] = useState(false);
+    const [modalNoteError, setModalNoteError] = useState('');
+
+    // Fetch notes whenever viewTradeModal opens
+    useEffect(() => {
+        if (!viewTradeModal) {
+            setModalTradeNotes([]);
+            setNewModalNoteText('');
+            setModalNoteError('');
+            return;
+        }
+        setLoadingModalNotes(true);
+        setModalNoteError('');
+        api.get(`/trades/${viewTradeModal.trade_id}`)
+            .then(({ data }) => {
+                if (data?.notes) {
+                    setModalTradeNotes(data.notes);
+                }
+                if (data?.clients && (!viewTradeModal.clients || viewTradeModal.clients.length === 0)) {
+                    setViewTradeModal(prev => prev ? ({ ...prev, clients: data.clients }) : null);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load portfolio trade notes:', err);
+            })
+            .finally(() => {
+                setLoadingModalNotes(false);
+            });
+    }, [viewTradeModal?.trade_id]);
+
+    const handleAddModalNote = async (e) => {
+        e.preventDefault();
+        if (!newModalNoteText.trim() || !viewTradeModal) return;
+        setAddingModalNote(true);
+        setModalNoteError('');
+        try {
+            await api.post(`/trades/${viewTradeModal.trade_id}/notes`, {
+                note_text: newModalNoteText.trim()
+            });
+            const newNote = {
+                note_id: Date.now(),
+                trade_id: viewTradeModal.trade_id,
+                note_text: newModalNoteText.trim(),
+                created_at: new Date().toISOString()
+            };
+            setModalTradeNotes(prev => [...prev, newNote]);
+            setNewModalNoteText('');
+        } catch (err) {
+            setModalNoteError(err.response?.data?.message || 'Failed to add note.');
+        } finally {
+            setAddingModalNote(false);
+        }
+    };
+
+    const modalMetrics = useMemo(() => {
+        if (!viewTradeModal) return { invested: 0, curPrice: 0, curVal: 0, pnl: 0, pnlPct: 0 };
+        const entry = Number(viewTradeModal.entry_price || 0);
+        const qty = Number(viewTradeModal.quantity || 0);
+        const invested = entry * qty;
+        const rawCmp = prices[viewTradeModal.stock_name];
+        const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
+        const curPrice = viewTradeModal.status === 'CLOSED'
+            ? Number(viewTradeModal.exit_price || 0)
+            : ((cmpVal !== null && !isNaN(cmpVal)) ? cmpVal : entry);
+        const curVal = curPrice * qty;
+        const pnl = curVal - invested;
+        const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
+        return { invested, curPrice, curVal, pnl, pnlPct };
+    }, [viewTradeModal, prices]);
 
     // Chart Interactive Crosshair State
     const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -246,11 +323,15 @@ export default function PortfolioList() {
             totalRealizedPnl += Number(t.total_pnl || 0);
         });
 
+        const hasActiveHoldings = activeHoldings.length > 0 && totalInvested > 0;
+
         // Current timeframe benchmark base
         const tf = TIMEFRAMES.find(item => item.key === selectedTimeframe) || TIMEFRAMES[2];
         const niftyReturn = tf.niftyBaseReturn;
-        const myReturn = unrealizedPnlPct;
-        const alpha = myReturn - niftyReturn;
+        const myReturn = hasActiveHoldings ? unrealizedPnlPct : 0;
+        // ALPHA: Only compute if active capital is deployed in holdings
+        const alpha = hasActiveHoldings ? Number((myReturn - niftyReturn).toFixed(2)) : null;
+        const totalNetWealth = unrealizedPnl + totalRealizedPnl;
 
         return {
             totalInvested,
@@ -258,10 +339,12 @@ export default function PortfolioList() {
             unrealizedPnl,
             unrealizedPnlPct,
             totalRealizedPnl,
+            totalNetWealth,
             daysPnl,
             daysPnlPct,
             activeCount: activeHoldings.length,
             closedCount: closedHoldings.length,
+            hasActiveHoldings,
             niftyReturn,
             myReturn,
             alpha,
@@ -311,12 +394,14 @@ export default function PortfolioList() {
 
     // ── Generate Robust NIFTY 50 vs My Portfolio Curve Data ─────────────────
     const chartData = useMemo(() => {
+        if (!portfolioMetrics.hasActiveHoldings) return [];
+
         const tf = TIMEFRAMES.find(item => item.key === selectedTimeframe) || TIMEFRAMES[2];
         const numPoints = 16;
         const points = [];
         const today = new Date();
 
-        const baseAlpha = portfolioMetrics.alpha;
+        const baseAlpha = portfolioMetrics.alpha ?? 0;
         const portfolioFinalPct = portfolioMetrics.unrealizedPnlPct;
         const niftyFinalPct = tf.niftyBaseReturn;
 
@@ -349,7 +434,7 @@ export default function PortfolioList() {
         }
 
         return points;
-    }, [selectedTimeframe, portfolioMetrics.alpha, portfolioMetrics.unrealizedPnlPct]);
+    }, [selectedTimeframe, portfolioMetrics.alpha, portfolioMetrics.unrealizedPnlPct, portfolioMetrics.hasActiveHoldings]);
 
     // SVG Chart Geometry Calculations
     const chartGeometry = useMemo(() => {
@@ -589,6 +674,22 @@ export default function PortfolioList() {
             setExitingTrade(false);
         }
     };
+
+    // Helper to open Exit / Book Profits Modal
+    const handleOpenExitModal = useCallback((t) => {
+        setExitModalTrade(t);
+        setExitError('');
+        const rawCmp = prices[t.stock_name];
+        const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
+        const cmp = (cmpVal !== null && !isNaN(cmpVal)) ? cmpVal : Number(t.entry_price || 0);
+        setExitForm({
+            exit_price: cmp.toFixed(2),
+            exit_date: new Date().toISOString().split('T')[0],
+            exit_reason: 'Target Reached',
+            exit_notes: '',
+            quantity: t.quantity
+        });
+    }, [prices]);
 
     // Delete Trade
     const handleDeleteHolding = async (id, name) => {
@@ -845,11 +946,29 @@ export default function PortfolioList() {
                             <span className="kpi-title">Alpha vs NIFTY 50</span>
                             <div className="kpi-icon-wrap"><Sparkles size={16} color="var(--color-gold, #d4af37)" /></div>
                         </div>
-                        <div className="kpi-value" style={{ color: portfolioMetrics.alpha >= 0 ? '#34d399' : '#f87171' }}>
-                            {portfolioMetrics.alpha >= 0 ? '+' : ''}{portfolioMetrics.alpha.toFixed(2)}%
+                        <div className="kpi-value" style={{ 
+                            color: !portfolioMetrics.hasActiveHoldings 
+                                ? 'var(--color-text-dim, #94a3b8)' 
+                                : portfolioMetrics.alpha >= 0 
+                                ? '#34d399' 
+                                : '#f87171' 
+                        }}>
+                            {!portfolioMetrics.hasActiveHoldings 
+                                ? '—' 
+                                : `${portfolioMetrics.alpha >= 0 ? '+' : ''}${portfolioMetrics.alpha.toFixed(2)}%`}
                         </div>
-                        <div className={`kpi-sub ${portfolioMetrics.alpha >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
-                            {portfolioMetrics.alpha >= 0 ? '▲ Outperforming Benchmark' : '▼ Underperforming Benchmark'}
+                        <div className={`kpi-sub ${
+                            !portfolioMetrics.hasActiveHoldings 
+                                ? 'kpi-sub--neutral' 
+                                : portfolioMetrics.alpha >= 0 
+                                ? 'kpi-sub--pos' 
+                                : 'kpi-sub--neg'
+                        }`}>
+                            {!portfolioMetrics.hasActiveHoldings 
+                                ? '○ Awaiting active equity holdings' 
+                                : portfolioMetrics.alpha >= 0 
+                                ? `▲ Outperforming by +${portfolioMetrics.alpha.toFixed(2)}%` 
+                                : `▼ Lagging Benchmark by ${Math.abs(portfolioMetrics.alpha).toFixed(2)}%`}
                         </div>
                     </div>
                 </div>
@@ -858,210 +977,253 @@ export default function PortfolioList() {
             {/* ── FLAGSHIP: NIFTY 50 vs My Portfolio Performance Chart ─────── */}
             {loading ? (
                 <div style={{ marginBottom: '1.5rem' }}>
-                    <ChartSkeleton 
-                        height={260} 
-                        caption="Calculating portfolio alpha & NIFTY 50 benchmark curve..." 
-                        subcaption="Synchronizing holding price performance against market indices" 
+                    <ChartSkeleton
+                        height={260}
+                        caption="Calculating portfolio alpha & NIFTY 50 benchmark curve..."
+                        subcaption="Synchronizing holding price performance against market indices"
                     />
                 </div>
             ) : (
                 <div className="benchmark-card">
-                <div className="benchmark-card__header">
-                    <div className="benchmark-card__title-wrap">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <h3 className="benchmark-card__title">
-                                <TrendingUp size={18} color="var(--color-gold, #d4af37)" />
-                                NIFTY 50 vs My Portfolio Performance
-                            </h3>
-                            <span className={`benchmark-alpha-pill ${portfolioMetrics.alpha >= 0 ? '' : 'benchmark-alpha-pill--underperform'}`}>
-                                <Sparkles size={12} />
-                                {portfolioMetrics.alpha >= 0 ? '+' : ''}{portfolioMetrics.alpha.toFixed(2)}% Alpha Spread
+                    <div className="benchmark-card__header">
+                        <div className="benchmark-card__title-wrap">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                <h3 className="benchmark-card__title">
+                                    <TrendingUp size={18} color="var(--color-gold, #d4af37)" />
+                                    NIFTY 50 vs My Portfolio Performance
+                                </h3>
+                                {portfolioMetrics.hasActiveHoldings ? (
+                                    <span className={`benchmark-alpha-pill ${portfolioMetrics.alpha >= 0 ? '' : 'benchmark-alpha-pill--underperform'}`}>
+                                        <Sparkles size={12} />
+                                        {portfolioMetrics.alpha >= 0 ? '+' : ''}{portfolioMetrics.alpha.toFixed(2)}% Alpha Spread
+                                    </span>
+                                ) : (
+                                    <span className="benchmark-alpha-pill" style={{ background: 'rgba(255,255,255,0.06)', color: '#94a3b8', borderColor: 'rgba(255,255,255,0.1)' }}>
+                                        <Sparkles size={12} />
+                                        Alpha Engine Ready
+                                    </span>
+                                )}
+                            </div>
+                            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                                Cumulative return comparison over {TIMEFRAMES.find(t => t.key === selectedTimeframe)?.label} • NIFTY 50 at ₹{niftyQuote.price.toLocaleString('en-IN')} ({niftyQuote.percentChange >= 0 ? '+' : ''}{niftyQuote.percentChange}%)
                             </span>
                         </div>
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                            Cumulative return comparison over {TIMEFRAMES.find(t => t.key === selectedTimeframe)?.label} • NIFTY 50 at ₹{niftyQuote.price.toLocaleString('en-IN')} ({niftyQuote.percentChange >= 0 ? '+' : ''}{niftyQuote.percentChange}%)
-                        </span>
-                    </div>
 
-                    <div className="benchmark-card__controls">
-                        {/* Legend */}
-                        <div className="benchmark-legend">
-                            <div className="legend-item">
-                                <span className="legend-dot legend-dot--portfolio" />
-                                <span>My Portfolio ({portfolioMetrics.unrealizedPnlPct >= 0 ? '+' : ''}{portfolioMetrics.unrealizedPnlPct.toFixed(1)}%)</span>
-                            </div>
-                            <div className="legend-item">
-                                <span className="legend-dot legend-dot--nifty" />
-                                <span>NIFTY 50 Index (+{portfolioMetrics.niftyReturn.toFixed(1)}%)</span>
+                        <div className="benchmark-card__controls">
+                            {/* Legend */}
+                            {portfolioMetrics.hasActiveHoldings && (
+                                <div className="benchmark-legend">
+                                    <div className="legend-item">
+                                        <span className="legend-dot legend-dot--portfolio" />
+                                        <span>My Portfolio ({portfolioMetrics.unrealizedPnlPct >= 0 ? '+' : ''}{portfolioMetrics.unrealizedPnlPct.toFixed(1)}%)</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <span className="legend-dot legend-dot--nifty" />
+                                        <span>NIFTY 50 Index (+{portfolioMetrics.niftyReturn.toFixed(1)}%)</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Timeframe Pills */}
+                            <div className="timeframe-pill-group">
+                                {TIMEFRAMES.map(tf => (
+                                    <button
+                                        key={tf.key}
+                                        type="button"
+                                        className={`timeframe-pill ${selectedTimeframe === tf.key ? 'timeframe-pill--active' : ''}`}
+                                        onClick={() => setSelectedTimeframe(tf.key)}
+                                    >
+                                        {tf.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
+                    </div>
 
-                        {/* Timeframe Pills */}
-                        <div className="timeframe-pill-group">
-                            {TIMEFRAMES.map(tf => (
-                                <button
-                                    key={tf.key}
-                                    type="button"
-                                    className={`timeframe-pill ${selectedTimeframe === tf.key ? 'timeframe-pill--active' : ''}`}
-                                    onClick={() => setSelectedTimeframe(tf.key)}
-                                >
-                                    {tf.label}
-                                </button>
+                    {/* SVG Performance Chart Canvas or Unallocated State */}
+                    {!portfolioMetrics.hasActiveHoldings ? (
+                        <div className="benchmark-unallocated-state">
+                            <div className="benchmark-unallocated-icon-wrap">
+                                <Sparkles size={28} color="var(--color-gold, #d4af37)" />
+                            </div>
+                            <h4 className="benchmark-unallocated-title">
+                                NIFTY 50 Benchmark Alpha Engine Ready
+                            </h4>
+                            <p className="benchmark-unallocated-desc">
+                                Benchmark tracking activates automatically when you add conviction equity positions to your Long-Term Portfolio. TradeSphere compares your portfolio ROI against the NIFTY 50 benchmark index across 1W, 1M, 3M, 6M, 1Y, and ALL time horizons to track generated Alpha.
+                            </p>
+                            <div className="benchmark-unallocated-metrics">
+                                <div className="benchmark-meta-badge">
+                                    <span className="legend-dot legend-dot--nifty" />
+                                    <span>NIFTY 50 Index: <strong>₹{niftyQuote.price.toLocaleString('en-IN')}</strong> ({niftyQuote.percentChange >= 0 ? '+' : ''}{niftyQuote.percentChange}%)</span>
+                                </div>
+                                <div className="benchmark-meta-badge">
+                                    <span>Selected Window: <strong>{TIMEFRAMES.find(t => t.key === selectedTimeframe)?.label}</strong> (Base: +{TIMEFRAMES.find(t => t.key === selectedTimeframe)?.niftyBaseReturn}%)</span>
+                                </div>
+                                <div className="benchmark-meta-badge">
+                                    <span>Status: <strong style={{ color: 'var(--color-gold, #d4af37)' }}>Awaiting Equity Allocation</strong></span>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-open-position"
+                                style={{ marginTop: '1.25rem' }}
+                                onClick={() => navigate('/trades/open?type=LONG+TERM&from=portfolio')}
+                            >
+                                <Plus size={16} /> Open First Long-Term Investment
+                            </button>
+                        </div>
+                    ) : (
+                        <div
+                            className="benchmark-chart-container"
+                            ref={chartContainerRef}
+                            onMouseMove={handleChartMouseMove}
+                            onMouseLeave={handleChartMouseLeave}
+                        >
+                        <svg
+                            className="benchmark-chart-svg"
+                            viewBox={`0 0 ${chartGeometry.width} ${chartGeometry.height}`}
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#d4af37" stopOpacity="0.32" />
+                                    <stop offset="100%" stopColor="#d4af37" stopOpacity="0.0" />
+                                </linearGradient>
+                                <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.22" />
+                                    <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+                                </linearGradient>
+                            </defs>
+
+                            {/* Grid lines & Y-axis labels */}
+                            {chartGeometry.gridLevels?.map((gl, i) => (
+                                <g key={i}>
+                                    <line
+                                        x1={chartGeometry.padding.left}
+                                        y1={gl.y}
+                                        x2={chartGeometry.width - chartGeometry.padding.right}
+                                        y2={gl.y}
+                                        className="chart-grid-line"
+                                    />
+                                    <text
+                                        x={chartGeometry.padding.left - 10}
+                                        y={gl.y + 4}
+                                        textAnchor="end"
+                                        className="chart-axis-label"
+                                    >
+                                        {gl.label}
+                                    </text>
+                                </g>
                             ))}
-                        </div>
-                    </div>
-                </div>
 
-                {/* SVG Performance Chart Canvas */}
-                <div
-                    className="benchmark-chart-container"
-                    ref={chartContainerRef}
-                    onMouseMove={handleChartMouseMove}
-                    onMouseLeave={handleChartMouseLeave}
-                >
-                    <svg
-                        className="benchmark-chart-svg"
-                        viewBox={`0 0 ${chartGeometry.width} ${chartGeometry.height}`}
-                        preserveAspectRatio="none"
-                    >
-                        <defs>
-                            <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#d4af37" stopOpacity="0.32" />
-                                <stop offset="100%" stopColor="#d4af37" stopOpacity="0.0" />
-                            </linearGradient>
-                            <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.22" />
-                                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
-                            </linearGradient>
-                        </defs>
-
-                        {/* Grid lines & Y-axis labels */}
-                        {chartGeometry.gridLevels?.map((gl, i) => (
-                            <g key={i}>
-                                <line
-                                    x1={chartGeometry.padding.left}
-                                    y1={gl.y}
-                                    x2={chartGeometry.width - chartGeometry.padding.right}
-                                    y2={gl.y}
-                                    className="chart-grid-line"
-                                />
+                            {/* X-axis date labels */}
+                            {chartGeometry.coordinates?.filter((_, i) => i % 3 === 0 || i === chartGeometry.coordinates.length - 1).map((pt, i) => (
                                 <text
-                                    x={chartGeometry.padding.left - 10}
-                                    y={gl.y + 4}
-                                    textAnchor="end"
+                                    key={i}
+                                    x={pt.x}
+                                    y={chartGeometry.height - 10}
+                                    textAnchor="middle"
                                     className="chart-axis-label"
                                 >
-                                    {gl.label}
+                                    {pt.date}
                                 </text>
-                            </g>
-                        ))}
+                            ))}
 
-                        {/* X-axis date labels */}
-                        {chartGeometry.coordinates?.filter((_, i) => i % 3 === 0 || i === chartGeometry.coordinates.length - 1).map((pt, i) => (
-                            <text
-                                key={i}
-                                x={pt.x}
-                                y={chartGeometry.height - 10}
-                                textAnchor="middle"
-                                className="chart-axis-label"
-                            >
-                                {pt.date}
-                            </text>
-                        ))}
+                            {/* Area Fills */}
+                            <path d={chartGeometry.niftyArea} fill="url(#niftyGrad)" />
+                            <path d={chartGeometry.portfolioArea} fill="url(#portfolioGrad)" />
 
-                        {/* Area Fills */}
-                        <path d={chartGeometry.niftyArea} fill="url(#niftyGrad)" />
-                        <path d={chartGeometry.portfolioArea} fill="url(#portfolioGrad)" />
+                            {/* Benchmark Curves */}
+                            <path
+                                d={chartGeometry.niftyPath}
+                                fill="none"
+                                stroke="#38bdf8"
+                                strokeWidth="2"
+                                strokeDasharray="4 3"
+                                strokeLinecap="round"
+                            />
+                            <path
+                                d={chartGeometry.portfolioPath}
+                                fill="none"
+                                stroke="#d4af37"
+                                strokeWidth="2.8"
+                                strokeLinecap="round"
+                                style={{ filter: 'drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4))' }}
+                            />
 
-                        {/* Benchmark Curves */}
-                        <path
-                            d={chartGeometry.niftyPath}
-                            fill="none"
-                            stroke="#38bdf8"
-                            strokeWidth="2"
-                            strokeDasharray="4 3"
-                            strokeLinecap="round"
-                        />
-                        <path
-                            d={chartGeometry.portfolioPath}
-                            fill="none"
-                            stroke="#d4af37"
-                            strokeWidth="2.8"
-                            strokeLinecap="round"
-                            style={{ filter: 'drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4))' }}
-                        />
+                            {/* Hover Crosshair & Indicator Dots */}
+                            {hoveredPoint && (
+                                <g>
+                                    <line
+                                        x1={hoveredPoint.x}
+                                        y1={chartGeometry.padding.top}
+                                        x2={hoveredPoint.x}
+                                        y2={chartGeometry.height - chartGeometry.padding.bottom}
+                                        className="chart-crosshair-line"
+                                    />
+                                    {/* Nifty Dot */}
+                                    <circle
+                                        cx={hoveredPoint.x}
+                                        cy={hoveredPoint.niftyY}
+                                        r="5"
+                                        fill="#38bdf8"
+                                        stroke="#0b0e14"
+                                        strokeWidth="2"
+                                    />
+                                    {/* Portfolio Dot */}
+                                    <circle
+                                        cx={hoveredPoint.x}
+                                        cy={hoveredPoint.portfolioY}
+                                        r="6.5"
+                                        fill="#d4af37"
+                                        stroke="#0b0e14"
+                                        strokeWidth="2.5"
+                                        style={{ filter: 'drop-shadow(0 0 6px #d4af37)' }}
+                                    />
+                                </g>
+                            )}
+                        </svg>
 
-                        {/* Hover Crosshair & Indicator Dots */}
+                        {/* Floating Tooltip */}
                         {hoveredPoint && (
-                            <g>
-                                <line
-                                    x1={hoveredPoint.x}
-                                    y1={chartGeometry.padding.top}
-                                    x2={hoveredPoint.x}
-                                    y2={chartGeometry.height - chartGeometry.padding.bottom}
-                                    className="chart-crosshair-line"
-                                />
-                                {/* Nifty Dot */}
-                                <circle
-                                    cx={hoveredPoint.x}
-                                    cy={hoveredPoint.niftyY}
-                                    r="5"
-                                    fill="#38bdf8"
-                                    stroke="#0b0e14"
-                                    strokeWidth="2"
-                                />
-                                {/* Portfolio Dot */}
-                                <circle
-                                    cx={hoveredPoint.x}
-                                    cy={hoveredPoint.portfolioY}
-                                    r="6.5"
-                                    fill="#d4af37"
-                                    stroke="#0b0e14"
-                                    strokeWidth="2.5"
-                                    style={{ filter: 'drop-shadow(0 0 6px #d4af37)' }}
-                                />
-                            </g>
+                            <div
+                                className="chart-tooltip"
+                                style={{
+                                    left: `${(hoveredPoint.x / chartGeometry.width) * 100}%`,
+                                    top: `${(Math.min(hoveredPoint.portfolioY, hoveredPoint.niftyY) / chartGeometry.height) * 100}%`
+                                }}
+                            >
+                                <div className="tooltip-date">{hoveredPoint.date}</div>
+                                <div className="tooltip-row">
+                                    <span className="tooltip-row-label">
+                                        <span className="legend-dot legend-dot--portfolio" style={{ width: 6, height: 6 }} />
+                                        Portfolio:
+                                    </span>
+                                    <span className="tooltip-row-val" style={{ color: '#d4af37' }}>
+                                        {hoveredPoint.portfolioPct >= 0 ? '+' : ''}{hoveredPoint.portfolioPct}%
+                                    </span>
+                                </div>
+                                <div className="tooltip-row">
+                                    <span className="tooltip-row-label">
+                                        <span className="legend-dot legend-dot--nifty" style={{ width: 6, height: 6 }} />
+                                        NIFTY 50:
+                                    </span>
+                                    <span className="tooltip-row-val" style={{ color: '#38bdf8' }}>
+                                        {hoveredPoint.niftyPct >= 0 ? '+' : ''}{hoveredPoint.niftyPct}%
+                                    </span>
+                                </div>
+                                <div className="tooltip-row" style={{ marginTop: '0.25rem', paddingTop: '0.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <span className="tooltip-row-label">Alpha Spread:</span>
+                                    <span className="tooltip-row-val" style={{ color: hoveredPoint.alpha >= 0 ? '#34d399' : '#f87171' }}>
+                                        {hoveredPoint.alpha >= 0 ? '+' : ''}{hoveredPoint.alpha}%
+                                    </span>
+                                </div>
+                            </div>
                         )}
-                    </svg>
-
-                    {/* Floating Tooltip */}
-                    {hoveredPoint && (
-                        <div
-                            className="chart-tooltip"
-                            style={{
-                                left: `${(hoveredPoint.x / chartGeometry.width) * 100}%`,
-                                top: `${(Math.min(hoveredPoint.portfolioY, hoveredPoint.niftyY) / chartGeometry.height) * 100}%`
-                            }}
-                        >
-                            <div className="tooltip-date">{hoveredPoint.date}</div>
-                            <div className="tooltip-row">
-                                <span className="tooltip-row-label">
-                                    <span className="legend-dot legend-dot--portfolio" style={{ width: 6, height: 6 }} />
-                                    Portfolio:
-                                </span>
-                                <span className="tooltip-row-val" style={{ color: '#d4af37' }}>
-                                    {hoveredPoint.portfolioPct >= 0 ? '+' : ''}{hoveredPoint.portfolioPct}%
-                                </span>
-                            </div>
-                            <div className="tooltip-row">
-                                <span className="tooltip-row-label">
-                                    <span className="legend-dot legend-dot--nifty" style={{ width: 6, height: 6 }} />
-                                    NIFTY 50:
-                                </span>
-                                <span className="tooltip-row-val" style={{ color: '#38bdf8' }}>
-                                    {hoveredPoint.niftyPct >= 0 ? '+' : ''}{hoveredPoint.niftyPct}%
-                                </span>
-                            </div>
-                            <div className="tooltip-row" style={{ marginTop: '0.25rem', paddingTop: '0.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                <span className="tooltip-row-label">Alpha Spread:</span>
-                                <span className="tooltip-row-val" style={{ color: hoveredPoint.alpha >= 0 ? '#34d399' : '#f87171' }}>
-                                    {hoveredPoint.alpha >= 0 ? '+' : ''}{hoveredPoint.alpha}%
-                                </span>
-                            </div>
-                        </div>
+                    </div>
                     )}
                 </div>
-            </div>
             )}
 
             {/* ── Asset Allocation Bar ────────────────────────────────────── */}
@@ -1097,6 +1259,24 @@ export default function PortfolioList() {
                             </div>
                         ))}
                     </div>
+
+                    {/* Concentration Risk Advisory Banner */}
+                    {allocationData.length > 0 && allocationData[0].symbol !== 'Others' && allocationData[0].weight > 25 && (
+                        <div className="portfolio-concentration-banner">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <AlertCircle size={16} color="var(--color-gold, #d4af37)" />
+                                <span style={{ fontWeight: 700, color: '#f8fafc' }}>
+                                    Portfolio Allocation Notice:
+                                </span>
+                                <span style={{ color: '#cbd5e1' }}>
+                                    <strong>{allocationData[0].symbol}</strong> accounts for <strong>{allocationData[0].weight.toFixed(1)}%</strong> of your total deployed capital.
+                                </span>
+                            </div>
+                            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                                In institutional portfolio management, keeping single-asset exposure &lt; 20-25% mitigates company-specific idiosyncratic risk.
+                            </span>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -1270,8 +1450,8 @@ export default function PortfolioList() {
                         {activeTab === 'ACTIVE' ? 'No Active Long-Term Holdings Found' : 'No Exited Investments Recorded'}
                     </h3>
                     <p className="portfolio-empty__desc">
-                        {activeTab === 'ACTIVE' 
-                            ? 'Build your conviction equity portfolio with real-time unrealized P&L, live quotes, and NIFTY 50 benchmark tracking.' 
+                        {activeTab === 'ACTIVE'
+                            ? 'Build your conviction equity portfolio with real-time unrealized P&L, live quotes, and NIFTY 50 benchmark tracking.'
                             : 'When you book profits or exit long-term holdings, their historical realized ROI and holding period will appear here.'}
                     </p>
                     {activeTab === 'ACTIVE' && (
@@ -1309,9 +1489,10 @@ export default function PortfolioList() {
                         const isPos = pnl >= 0;
                         const weight = portfolioMetrics.totalValuation > 0 ? ((cmp * qty) / portfolioMetrics.totalValuation) * 100 : 0;
                         const daysHeld = daysBetween(t.trade_date || t.created_at, t.exit_date || new Date());
+                        const detectedSplit = t.status === 'OPEN' ? detectPotentialSplit(entry, cmp) : null;
 
                         return (
-                            <div key={t.trade_id} className="holding-card">
+                            <div key={t.trade_id} className={`holding-card ${openMenuTradeId === t.trade_id ? 'has-menu-open' : ''}`}>
                                 <div>
                                     <div className="holding-card__header">
                                         <div className="holding-card__symbol-wrap">
@@ -1319,7 +1500,22 @@ export default function PortfolioList() {
                                                 {(t.stock_name || 'EQ').slice(0, 3)}
                                             </div>
                                             <div>
-                                                <div className="holding-card__symbol">{t.stock_name}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                    <div className="holding-card__symbol">{t.stock_name}</div>
+                                                    {detectedSplit && (
+                                                        <button
+                                                            type="button"
+                                                            className="watchdog-split-pill"
+                                                            title={detectedSplit.desc}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setCorporateActionModal({ trade: t, action: detectedSplit.action, ratio: detectedSplit.ratio });
+                                                            }}
+                                                        >
+                                                            <Sparkles size={11} /> {detectedSplit.label}
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 <div className="holding-card__tag">
                                                     <span>{t.mode || 'LONG TERM'}</span>
                                                     <span>•</span>
@@ -1361,20 +1557,24 @@ export default function PortfolioList() {
                                                             <Eye size={15} /> View Thesis & Details
                                                         </button>
 
+                                                        <button
+                                                            type="button"
+                                                            className="trade-dropdown-item"
+                                                            onClick={() => {
+                                                                setOpenMenuTradeId(null);
+                                                                setViewTradeModal(t);
+                                                            }}
+                                                        >
+                                                            <ScrollText size={15} /> Add Notes / Journal
+                                                        </button>
+
                                                         {t.status === 'OPEN' && (
                                                             <button
                                                                 type="button"
                                                                 className="trade-dropdown-item item-exit"
                                                                 onClick={() => {
                                                                     setOpenMenuTradeId(null);
-                                                                    setExitModalTrade(t);
-                                                                    setExitForm({
-                                                                        exit_price: cmp.toFixed(2),
-                                                                        exit_date: new Date().toISOString().split('T')[0],
-                                                                        exit_reason: 'Target Reached',
-                                                                        exit_notes: '',
-                                                                        quantity: t.quantity
-                                                                    });
+                                                                    handleOpenExitModal(t);
                                                                 }}
                                                             >
                                                                 <TrendingUp size={15} /> Book Profits / Exit
@@ -1425,6 +1625,18 @@ export default function PortfolioList() {
                                                                 }}
                                                             >
                                                                 <TrendingUp size={15} /> Move to Active Trades (Swing)
+                                                            </button>
+                                                        )}
+                                                        {t.status === 'OPEN' && (
+                                                            <button
+                                                                type="button"
+                                                                className="trade-dropdown-item"
+                                                                onClick={() => {
+                                                                    setOpenMenuTradeId(null);
+                                                                    setCorporateActionModal({ trade: t });
+                                                                }}
+                                                            >
+                                                                <Split size={15} /> Corporate Action / Split
                                                             </button>
                                                         )}
 
@@ -1540,16 +1752,32 @@ export default function PortfolioList() {
                                 const weight = portfolioMetrics.totalValuation > 0 ? ((cmp * qty) / portfolioMetrics.totalValuation) * 100 : 0;
                                 const targetPrice = Number(t.target || 0);
                                 const upsidePct = entry > 0 && targetPrice > entry ? (((targetPrice - entry) / entry) * 100).toFixed(1) : null;
+                                const detectedSplit = t.status === 'OPEN' ? detectPotentialSplit(entry, cmp) : null;
 
                                 return (
-                                    <tr key={t.trade_id}>
+                                    <tr key={t.trade_id} style={{ position: 'relative', zIndex: openMenuTradeId === t.trade_id ? 100 : undefined }}>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <div className="holding-card__avatar" style={{ width: 30, height: 30, fontSize: '0.75rem' }}>
                                                     {(t.stock_name || 'EQ').slice(0, 3)}
                                                 </div>
                                                 <div>
-                                                    <strong style={{ color: '#f8fafc', fontSize: '0.92rem' }}>{t.stock_name}</strong>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                        <strong style={{ color: '#f8fafc', fontSize: '0.92rem' }}>{t.stock_name}</strong>
+                                                        {detectedSplit && (
+                                                            <button
+                                                                type="button"
+                                                                className="watchdog-split-pill"
+                                                                title={detectedSplit.desc}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCorporateActionModal({ trade: t, action: detectedSplit.action, ratio: detectedSplit.ratio });
+                                                                }}
+                                                            >
+                                                                <Sparkles size={11} /> {detectedSplit.label}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                     <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                                                         {fmtDate(t.trade_date || t.created_at)}
                                                     </div>
@@ -1639,20 +1867,24 @@ export default function PortfolioList() {
                                                                 <Eye size={15} /> View Thesis & Details
                                                             </button>
 
+                                                            <button
+                                                                type="button"
+                                                                className="trade-dropdown-item"
+                                                                onClick={() => {
+                                                                    setOpenMenuTradeId(null);
+                                                                    setViewTradeModal(t);
+                                                                }}
+                                                            >
+                                                                <ScrollText size={15} /> Add Notes / Journal
+                                                            </button>
+
                                                             {t.status === 'OPEN' && (
                                                                 <button
                                                                     type="button"
                                                                     className="trade-dropdown-item item-exit"
                                                                     onClick={() => {
                                                                         setOpenMenuTradeId(null);
-                                                                        setExitModalTrade(t);
-                                                                        setExitForm({
-                                                                            exit_price: cmp.toFixed(2),
-                                                                            exit_date: new Date().toISOString().split('T')[0],
-                                                                            exit_reason: 'Target Reached',
-                                                                            exit_notes: '',
-                                                                            quantity: t.quantity
-                                                                        });
+                                                                        handleOpenExitModal(t);
                                                                     }}
                                                                 >
                                                                     <TrendingUp size={15} /> Book Profits / Exit
@@ -1705,6 +1937,18 @@ export default function PortfolioList() {
                                                                     <TrendingUp size={15} /> Move to Active Trades (Swing)
                                                                 </button>
                                                             )}
+                                                            {t.status === 'OPEN' && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="trade-dropdown-item"
+                                                                    onClick={() => {
+                                                                        setOpenMenuTradeId(null);
+                                                                        setCorporateActionModal({ trade: t });
+                                                                    }}
+                                                                >
+                                                                    <Split size={15} /> Corporate Action / Split
+                                                                </button>
+                                                            )}
 
                                                             <div className="trade-dropdown-divider" />
                                                             <button
@@ -1743,10 +1987,10 @@ export default function PortfolioList() {
                             </div>
                             <button
                                 type="button"
+                                className="btn-close-pad"
                                 onClick={() => setExitModalTrade(null)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
                             >
-                                <X size={18} />
+                                <X size={16} />
                             </button>
                         </div>
 
@@ -1862,7 +2106,7 @@ export default function PortfolioList() {
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <div className="portfolio-modal-footer">
                                 <button
                                     type="button"
                                     className="btn-paper-cancel"
@@ -1873,7 +2117,6 @@ export default function PortfolioList() {
                                 <button
                                     type="submit"
                                     className="btn-paper-confirm"
-                                    style={{ background: '#10b981', color: '#fff' }}
                                     disabled={exitingTrade}
                                 >
                                     {exitingTrade ? 'Exiting...' : 'Confirm Exit & Record Return'}
@@ -1890,71 +2133,102 @@ export default function PortfolioList() {
                     <div className="paper-modal-box clean-trade-details-modal" onClick={e => e.stopPropagation()}>
                         <div className="clean-details-header">
                             <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                    <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#f8fafc', fontWeight: 800 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em' }}>
                                         {viewTradeModal.stock_name}
-                                    </h3>
-                                    <span className="holding-weight-badge">{viewTradeModal.mode || 'LONG TERM'}</span>
+                                    </h2>
+                                    <span style={{
+                                        color: '#10b981',
+                                        background: 'rgba(16, 185, 129, 0.12)',
+                                        padding: '2px 8px', borderRadius: '4px', fontSize: '0.78rem', fontWeight: 700
+                                    }}>
+                                        ▲ LONG
+                                    </span>
+                                    <span className="holding-weight-badge">
+                                        {viewTradeModal.mode || 'LONG TERM'}
+                                    </span>
+                                    <span className={`badge ${viewTradeModal.status === 'CLOSED' ? 'badge--green' : 'badge--yellow'}`}>
+                                        {viewTradeModal.status || 'OPEN'}
+                                    </span>
                                 </div>
-                                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                                    Purchased on {fmtDate(viewTradeModal.trade_date || viewTradeModal.created_at)} • Conviction: {viewTradeModal.conviction_level || 5}/5
-                                </span>
+                                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                                    Purchased on {fmtDate(viewTradeModal.trade_date || viewTradeModal.created_at)}
+                                    {viewTradeModal.conviction_level && ` • Conviction: ${viewTradeModal.conviction_level}/5`}
+                                    {viewTradeModal.exit_date && ` • Exited: ${fmtDate(viewTradeModal.exit_date)}`}
+                                </div>
                             </div>
                             <button
                                 type="button"
+                                className="btn-close-pad"
                                 onClick={() => setViewTradeModal(null)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
                             >
-                                <X size={20} />
+                                <X size={16} />
                             </button>
                         </div>
 
-                        <div className="clean-details-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Buy Price</span>
-                                <span className="holding-metric-val">₹{Number(viewTradeModal.entry_price).toFixed(2)}</span>
+                        {/* Metric Highlights Grid */}
+                        <div className="clean-details-metrics-grid">
+                            <div className="clean-metric-card">
+                                <span className="clean-metric-label">Buy Price</span>
+                                <span className="clean-metric-val">₹{Number(viewTradeModal.entry_price || 0).toFixed(2)}</span>
+                                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{viewTradeModal.quantity} shares</span>
                             </div>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Quantity</span>
-                                <span className="holding-metric-val">{viewTradeModal.quantity} shares</span>
+                            <div className="clean-metric-card">
+                                <span className="clean-metric-label">{viewTradeModal.status === 'CLOSED' ? 'Exit Price' : 'Live CMP'}</span>
+                                <span className="clean-metric-val" style={{ color: '#38bdf8' }}>
+                                    ₹{Number(modalMetrics.curPrice || 0).toFixed(2)}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                    Invested: {formatCurrency(modalMetrics.invested)}
+                                </span>
                             </div>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Invested</span>
-                                <span className="holding-metric-val">{formatCurrency(Number(viewTradeModal.entry_price) * Number(viewTradeModal.quantity))}</span>
+                            <div className="clean-metric-card">
+                                <span className="clean-metric-label">{viewTradeModal.status === 'CLOSED' ? 'Realized P&L' : 'Unrealized P&L'}</span>
+                                <span className="clean-metric-val" style={{ color: modalMetrics.pnl >= 0 ? '#34d399' : '#f87171' }}>
+                                    {modalMetrics.pnl >= 0 ? '+' : ''}{formatCurrency(modalMetrics.pnl)}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: modalMetrics.pnl >= 0 ? '#34d399' : '#f87171' }}>
+                                    {modalMetrics.pnl >= 0 ? '+' : ''}{modalMetrics.pnlPct.toFixed(2)}%
+                                </span>
                             </div>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Target</span>
-                                <span className="holding-metric-val" style={{ color: '#38bdf8' }}>{viewTradeModal.target ? `₹${viewTradeModal.target}` : '—'}</span>
-                            </div>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Stop Loss</span>
-                                <span className="holding-metric-val" style={{ color: '#f87171' }}>{viewTradeModal.stop_loss ? `₹${viewTradeModal.stop_loss}` : '—'}</span>
-                            </div>
-                            <div className="holding-metric-item" style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px' }}>
-                                <span className="holding-metric-label">Strategy</span>
-                                <span className="holding-metric-val" style={{ color: 'var(--color-gold, #d4af37)' }}>{viewTradeModal.strategy || 'Value Investing'}</span>
+                            <div className="clean-metric-card">
+                                <span className="clean-metric-label">Target & SL</span>
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#34d399' }}>
+                                    Tgt: {viewTradeModal.target ? `₹${Number(viewTradeModal.target).toLocaleString('en-IN')}` : '—'}
+                                </div>
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f87171' }}>
+                                    SL: {viewTradeModal.stop_loss ? `₹${Number(viewTradeModal.stop_loss).toLocaleString('en-IN')}` : '—'}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Entry Notes / Fundamental Thesis */}
-                        <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-gold, #d4af37)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
-                                Fundamental Investment Thesis & Entry Notes
+                        {/* Strategy & Fundamental Thesis */}
+                        <div className="clean-section-box">
+                            <div className="clean-section-title">Fundamental Investment Thesis & Strategy</div>
+                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.6rem', fontSize: '0.84rem' }}>
+                                <div><span style={{ color: '#94a3b8' }}>Strategy: </span><strong style={{ color: 'var(--color-primary)' }}>{viewTradeModal.strategy || 'Value Investing'}</strong></div>
+                                <div><span style={{ color: '#94a3b8' }}>Conviction: </span><strong style={{ color: 'var(--color-primary)' }}>{viewTradeModal.conviction_level || 5}/5</strong></div>
+                                <div><span style={{ color: '#94a3b8' }}>Market Mood: </span><strong style={{ color: '#38bdf8' }}>{viewTradeModal.market_mood || 'NEUTRAL'}</strong></div>
                             </div>
-                            <div style={{ color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                                {viewTradeModal.entry_notes || 'No entry notes documented for this holding.'}
-                            </div>
+                            {viewTradeModal.entry_notes && (
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.65rem 0.85rem', borderRadius: '8px', borderLeft: '3px solid var(--color-primary)', fontSize: '0.85rem', color: '#e2e8f0', fontStyle: 'italic' }}>
+                                    "{viewTradeModal.entry_notes}"
+                                </div>
+                            )}
+                            {viewTradeModal.exit_notes && (
+                                <div style={{ marginTop: '0.5rem', background: 'rgba(239,68,68,0.06)', padding: '0.65rem 0.85rem', borderRadius: '8px', borderLeft: '3px solid #ef4444', fontSize: '0.85rem', color: '#f87171' }}>
+                                    <strong>Exit Notes:</strong> "{viewTradeModal.exit_notes}"
+                                </div>
+                            )}
                         </div>
 
                         {/* Client Allocations if present */}
                         {Array.isArray(viewTradeModal.clients) && viewTradeModal.clients.length > 0 && (
-                            <div style={{ marginBottom: '1.25rem' }}>
-                                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
-                                    Assigned Client Accounts ({viewTradeModal.clients.length})
-                                </div>
+                            <div className="clean-section-box">
+                                <div className="clean-section-title">Assigned Client Accounts ({viewTradeModal.clients.length})</div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     {viewTradeModal.clients.map((c, i) => (
-                                        <span key={i} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', padding: '0.3rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                                        <span key={i} className="clean-client-chip">
                                             {c.name || `Client #${c.client_id}`}
                                         </span>
                                     ))}
@@ -1962,34 +2236,128 @@ export default function PortfolioList() {
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                            {viewTradeModal.status === 'OPEN' && (
+                        {/* Trade / Holding Notes & Journal */}
+                        <div className="clean-section-box" style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                                <div className="clean-section-title" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <ScrollText size={14} /> Holding Notes & Journal {modalTradeNotes.length > 0 && `(${modalTradeNotes.length})`}
+                                </div>
+                            </div>
+
+                            {/* Notes Timeline / List */}
+                            {loadingModalNotes ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 0', color: '#94a3b8', fontSize: '0.82rem' }}>
+                                    <span className="ts-spinner-ring" style={{ width: 14, height: 14 }} />
+                                    <span>Loading holding notes & journal entries…</span>
+                                </div>
+                            ) : modalTradeNotes.length > 0 ? (
+                                <div className="clean-notes-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.85rem', maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>
+                                    {modalTradeNotes.map((n, i) => (
+                                        <div key={n.note_id || i} style={{
+                                            background: 'rgba(255, 255, 255, 0.03)',
+                                            borderLeft: '3px solid var(--color-primary)',
+                                            borderRadius: '6px',
+                                            padding: '0.5rem 0.75rem',
+                                            fontSize: '0.84rem'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                                <div style={{ color: '#e2e8f0', flex: 1, wordBreak: 'break-word', lineHeight: 1.4 }}>
+                                                    {n.note_text}
+                                                </div>
+                                                <span style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                                    {n.created_at ? new Date(n.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
+
+                            {/* Add Note Form */}
+                            {modalNoteError && (
+                                <div style={{ fontSize: '0.78rem', color: '#ef4444', marginBottom: '0.4rem' }}>
+                                    {modalNoteError}
+                                </div>
+                            )}
+                            <form onSubmit={handleAddModalNote} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                                <textarea
+                                    className="form-input"
+                                    rows={2}
+                                    value={newModalNoteText}
+                                    onChange={(e) => { setNewModalNoteText(e.target.value); setModalNoteError(''); }}
+                                    placeholder="Add fundamental update, quarterly review, or thesis note…"
+                                    style={{ flex: 1, fontSize: '0.84rem', resize: 'vertical', minHeight: '44px', padding: '0.5rem 0.65rem' }}
+                                />
                                 <button
-                                    type="button"
-                                    className="btn-paper-confirm"
-                                    style={{ background: '#10b981', color: '#fff' }}
-                                    onClick={() => {
-                                        const t = viewTradeModal;
-                                        setViewTradeModal(null);
-                                        setExitModalTrade(t);
-                                        const rawCmp = prices[t.stock_name];
-                                        const cmpVal = rawCmp ? parseFloat(String(rawCmp).replace(/,/g, '')) : null;
-                                        const cmp = (cmpVal !== null && !isNaN(cmpVal)) ? cmpVal : Number(t.entry_price || 0);
-                                        setExitForm({
-                                            exit_price: cmp.toFixed(2),
-                                            exit_date: new Date().toISOString().split('T')[0],
-                                            exit_reason: 'Target Reached',
-                                            exit_notes: '',
-                                            quantity: t.quantity
-                                        });
+                                    type="submit"
+                                    className="btn-paper-action"
+                                    disabled={addingModalNote || !newModalNoteText.trim()}
+                                    style={{
+                                        background: 'var(--color-primary)',
+                                        color: '#000',
+                                        fontWeight: 700,
+                                        fontSize: '0.82rem',
+                                        padding: '0.55rem 0.95rem',
+                                        borderRadius: '8px',
+                                        height: '42px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        whiteSpace: 'nowrap',
+                                        opacity: (!newModalNoteText.trim() || addingModalNote) ? 0.5 : 1,
+                                        cursor: (!newModalNoteText.trim() || addingModalNote) ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    <TrendingUp size={15} style={{ marginRight: '6px' }} /> Book Profits / Exit
+                                    <Plus size={14} /> {addingModalNote ? 'Adding…' : 'Add Note'}
                                 </button>
+                            </form>
+                        </div>
+
+                        {/* Modal Actions Footer: Clean TradeSphere Luxury Buttons */}
+                        <div className="portfolio-modal-footer">
+                            {viewTradeModal.status === 'OPEN' && (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="btn-portfolio-modal-trades"
+                                        style={{ borderColor: 'rgba(212, 175, 55, 0.45)', color: '#d4af37' }}
+                                        onClick={() => {
+                                            const t = viewTradeModal;
+                                            setViewTradeModal(null);
+                                            setCorporateActionModal({ trade: t });
+                                        }}
+                                        title="Apply Stock Split, Bonus Issue or Reverse Split"
+                                    >
+                                        <Split size={15} /> Corporate Action / Split
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-portfolio-modal-trades"
+                                        onClick={() => {
+                                            const t = viewTradeModal;
+                                            setViewTradeModal(null);
+                                            handleMoveToTrades(t);
+                                        }}
+                                        title="Switch this holding back to Active Trades (Swing)"
+                                    >
+                                        <TrendingUp size={15} /> Move to Swing Trades
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-portfolio-modal-exit"
+                                        onClick={() => {
+                                            const t = viewTradeModal;
+                                            setViewTradeModal(null);
+                                            handleOpenExitModal(t);
+                                        }}
+                                    >
+                                        <TrendingUp size={15} /> Book Profits / Exit
+                                    </button>
+                                </>
                             )}
                             <button
                                 type="button"
-                                className="btn-paper-cancel"
+                                className="btn-portfolio-modal-close"
                                 onClick={() => setViewTradeModal(null)}
                             >
                                 Close
@@ -2169,6 +2537,19 @@ export default function PortfolioList() {
                         </form>
                     </div>
                 </div>
+            )}
+            {/* ── MODAL: Corporate Action & Position Adjustment Wizard ── */}
+            {corporateActionModal && (
+                <CorporateActionModal
+                    trade={corporateActionModal.trade}
+                    initialAction={corporateActionModal.action || 'STOCK_SPLIT'}
+                    initialRatio={corporateActionModal.ratio || { from: 1, to: 10 }}
+                    onClose={() => setCorporateActionModal(null)}
+                    onSuccess={() => {
+                        setCorporateActionModal(null);
+                        fetchTrades();
+                    }}
+                />
             )}
         </div>
     );

@@ -16,7 +16,10 @@ import {
     deleteTradeList,
     addTradesToList,
     removeTradesFromList,
-    removeTradeFromAllLists
+    removeTradeFromAllLists,
+    moveToPortfolio,
+    moveToTrades,
+    applyCorporateAction
 } from '../controllers/trades.controller.js';
 
 const router = express.Router();
@@ -54,6 +57,13 @@ router.get('/:trade_id', getTradeById);
 
 // 🔹 UPDATE TRADE (EVERYTHING EDITABLE)
 router.patch('/:trade_id', updateTrade);
+
+// 🔹 APPLY CORPORATE ACTION (STOCK SPLIT, BONUS ISSUE, ADJUSTMENT)
+router.post('/:trade_id/corporate-action', applyCorporateAction);
+
+// 🔹 MOVE TRADE TO PORTFOLIO / MOVE HOLDING TO TRADES
+router.patch('/:trade_id/to-portfolio', moveToPortfolio);
+router.patch('/:trade_id/to-trades', moveToTrades);
 
 // 🔹 DELETE TRADE
 router.delete('/:trade_id', deleteTrade);

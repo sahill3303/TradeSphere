@@ -942,3 +942,200 @@ export const removeTradeFromAllLists = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to remove trade from list', error: err.message });
     }
 };
+
+// 🔹 MOVE TRADE TO PORTFOLIO (Switch to LONG TERM conviction holding)
+export const moveToPortfolio = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+        const [result] = await db.query(
+            `UPDATE trades 
+             SET mode = 'LONG TERM', leverage = 1 
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Trade not found" });
+        }
+
+        res.json({ success: true, message: "Trade successfully moved to Long-Term Portfolio" });
+    } catch (error) {
+        console.error("Move to portfolio error:", error);
+        res.status(500).json({ message: "Failed to move trade to portfolio", error: error.message });
+    }
+};
+
+// 🔹 MOVE FROM PORTFOLIO TO ACTIVE TRADES (Switch back to SWING trading)
+export const moveToTrades = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+        const [result] = await db.query(
+            `UPDATE trades 
+             SET mode = 'SWING', leverage = 1 
+             WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, req.user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Holding not found" });
+        }
+
+        res.json({ success: true, message: "Holding successfully moved to Active Trades (Swing)" });
+    } catch (error) {
+        console.error("Move to trades error:", error);
+        res.status(500).json({ message: "Failed to move holding to active trades", error: error.message });
+    }
+};
+
+// 🔹 APPLY CORPORATE ACTION (STOCK SPLIT, BONUS ISSUE, REVERSE SPLIT, CUSTOM ADJUSTMENT)
+export const applyCorporateAction = async (req, res) => {
+    try {
+        const { trade_id } = req.params;
+        const adminId = req.user.id;
+        const {
+            action_type,      // 'STOCK_SPLIT' | 'BONUS_ISSUE' | 'REVERSE_SPLIT' | 'CUSTOM_ADJUSTMENT'
+            ratio_from = 1,   // e.g. 1
+            ratio_to = 1,     // e.g. 10
+            adjust_target_sl = true,
+            ex_date,
+            notes,
+            custom_quantity,
+            custom_entry_price
+        } = req.body;
+
+        const [[trade]] = await db.query(
+            `SELECT * FROM trades WHERE trade_id = ? AND admin_id = ? AND is_deleted = FALSE`,
+            [trade_id, adminId]
+        );
+
+        if (!trade) {
+            return res.status(404).json({ success: false, message: 'Position not found' });
+        }
+
+        const oldQty = Number(trade.quantity);
+        const oldPrice = Number(trade.entry_price);
+        const oldTarget = trade.target ? Number(trade.target) : null;
+        const oldStopLoss = trade.stop_loss ? Number(trade.stop_loss) : null;
+        const oldInvested = (oldPrice * oldQty) / (Number(trade.leverage) || 1);
+
+        let newQty = oldQty;
+        let newPrice = oldPrice;
+        let newTarget = oldTarget;
+        let newStopLoss = oldStopLoss;
+        let multiplier = 1;
+        let actionLabel = 'Corporate Action';
+        let ratioStr = `${ratio_from}:${ratio_to}`;
+
+        const numFrom = parseFloat(ratio_from) || 1;
+        const numTo = parseFloat(ratio_to) || 1;
+
+        if (action_type === 'STOCK_SPLIT') {
+            // e.g. 1:10 split (1 old share becomes 10 new shares)
+            multiplier = numTo / numFrom;
+            if (multiplier <= 0 || isNaN(multiplier)) {
+                return res.status(400).json({ success: false, message: 'Invalid split ratio' });
+            }
+            newQty = Math.round(oldQty * multiplier);
+            newPrice = Number((oldPrice / multiplier).toFixed(4));
+            actionLabel = `Stock Split (${ratio_from}:${ratio_to})`;
+        } else if (action_type === 'BONUS_ISSUE') {
+            // e.g. 1:1 bonus (1 bonus for every 1 held => multiplier = 2)
+            // e.g. 2:1 bonus (2 bonus for every 1 held => multiplier = 3)
+            multiplier = 1 + (numTo / numFrom);
+            if (multiplier <= 0 || isNaN(multiplier)) {
+                return res.status(400).json({ success: false, message: 'Invalid bonus ratio' });
+            }
+            newQty = Math.round(oldQty * multiplier);
+            newPrice = Number((oldPrice / multiplier).toFixed(4));
+            actionLabel = `Bonus Issue (${ratio_to}:${ratio_from})`;
+        } else if (action_type === 'REVERSE_SPLIT') {
+            // e.g. 10:1 consolidation (10 old shares become 1 new share)
+            multiplier = numTo / numFrom;
+            if (multiplier <= 0 || isNaN(multiplier)) {
+                return res.status(400).json({ success: false, message: 'Invalid reverse split ratio' });
+            }
+            newQty = Math.max(1, Math.round(oldQty * multiplier));
+            newPrice = Number((oldPrice / multiplier).toFixed(4));
+            actionLabel = `Reverse Split / Consolidation (${ratio_from}:${ratio_to})`;
+        } else if (action_type === 'CUSTOM_ADJUSTMENT') {
+            if (custom_quantity && Number(custom_quantity) > 0) {
+                newQty = Math.round(Number(custom_quantity));
+            }
+            if (custom_entry_price && Number(custom_entry_price) > 0) {
+                newPrice = Number(Number(custom_entry_price).toFixed(4));
+            }
+            actionLabel = 'Custom Position Adjustment';
+            ratioStr = 'Custom';
+        } else {
+            return res.status(400).json({ success: false, message: 'Unknown corporate action type' });
+        }
+
+        // Target and Stop Loss adjustments
+        if (adjust_target_sl && multiplier !== 1) {
+            if (newTarget !== null) newTarget = Number((newTarget / multiplier).toFixed(2));
+            if (newStopLoss !== null) newStopLoss = Number((newStopLoss / multiplier).toFixed(2));
+        }
+
+        // Apply Update to trades table
+        await db.query(
+            `UPDATE trades 
+             SET quantity = ?, entry_price = ?, target = ?, stop_loss = ?
+             WHERE trade_id = ?`,
+            [newQty, newPrice, newTarget, newStopLoss, trade_id]
+        );
+
+        // Proportionately update trade_clients if client accounts are assigned
+        if (multiplier !== 1) {
+            try {
+                const [clients] = await db.query(
+                    `SELECT client_id, quantity FROM trade_clients WHERE trade_id = ?`,
+                    [trade_id]
+                );
+                for (const c of clients) {
+                    if (c.quantity) {
+                        const updatedClientQty = Math.round(Number(c.quantity) * multiplier);
+                        await db.query(
+                            `UPDATE trade_clients SET quantity = ? WHERE trade_id = ? AND client_id = ?`,
+                            [updatedClientQty, trade_id, c.client_id]
+                        );
+                    }
+                }
+            } catch (err) {
+                console.error("Non-fatal: client allocation update error:", err);
+            }
+        }
+
+        // Insert Audit Journal Note
+        const dateStr = ex_date || new Date().toISOString().split('T')[0];
+        const newInvested = (newPrice * newQty) / (Number(trade.leverage) || 1);
+        const auditNote = `🏛️ Corporate Action Applied: ${actionLabel} (Ex-Date: ${dateStr}).
+Qty adjusted: ${oldQty} → ${newQty} shares.
+Avg Entry Price adjusted: ₹${oldPrice.toFixed(2)} → ₹${newPrice.toFixed(2)}.
+Cost Basis: ₹${oldInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })} → ₹${newInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (Preserved).${notes ? `\nNotes: "${notes.trim()}"` : ''}`;
+
+        await db.query(
+            `INSERT INTO trade_notes (trade_id, note_text, created_at) VALUES (?, ?, NOW())`,
+            [trade_id, auditNote]
+        );
+
+        res.json({
+            success: true,
+            message: `${actionLabel} applied successfully`,
+            adjusted: {
+                trade_id: Number(trade_id),
+                stock_name: trade.stock_name,
+                old_quantity: oldQty,
+                new_quantity: newQty,
+                old_entry_price: oldPrice,
+                new_entry_price: newPrice,
+                target: newTarget,
+                stop_loss: newStopLoss,
+                action_type,
+                ratio: ratioStr
+            }
+        });
+    } catch (error) {
+        console.error("applyCorporateAction error:", error);
+        res.status(500).json({ success: false, message: "Failed to apply corporate action", error: error.message });
+    }
+};
