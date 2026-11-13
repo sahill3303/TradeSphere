@@ -5,6 +5,7 @@ import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { CardSkeleton } from '../../components/common/Skeleton';
 
 export default function Notes() {
     const confirmAction = useConfirm();
@@ -118,7 +119,13 @@ export default function Notes() {
 
                 {/* Notes List */}
                 <div>
-                    {loading && <p className="status-text">Loading notes…</p>}
+                    {loading && (
+                        <CardSkeleton 
+                            count={3} 
+                            caption="Loading private journal notes & market thesis entries..." 
+                            subcaption="Retrieving recorded trade reviews and psychology observations" 
+                        />
+                    )}
                     {error && <div className="alert alert--error">{error}</div>}
 
                     {!loading && notes.length === 0 && (

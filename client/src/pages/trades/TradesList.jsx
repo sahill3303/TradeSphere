@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { Skeleton, KpiSkeleton, CardSkeleton, TableSkeleton, LoadingBanner } from '../../components/common/Skeleton';
 import './PaperTrade.css';
 import './TradesList.css';
 
@@ -1050,113 +1051,117 @@ export default function TradesList() {
             )}
 
             {/* Top Summary KPI Cards - Dynamically reflects selected section */}
-            {!loading && activeTab !== 'DELETED' && (
-                <div className="kpi-grid">
-                    {/* Card 1: Deployed Capital */}
-                    <div className="kpi-card">
-                        <div>
-                            <div className="kpi-header">
-                                <span className="kpi-label">
-                                    {activeTab === 'INVESTMENT' ? 'Long-Term Capital' : activeTab === 'CLOSED' ? 'Closed Cost Basis' : 'Deployed Capital (Open)'}
-                                </span>
-                                <span className="kpi-icon"><TrendingUp size={20} /></span>
-                            </div>
-                            <div className="kpi-value">
-                                {formatCurrency(activeTab === 'CLOSED' ? liveMetrics.totalClosedCost : liveMetrics.activeInvested)}
-                            </div>
-                        </div>
-                        <div className="kpi-subtext">
-                            <span>
-                                {activeTab === 'CLOSED' 
-                                    ? `${liveMetrics.closedTradesCount} Closed Executions` 
-                                    : `${liveMetrics.openTradesCount} Active Positions`}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Card 2: Live Unrealized Performance */}
-                    <div className="kpi-card">
-                        <div>
-                            <div className="kpi-header">
-                                <span className="kpi-label">
-                                    {activeTab === 'CLOSED' ? 'Total Realized P&L' : 'Live Unrealized P&L'}
-                                </span>
-                                <span className="kpi-icon"><Zap size={20} /></span>
-                            </div>
-                            <div 
-                                className="kpi-value" 
-                                style={{ 
-                                    color: activeTab === 'CLOSED' 
-                                        ? (liveMetrics.totalRealizedPnl > 0 ? '#34d399' : liveMetrics.totalRealizedPnl < 0 ? '#f87171' : '#cbd5e1')
-                                        : (liveMetrics.totalUnrealizedPnl > 0 ? '#34d399' : liveMetrics.totalUnrealizedPnl < 0 ? '#f87171' : '#cbd5e1'), 
-                                    display: 'flex', 
-                                    alignItems: 'baseline', 
-                                    gap: '0.6rem', 
-                                    flexWrap: 'wrap' 
-                                }}
-                            >
-                                <span>
-                                    {activeTab === 'CLOSED'
-                                        ? `${liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}${formatCurrency(liveMetrics.totalRealizedPnl)}`
-                                        : `${liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}${formatCurrency(liveMetrics.totalUnrealizedPnl)}`
-                                    }
-                                </span>
-                                {activeTab !== 'CLOSED' && liveMetrics.activeInvested > 0 && (
-                                    <span style={{ 
-                                        fontSize: '1.1rem', 
-                                        fontWeight: 700, 
-                                        background: liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', 
-                                        padding: '0.15rem 0.6rem', 
-                                        borderRadius: '8px', 
-                                        border: `1px solid ${liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` 
-                                    }}>
-                                        {liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{liveMetrics.unrealizedPnlPct.toFixed(2)}%
+            {activeTab !== 'DELETED' && (
+                loading ? (
+                    <KpiSkeleton count={4} />
+                ) : (
+                    <div className="kpi-grid">
+                        {/* Card 1: Deployed Capital */}
+                        <div className="kpi-card">
+                            <div>
+                                <div className="kpi-header">
+                                    <span className="kpi-label">
+                                        {activeTab === 'INVESTMENT' ? 'Long-Term Capital' : activeTab === 'CLOSED' ? 'Closed Cost Basis' : 'Deployed Capital (Open)'}
                                     </span>
-                                )}
+                                    <span className="kpi-icon"><TrendingUp size={20} /></span>
+                                </div>
+                                <div className="kpi-value">
+                                    {formatCurrency(activeTab === 'CLOSED' ? liveMetrics.totalClosedCost : liveMetrics.activeInvested)}
+                                </div>
+                            </div>
+                            <div className="kpi-subtext">
+                                <span>
+                                    {activeTab === 'CLOSED' 
+                                        ? `${liveMetrics.closedTradesCount} Closed Executions` 
+                                        : `${liveMetrics.openTradesCount} Active Positions`}
+                                </span>
                             </div>
                         </div>
-                        <div className="kpi-subtext" style={{ marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                            <span className="pnl-badge" style={{ fontWeight: 700, color: liveMetrics.totalRealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
-                                Realized: {liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.totalRealizedPnl)} {liveMetrics.totalClosedCost > 0 ? `(${liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}${liveMetrics.realizedPnlPct.toFixed(2)}%)` : ''}
-                            </span>
-                            <span style={{ marginLeft: '0.5rem' }}>({liveMetrics.closedTradesCount} Closed)</span>
-                        </div>
-                    </div>
 
-                    {/* Card 3: Win Ratio */}
-                    <div className="kpi-card">
-                        <div>
-                            <div className="kpi-header">
-                                <span className="kpi-label">Win Ratio</span>
-                                <span className="kpi-icon"><Target size={20} /></span>
+                        {/* Card 2: Live Unrealized Performance */}
+                        <div className="kpi-card">
+                            <div>
+                                <div className="kpi-header">
+                                    <span className="kpi-label">
+                                        {activeTab === 'CLOSED' ? 'Total Realized P&L' : 'Live Unrealized P&L'}
+                                    </span>
+                                    <span className="kpi-icon"><Zap size={20} /></span>
+                                </div>
+                                <div 
+                                    className="kpi-value" 
+                                    style={{ 
+                                        color: activeTab === 'CLOSED' 
+                                            ? (liveMetrics.totalRealizedPnl > 0 ? '#34d399' : liveMetrics.totalRealizedPnl < 0 ? '#f87171' : '#cbd5e1')
+                                            : (liveMetrics.totalUnrealizedPnl > 0 ? '#34d399' : liveMetrics.totalUnrealizedPnl < 0 ? '#f87171' : '#cbd5e1'), 
+                                        display: 'flex', 
+                                        alignItems: 'baseline', 
+                                        gap: '0.6rem', 
+                                        flexWrap: 'wrap' 
+                                    }}
+                                >
+                                    <span>
+                                        {activeTab === 'CLOSED'
+                                            ? `${liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}${formatCurrency(liveMetrics.totalRealizedPnl)}`
+                                            : `${liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}${formatCurrency(liveMetrics.totalUnrealizedPnl)}`
+                                        }
+                                    </span>
+                                    {activeTab !== 'CLOSED' && liveMetrics.activeInvested > 0 && (
+                                        <span style={{ 
+                                            fontSize: '1.1rem', 
+                                            fontWeight: 700, 
+                                            background: liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)', 
+                                            padding: '0.15rem 0.6rem', 
+                                            borderRadius: '8px', 
+                                            border: `1px solid ${liveMetrics.totalUnrealizedPnl >= 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}` 
+                                        }}>
+                                            {liveMetrics.totalUnrealizedPnl >= 0 ? '+' : ''}{liveMetrics.unrealizedPnlPct.toFixed(2)}%
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                            <div className="kpi-value" style={{ color: liveMetrics.winRate >= 50 ? '#34d399' : (liveMetrics.winRate > 0 ? '#f87171' : 'inherit') }}>
-                                {liveMetrics.winRate}%
+                            <div className="kpi-subtext" style={{ marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                                <span className="pnl-badge" style={{ fontWeight: 700, color: liveMetrics.totalRealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
+                                    Realized: {liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}{formatCurrency(liveMetrics.totalRealizedPnl)} {liveMetrics.totalClosedCost > 0 ? `(${liveMetrics.totalRealizedPnl >= 0 ? '+' : ''}${liveMetrics.realizedPnlPct.toFixed(2)}%)` : ''}
+                                </span>
+                                <span style={{ marginLeft: '0.5rem' }}>({liveMetrics.closedTradesCount} Closed)</span>
                             </div>
                         </div>
-                        <div className="kpi-subtext">
-                            <span>{liveMetrics.wins}W - {liveMetrics.losses}L ({liveMetrics.closedTradesCount} Closed)</span>
-                        </div>
-                    </div>
 
-                    {/* Card 4: Average R:R */}
-                    <div className="kpi-card">
-                        <div>
-                            <div className="kpi-header">
-                                <span className="kpi-label">Average R:R</span>
-                                <span className="kpi-icon"><Scale size={20} /></span>
+                        {/* Card 3: Win Ratio */}
+                        <div className="kpi-card">
+                            <div>
+                                <div className="kpi-header">
+                                    <span className="kpi-label">Win Ratio</span>
+                                    <span className="kpi-icon"><Target size={20} /></span>
+                                </div>
+                                <div className="kpi-value" style={{ color: liveMetrics.winRate >= 50 ? '#34d399' : (liveMetrics.winRate > 0 ? '#f87171' : 'inherit') }}>
+                                    {liveMetrics.winRate}%
+                                </div>
                             </div>
-                            <div className="kpi-value">
-                                {liveMetrics.avgRRRatio}
+                            <div className="kpi-subtext">
+                                <span>{liveMetrics.wins}W - {liveMetrics.losses}L ({liveMetrics.closedTradesCount} Closed)</span>
                             </div>
                         </div>
-                        <div className="kpi-subtext">
-                            <span style={{ color: '#34d399' }}>Avg Win: {formatCurrency(liveMetrics.avgWin)}</span>
-                            <span style={{ margin: '0 4px', opacity: 0.5 }}>|</span>
-                            <span style={{ color: '#f87171' }}>Avg Loss: {formatCurrency(liveMetrics.avgLoss)}</span>
+
+                        {/* Card 4: Average R:R */}
+                        <div className="kpi-card">
+                            <div>
+                                <div className="kpi-header">
+                                    <span className="kpi-label">Average R:R</span>
+                                    <span className="kpi-icon"><Scale size={20} /></span>
+                                </div>
+                                <div className="kpi-value">
+                                    {liveMetrics.avgRRRatio}
+                                </div>
+                            </div>
+                            <div className="kpi-subtext">
+                                <span style={{ color: '#34d399' }}>Avg Win: {formatCurrency(liveMetrics.avgWin)}</span>
+                                <span style={{ margin: '0 4px', opacity: 0.5 }}>|</span>
+                                <span style={{ color: '#f87171' }}>Avg Loss: {formatCurrency(liveMetrics.avgLoss)}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )
             )}
 
             {/* ── Trade Lists / Tags Bar (Organize by Lists) ──────────────── */}
@@ -1169,7 +1174,7 @@ export default function TradesList() {
                     className={`trade-list-tab ${selectedListId === null ? 'trade-list-tab--active' : ''}`}
                     onClick={() => setSelectedListId(null)}
                 >
-                    All Trades <span className="trade-list-badge-count">{scopedBaseTrades.length}</span>
+                    All Trades <span className="trade-list-badge-count">{loading ? '…' : scopedBaseTrades.length}</span>
                 </button>
                 {tradeLists.map(list => (
                     <button
@@ -1180,7 +1185,7 @@ export default function TradesList() {
                     >
                         <span className="trade-list-color-dot" style={{ background: list.color || 'var(--color-primary)' }} />
                         <span>{list.name}</span>
-                        <span className="trade-list-badge-count">{list.trade_count}</span>
+                        <span className="trade-list-badge-count">{loading ? '…' : list.trade_count}</span>
                     </button>
                 ))}
                 <button
@@ -1276,7 +1281,7 @@ export default function TradesList() {
                         >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={16} /> Active Trades</span>
                             <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
-                                ({tabCounts.trading})
+                                ({loading ? '…' : tabCounts.trading})
                             </span>
                         </button>
                         <button 
@@ -1285,7 +1290,7 @@ export default function TradesList() {
                         >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ScrollText size={16} /> Historical Journal Log</span>
                             <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
-                                ({tabCounts.closed})
+                                ({loading ? '…' : tabCounts.closed})
                             </span>
                         </button>
                         <button 
@@ -1294,7 +1299,7 @@ export default function TradesList() {
                         >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Trash2 size={16} /> Deleted</span>
                             <span style={{ opacity: 0.75, fontSize: '0.8rem' }}>
-                                ({tabCounts.deleted})
+                                ({loading ? '…' : tabCounts.deleted})
                             </span>
                         </button>
                     </div>
@@ -1345,7 +1350,7 @@ export default function TradesList() {
                                 onClick={() => setActiveSubFilter(opt.key)}
                             >
                                 {opt.label}
-                                <span className="trade-filter-count">{setupCounts[opt.key] || 0}</span>
+                                <span className="trade-filter-count">{loading ? '…' : (setupCounts[opt.key] || 0)}</span>
                             </button>
                         ))}
                     </div>
@@ -1353,9 +1358,32 @@ export default function TradesList() {
 
                 {/* Content Rendering */}
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8', fontSize: '1.1rem' }}>
-                        ⏳ Loading positions and synchronizing market quotes...
-                    </div>
+                    portfolioViewMode === 'cards' ? (
+                        <CardSkeleton
+                            count={6}
+                            caption={
+                                activeTab === 'CLOSED'
+                                    ? "Loading historical journal & realized trade records..."
+                                    : activeTab === 'DELETED'
+                                    ? "Loading trash bin & archived setups..."
+                                    : "Loading active trading positions & synchronizing market quotes..."
+                            }
+                            subcaption="Fetching live CMP, calculated P&L, stop-loss and targets from NSE market feed"
+                        />
+                    ) : (
+                        <TableSkeleton
+                            rows={6}
+                            cols={activeTab === 'CLOSED' ? 8 : 9}
+                            caption={
+                                activeTab === 'CLOSED'
+                                    ? "Loading historical trade journal & realized executions..."
+                                    : activeTab === 'DELETED'
+                                    ? "Loading trash bin entries..."
+                                    : "Loading active trading ledger & live quote matrix..."
+                            }
+                            subcaption="Synchronizing live CMP, P&L, stop-loss and target triggers"
+                        />
+                    )
                 ) : filteredTrades.length === 0 ? (
                     <div className="empty-state-box">
                         <div className="empty-state-icon">
@@ -2449,8 +2477,9 @@ export default function TradesList() {
 
                             {/* Notes Timeline / List */}
                             {loadingModalNotes ? (
-                                <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', padding: '0.4rem 0' }}>
-                                    Loading notes...
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 0', color: '#94a3b8', fontSize: '0.82rem' }}>
+                                    <span className="ts-spinner-ring" style={{ width: 14, height: 14 }} />
+                                    <span>Loading trade notes & journal entries…</span>
                                 </div>
                             ) : modalTradeNotes.length > 0 ? (
                                 <div className="clean-notes-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.85rem', maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>

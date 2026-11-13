@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, TrendingUp, Trash2, X } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
+import { TableSkeleton } from '../../components/common/Skeleton';
 import api from '../../api/axios';
 import './Watchlist.css';
 
@@ -330,7 +331,14 @@ export default function Watchlist() {
 
                     <div className="watchlist-main">
                         {loading ? (
-                            <div className="watchlist-placeholder">Loading...</div>
+                            <div style={{ padding: '0.75rem' }}>
+                                <TableSkeleton 
+                                    rows={8} 
+                                    cols={6} 
+                                    caption="Fetching watchlist symbols & real-time quotes from Screener..." 
+                                    subcaption="Synchronizing LTP, day changes and 52-week ranges" 
+                                />
+                            </div>
                         ) : categories.length === 0 ? (
                             <div className="watchlist-placeholder">
                                 <div className="watchlist-placeholder-icon"><TrendingUp size={48} /></div>

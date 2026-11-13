@@ -10,6 +10,7 @@ import DailyNews from '../../components/dashboard/DailyNews';
 import Profitability from '../../components/dashboard/Profitability';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useAuth } from '../../context/AuthContext';
+import { KpiSkeleton, ChartSkeleton, TableSkeleton } from '../../components/common/Skeleton';
 import '../trades/PaperTrade.css';
 
 // Safe date formatter (DD/MM/YYYY, no timezone issues)
@@ -426,26 +427,8 @@ export default function Dashboard() {
 
             {/* Skeleton for loading */}
             {loading && (
-                <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="kpi-card" style={{
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '10px',
-                            padding: '0.75rem 1rem',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            gap: '0.85rem',
-                            alignItems: 'center'
-                        }}>
-                            <div className="skeleton" style={{ width: 32, height: 32, borderRadius: '8px', flexShrink: 0 }} />
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                <div className="skeleton" style={{ height: 12, width: '50%', borderRadius: 4 }} />
-                                <div className="skeleton" style={{ height: 20, width: '70%', borderRadius: 4 }} />
-                                <div className="skeleton" style={{ height: 10, width: '90%', borderRadius: 4 }} />
-                            </div>
-                        </div>
-                    ))}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <KpiSkeleton count={4} />
                 </div>
             )}
 
@@ -475,7 +458,15 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {monthlyLoading && <p className="status-text">Loading chart…</p>}
+                    {monthlyLoading && (
+                        <div style={{ padding: '0.75rem 0' }}>
+                            <ChartSkeleton 
+                                height={175} 
+                                caption="Aggregating monthly performance & returns curve..." 
+                                subcaption="Calculating monthly alpha and capital contributions" 
+                            />
+                        </div>
+                    )}
                     {monthlyError && <p className="form-error">{monthlyError}</p>}
                     {!monthlyLoading && !monthlyError && monthlyPerformance.length === 0 && (
                         <p className="placeholder-text">No data available.</p>
@@ -646,7 +637,9 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        {tradesLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
+                        {tradesLoading && (
+                            <TableSkeleton rows={4} cols={5} caption="Loading recent trade setups..." subcaption="Fetching latest 5 trade entries" />
+                        )}
                         {tradesError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{tradesError}</p>}
                         {!tradesLoading && !tradesError && recentTrades.length === 0 && (
                             <p className="placeholder-text">No recent trades.</p>
@@ -724,7 +717,9 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        {activityLoading && <p className="status-text" style={{ padding: 'var(--space-lg)' }}>Loading…</p>}
+                        {activityLoading && (
+                            <TableSkeleton rows={4} cols={3} caption="Loading client transaction feed..." subcaption="Fetching latest client portfolio updates" />
+                        )}
                         {activityError && <p className="form-error" style={{ padding: 'var(--space-lg)' }}>{activityError}</p>}
                         {!activityLoading && !activityError && clientActivity.length === 0 && (
                             <p className="placeholder-text">No recent client activity.</p>

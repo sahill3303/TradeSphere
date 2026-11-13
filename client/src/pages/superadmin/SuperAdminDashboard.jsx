@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
+import { TableSkeleton } from '../../components/common/Skeleton';
 import { 
     Shield, 
     Users, 
@@ -905,9 +906,14 @@ export default function SuperAdminDashboard() {
                         </div>
 
                         {loading && (
-                            <p className="status-text" style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>
-                                Loading tenant accounts securely...
-                            </p>
+                            <div style={{ padding: '1rem' }}>
+                                <TableSkeleton 
+                                    rows={6} 
+                                    cols={7} 
+                                    caption="Loading tenant accounts securely..." 
+                                    subcaption="Synchronizing active subscriptions, licenses & user roles" 
+                                />
+                            </div>
                         )}
                         
                         {error && (

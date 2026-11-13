@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+import { TickerSkeleton } from '../common/Skeleton';
 import './TickerBar.css';
 
 // NIFTY 50 is shown first alongside all user watchlist stocks
@@ -105,7 +106,7 @@ export default function TickerBar() {
     if (loading || prices.length === 0) {
         return (
             <div className="ticker-bar">
-                <div className="ticker-loading">Loading live prices…</div>
+                <TickerSkeleton count={8} />
             </div>
         );
     }

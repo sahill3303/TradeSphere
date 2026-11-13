@@ -5,6 +5,7 @@ import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { LoadingState } from '../../components/common/Skeleton';
 
 const NIFTY_MOODS = ['BULLISH', 'BEARISH', 'SIDEWAYS', 'VOLATILE', 'NEUTRAL'];
 const EXIT_REASONS = ['PARTIAL_PROFIT', 'TARGET_1', 'TARGET_2', 'PARTIAL_SL', 'TRAILING_SL', 'RISK_REDUCTION', 'TARGET_HIT', 'SL_HIT', 'MANUAL', 'EOD', 'NEWS', 'OTHER'];
@@ -355,7 +356,17 @@ export default function TradeDetails() {
         }
     }
 
-    if (loading) return <div className="page"><p className="status-text">Loading trade…</p></div>;
+    if (loading) {
+        return (
+            <div className="page" style={{ maxWidth: 1100, margin: '0 auto', paddingTop: '2rem' }}>
+                <LoadingState 
+                    caption="Loading trade setup details & execution ledger..." 
+                    subcaption="Retrieving position metrics, client allocations and journal notes" 
+                    minHeight="420px" 
+                />
+            </div>
+        );
+    }
     if (error) return <div className="page"><div className="alert alert--error">{error}</div></div>;
 
     const isLongTermEdit = editForm.trade_type === 'LONG TERM';

@@ -7,6 +7,7 @@ import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { TableSkeleton } from '../../components/common/Skeleton';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const STATUS_BADGE = {
@@ -281,7 +282,16 @@ export default function ClientsList() {
 
             {activeTab === 'active' && (
                 <>
-                    {loading && <p className="status-text">Loading clients…</p>}
+                    {loading && (
+                        <Card style={{ padding: '0.85rem', overflow: 'hidden' }}>
+                            <TableSkeleton 
+                                rows={5} 
+                                cols={6} 
+                                caption="Loading active client directory..." 
+                                subcaption="Retrieving investor profiles, invested capital and broker records" 
+                            />
+                        </Card>
+                    )}
                     {error && <div className="alert alert--error">{error}</div>}
 
                     {!loading && !error && clients.length === 0 && (
@@ -339,7 +349,16 @@ export default function ClientsList() {
 
             {activeTab === 'deleted' && (
                 <>
-                    {deletedLoading && <p className="status-text">Loading deleted clients…</p>}
+                    {deletedLoading && (
+                        <Card style={{ padding: '0.85rem', overflow: 'hidden' }}>
+                            <TableSkeleton 
+                                rows={4} 
+                                cols={3} 
+                                caption="Loading recently deleted clients..." 
+                                subcaption="Fetching client archive for restoration or removal" 
+                            />
+                        </Card>
+                    )}
                     {deletedError && <div className="alert alert--error">{deletedError}</div>}
 
                     {!deletedLoading && !deletedError && deleted.length === 0 && (

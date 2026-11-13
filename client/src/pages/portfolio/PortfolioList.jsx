@@ -7,6 +7,7 @@ import {
     Trash2, Tag, Check, RefreshCw, Layers, Award, Sparkles, AlertCircle, X, Pencil
 } from 'lucide-react';
 import { useConfirm } from '../../context/ConfirmContext';
+import { KpiSkeleton, CardSkeleton, TableSkeleton, ChartSkeleton } from '../../components/common/Skeleton';
 import './PortfolioList.css';
 import '../trades/TradesList.css';
 
@@ -773,83 +774,98 @@ export default function PortfolioList() {
             </div>
 
             {/* ── Investment KPI Banner ───────────────────────────────────── */}
-            <div className="portfolio-kpi-grid">
-                {/* 1. Current Portfolio Valuation */}
-                <div className="portfolio-kpi-card portfolio-kpi-card--primary">
-                    <div className="kpi-header">
-                        <span className="kpi-title">Current Portfolio Value</span>
-                        <div className="kpi-icon-wrap"><PieChart size={16} /></div>
-                    </div>
-                    <div className="kpi-value">
-                        {formatCurrency(portfolioMetrics.totalValuation)}
-                    </div>
-                    <div className={`kpi-sub ${portfolioMetrics.daysPnl >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
-                        {portfolioMetrics.daysPnl >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                        {portfolioMetrics.daysPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.daysPnl)} ({portfolioMetrics.daysPnlPct >= 0 ? '+' : ''}{portfolioMetrics.daysPnlPct.toFixed(2)}%) Today
-                    </div>
+            {loading ? (
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <KpiSkeleton count={5} />
                 </div>
-
-                {/* 2. Total Capital Invested */}
-                <div className="portfolio-kpi-card">
-                    <div className="kpi-header">
-                        <span className="kpi-title">Invested Capital</span>
-                        <div className="kpi-icon-wrap"><Shield size={16} /></div>
-                    </div>
-                    <div className="kpi-value">
-                        {formatCurrency(portfolioMetrics.totalInvested)}
-                    </div>
-                    <div className="kpi-sub kpi-sub--neutral">
-                        Acquisition cost across {portfolioMetrics.activeCount} holding(s)
-                    </div>
-                </div>
-
-                {/* 3. Unrealized Returns */}
-                <div className="portfolio-kpi-card">
-                    <div className="kpi-header">
-                        <span className="kpi-title">Unrealized Gain / Return</span>
-                        <div className="kpi-icon-wrap">
-                            {portfolioMetrics.unrealizedPnl >= 0 ? <TrendingUp size={16} color="#34d399" /> : <TrendingDown size={16} color="#f87171" />}
+            ) : (
+                <div className="portfolio-kpi-grid">
+                    {/* 1. Current Portfolio Valuation */}
+                    <div className="portfolio-kpi-card portfolio-kpi-card--primary">
+                        <div className="kpi-header">
+                            <span className="kpi-title">Current Portfolio Value</span>
+                            <div className="kpi-icon-wrap"><PieChart size={16} /></div>
+                        </div>
+                        <div className="kpi-value">
+                            {formatCurrency(portfolioMetrics.totalValuation)}
+                        </div>
+                        <div className={`kpi-sub ${portfolioMetrics.daysPnl >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
+                            {portfolioMetrics.daysPnl >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                            {portfolioMetrics.daysPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.daysPnl)} ({portfolioMetrics.daysPnlPct >= 0 ? '+' : ''}{portfolioMetrics.daysPnlPct.toFixed(2)}%) Today
                         </div>
                     </div>
-                    <div className="kpi-value" style={{ color: portfolioMetrics.unrealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
-                        {portfolioMetrics.unrealizedPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.unrealizedPnl)}
-                    </div>
-                    <div className={`kpi-sub ${portfolioMetrics.unrealizedPnl >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
-                        {portfolioMetrics.unrealizedPnl >= 0 ? '+' : ''}{portfolioMetrics.unrealizedPnlPct.toFixed(2)}% Overall Unrealized ROI
-                    </div>
-                </div>
 
-                {/* 4. Realized Returns (Booked Profits) */}
-                <div className="portfolio-kpi-card">
-                    <div className="kpi-header">
-                        <span className="kpi-title">Realized Returns</span>
-                        <div className="kpi-icon-wrap"><Award size={16} /></div>
+                    {/* 2. Total Capital Invested */}
+                    <div className="portfolio-kpi-card">
+                        <div className="kpi-header">
+                            <span className="kpi-title">Invested Capital</span>
+                            <div className="kpi-icon-wrap"><Shield size={16} /></div>
+                        </div>
+                        <div className="kpi-value">
+                            {formatCurrency(portfolioMetrics.totalInvested)}
+                        </div>
+                        <div className="kpi-sub kpi-sub--neutral">
+                            Acquisition cost across {portfolioMetrics.activeCount} holding(s)
+                        </div>
                     </div>
-                    <div className="kpi-value" style={{ color: portfolioMetrics.totalRealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
-                        {portfolioMetrics.totalRealizedPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.totalRealizedPnl)}
-                    </div>
-                    <div className="kpi-sub kpi-sub--neutral">
-                        Booked from {portfolioMetrics.closedCount} exited investment(s)
-                    </div>
-                </div>
 
-                {/* 5. Portfolio Alpha vs NIFTY 50 */}
-                <div className="portfolio-kpi-card">
-                    <div className="kpi-header">
-                        <span className="kpi-title">Alpha vs NIFTY 50</span>
-                        <div className="kpi-icon-wrap"><Sparkles size={16} color="var(--color-gold, #d4af37)" /></div>
+                    {/* 3. Unrealized Returns */}
+                    <div className="portfolio-kpi-card">
+                        <div className="kpi-header">
+                            <span className="kpi-title">Unrealized Gain / Return</span>
+                            <div className="kpi-icon-wrap">
+                                {portfolioMetrics.unrealizedPnl >= 0 ? <TrendingUp size={16} color="#34d399" /> : <TrendingDown size={16} color="#f87171" />}
+                            </div>
+                        </div>
+                        <div className="kpi-value" style={{ color: portfolioMetrics.unrealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
+                            {portfolioMetrics.unrealizedPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.unrealizedPnl)}
+                        </div>
+                        <div className={`kpi-sub ${portfolioMetrics.unrealizedPnl >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
+                            {portfolioMetrics.unrealizedPnl >= 0 ? '+' : ''}{portfolioMetrics.unrealizedPnlPct.toFixed(2)}% Overall Unrealized ROI
+                        </div>
                     </div>
-                    <div className="kpi-value" style={{ color: portfolioMetrics.alpha >= 0 ? '#34d399' : '#f87171' }}>
-                        {portfolioMetrics.alpha >= 0 ? '+' : ''}{portfolioMetrics.alpha.toFixed(2)}%
+
+                    {/* 4. Realized Returns (Booked Profits) */}
+                    <div className="portfolio-kpi-card">
+                        <div className="kpi-header">
+                            <span className="kpi-title">Realized Returns</span>
+                            <div className="kpi-icon-wrap"><Award size={16} /></div>
+                        </div>
+                        <div className="kpi-value" style={{ color: portfolioMetrics.totalRealizedPnl >= 0 ? '#34d399' : '#f87171' }}>
+                            {portfolioMetrics.totalRealizedPnl >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.totalRealizedPnl)}
+                        </div>
+                        <div className="kpi-sub kpi-sub--neutral">
+                            Booked from {portfolioMetrics.closedCount} exited investment(s)
+                        </div>
                     </div>
-                    <div className={`kpi-sub ${portfolioMetrics.alpha >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
-                        {portfolioMetrics.alpha >= 0 ? '▲ Outperforming Benchmark' : '▼ Underperforming Benchmark'}
+
+                    {/* 5. Portfolio Alpha vs NIFTY 50 */}
+                    <div className="portfolio-kpi-card">
+                        <div className="kpi-header">
+                            <span className="kpi-title">Alpha vs NIFTY 50</span>
+                            <div className="kpi-icon-wrap"><Sparkles size={16} color="var(--color-gold, #d4af37)" /></div>
+                        </div>
+                        <div className="kpi-value" style={{ color: portfolioMetrics.alpha >= 0 ? '#34d399' : '#f87171' }}>
+                            {portfolioMetrics.alpha >= 0 ? '+' : ''}{portfolioMetrics.alpha.toFixed(2)}%
+                        </div>
+                        <div className={`kpi-sub ${portfolioMetrics.alpha >= 0 ? 'kpi-sub--pos' : 'kpi-sub--neg'}`}>
+                            {portfolioMetrics.alpha >= 0 ? '▲ Outperforming Benchmark' : '▼ Underperforming Benchmark'}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* ── FLAGSHIP: NIFTY 50 vs My Portfolio Performance Chart ─────── */}
-            <div className="benchmark-card">
+            {loading ? (
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <ChartSkeleton 
+                        height={260} 
+                        caption="Calculating portfolio alpha & NIFTY 50 benchmark curve..." 
+                        subcaption="Synchronizing holding price performance against market indices" 
+                    />
+                </div>
+            ) : (
+                <div className="benchmark-card">
                 <div className="benchmark-card__header">
                     <div className="benchmark-card__title-wrap">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -1046,6 +1062,7 @@ export default function PortfolioList() {
                     )}
                 </div>
             </div>
+            )}
 
             {/* ── Asset Allocation Bar ────────────────────────────────────── */}
             {allocationData.length > 0 && (
@@ -1093,7 +1110,7 @@ export default function PortfolioList() {
                     className={`trade-list-tab ${selectedListId === null ? 'trade-list-tab--active' : ''}`}
                     onClick={() => setSelectedListId(null)}
                 >
-                    All Holdings <span className="trade-list-badge-count">{investmentTrades.length}</span>
+                    All Holdings <span className="trade-list-badge-count">{loading ? '…' : investmentTrades.length}</span>
                 </button>
                 {tradeLists.map(list => (
                     <button
@@ -1104,7 +1121,7 @@ export default function PortfolioList() {
                     >
                         <span className="trade-list-color-dot" style={{ background: list.color || 'var(--color-primary)' }} />
                         <span>{list.name}</span>
-                        <span className="trade-list-badge-count">{list.trade_count}</span>
+                        <span className="trade-list-badge-count">{loading ? '…' : list.trade_count}</span>
                     </button>
                 ))}
                 <button
@@ -1179,7 +1196,7 @@ export default function PortfolioList() {
                         onClick={() => setActiveTab('ACTIVE')}
                     >
                         <Shield size={15} /> Active Holdings
-                        <span className="portfolio-tab-count">{portfolioMetrics.activeCount}</span>
+                        <span className="portfolio-tab-count">{loading ? '…' : portfolioMetrics.activeCount}</span>
                     </button>
                     <button
                         type="button"
@@ -1187,7 +1204,7 @@ export default function PortfolioList() {
                         onClick={() => setActiveTab('EXITED')}
                     >
                         <Award size={15} /> Exited Investments
-                        <span className="portfolio-tab-count">{portfolioMetrics.closedCount}</span>
+                        <span className="portfolio-tab-count">{loading ? '…' : portfolioMetrics.closedCount}</span>
                     </button>
                 </div>
 
@@ -1222,9 +1239,28 @@ export default function PortfolioList() {
 
             {/* ── Holdings Display (Cards or Table) ───────────────────────── */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8', fontSize: '1.05rem' }}>
-                    ⏳ Synchronizing investment holdings and live quotes...
-                </div>
+                viewMode === 'cards' ? (
+                    <CardSkeleton
+                        count={6}
+                        caption={
+                            activeTab === 'ACTIVE'
+                                ? "Synchronizing active investment holdings & live market quotes..."
+                                : "Loading historical realized investment log & holding records..."
+                        }
+                        subcaption="Tracking acquisition cost, live CMP, portfolio weighting and benchmark alpha"
+                    />
+                ) : (
+                    <TableSkeleton
+                        rows={6}
+                        cols={activeTab === 'ACTIVE' ? 9 : 8}
+                        caption={
+                            activeTab === 'ACTIVE'
+                                ? "Loading long-term investment ledger & live valuation matrix..."
+                                : "Loading historical exited investments..."
+                        }
+                        subcaption="Fetching real-time quotes, allocation weights and unrealized P&L"
+                    />
+                )
             ) : sortedHoldings.length === 0 ? (
                 <div className="portfolio-empty">
                     <div className="portfolio-empty__icon">

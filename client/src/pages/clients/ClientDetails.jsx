@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { LoadingState } from '../../components/common/Skeleton';
 
 const STATUS_BADGE = {
     ACTIVE: 'badge--green',
@@ -38,7 +39,13 @@ export default function ClientDetails() {
                 <h2 className="page__title">Client Details</h2>
             </div>
 
-            {loading && <p className="status-text">Loading…</p>}
+            {loading && (
+                <LoadingState 
+                    caption="Loading client profile & transaction allocations..." 
+                    subcaption="Retrieving investor history, capital deployment and active positions" 
+                    minHeight="280px"
+                />
+            )}
             {error && <div className="alert alert--error">{error}</div>}
 
             {client && (
