@@ -2290,25 +2290,22 @@ export default function PortfolioList() {
                                 />
                                 <button
                                     type="submit"
-                                    className="btn-paper-action"
+                                    className="btn-paper-confirm--gold"
                                     disabled={addingModalNote || !newModalNoteText.trim()}
                                     style={{
-                                        background: 'var(--color-primary)',
-                                        color: '#000',
-                                        fontWeight: 700,
-                                        fontSize: '0.82rem',
-                                        padding: '0.55rem 0.95rem',
+                                        fontSize: '0.84rem',
+                                        padding: '0.55rem 1rem',
                                         borderRadius: '8px',
                                         height: '42px',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '4px',
+                                        gap: '6px',
                                         whiteSpace: 'nowrap',
                                         opacity: (!newModalNoteText.trim() || addingModalNote) ? 0.5 : 1,
                                         cursor: (!newModalNoteText.trim() || addingModalNote) ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    <Plus size={14} /> {addingModalNote ? 'Adding…' : 'Add Note'}
+                                    <Plus size={15} strokeWidth={2.5} /> {addingModalNote ? 'Adding…' : 'Add Note'}
                                 </button>
                             </form>
                         </div>
@@ -2528,8 +2525,7 @@ export default function PortfolioList() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="btn-paper-confirm"
-                                    style={{ background: 'var(--color-primary, #d4af37)', color: '#0b0e14' }}
+                                    className="btn-paper-confirm--gold"
                                 >
                                     Create List
                                 </button>

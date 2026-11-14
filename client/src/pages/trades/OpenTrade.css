@@ -212,8 +212,8 @@ input[type="number"] {
 }
 
 .segmented-btn--active {
-    background: var(--color-primary);
-    color: #000 !important;
+    background: linear-gradient(135deg, #d4af37 0%, #b8972e 100%);
+    color: #0b0e14 !important;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
 }
@@ -613,4 +613,41 @@ input[type="number"] {
     padding: 2px 6px;
     border-radius: 4px;
     border: 1px solid var(--color-border);
+}
+
+/* ── Light Mode Button & Control Overrides ── */
+[data-theme='light'] .segmented-control {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .segmented-btn {
+    color: #64748b;
+}
+
+[data-theme='light'] .segmented-btn:hover:not(.segmented-btn--active) {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+[data-theme='light'] .segmented-btn--active {
+    background: linear-gradient(135deg, #d4af37 0%, #b8972e 100%) !important;
+    color: #0b0e14 !important;
+    border: 1px solid rgba(184, 150, 40, 0.45);
+    box-shadow: 0 2px 8px rgba(184, 150, 40, 0.25);
+}
+
+[data-theme='light'] .mode-toggle-btn {
+    border-color: #cbd5e1;
+    color: #475569;
+    background: #ffffff;
+}
+
+[data-theme='light'] .mode-toggle-btn:hover {
+    background: #f8fafc;
+}
+
+[data-theme='light'] .ticket-rr-meter {
+    background: rgba(194, 138, 19, 0.08);
+    border-color: rgba(194, 138, 19, 0.25);
 }

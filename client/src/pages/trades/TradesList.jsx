@@ -2241,7 +2241,7 @@ export default function TradesList() {
                                 <button type="button" className="btn-paper-action btn-secondary" onClick={() => setShowCreateListModal(false)}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn-paper-action btn-add-funds" disabled={creatingList}>
+                                <button type="submit" className="btn-primary" disabled={creatingList}>
                                     {creatingList ? 'Creating...' : selectedTradeIds.size > 0 ? `Create & Add ${selectedTradeIds.size} Trade(s)` : 'Create List'}
                                 </button>
                             </div>
@@ -2573,25 +2573,22 @@ export default function TradesList() {
                                 />
                                 <button
                                     type="submit"
-                                    className="btn-paper-action"
+                                    className="btn-primary"
                                     disabled={addingModalNote || !newModalNoteText.trim()}
                                     style={{
-                                        background: 'var(--color-primary)',
-                                        color: '#000',
-                                        fontWeight: 700,
-                                        fontSize: '0.82rem',
-                                        padding: '0.55rem 0.95rem',
+                                        fontSize: '0.84rem',
+                                        padding: '0.55rem 1rem',
                                         borderRadius: '8px',
                                         height: '42px',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '4px',
+                                        gap: '6px',
                                         whiteSpace: 'nowrap',
                                         opacity: (!newModalNoteText.trim() || addingModalNote) ? 0.5 : 1,
                                         cursor: (!newModalNoteText.trim() || addingModalNote) ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    <Plus size={14} /> {addingModalNote ? 'Adding…' : 'Add Note'}
+                                    <Plus size={15} strokeWidth={2.5} /> {addingModalNote ? 'Adding…' : 'Add Note'}
                                 </button>
                             </form>
                         </div>

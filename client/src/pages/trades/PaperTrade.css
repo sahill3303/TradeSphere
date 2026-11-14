@@ -53,42 +53,78 @@
     align-items: center;
 }
 
-/* ── Premium Buttons ── */
+/* ── Premium Buttons (Universal Design System) ── */
 .btn-paper-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.4rem;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.92rem;
-    transition: all 0.2s;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    font-family: inherit;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
-    border: none;
+    border: 1px solid transparent;
     outline: none;
     white-space: nowrap;
 }
 
 .btn-add-funds, .btn-new-trade {
-    background: var(--color-accent, #D4AF37);
-    color: #000000;
+    background: linear-gradient(135deg, #d4af37 0%, #b8972e 100%);
+    color: #0b0e14 !important;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
 }
 
 .btn-add-funds:hover, .btn-new-trade:hover {
     transform: translateY(-1px);
-    opacity: 0.9;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+    filter: brightness(1.08);
 }
 
 .btn-secondary {
-    background: transparent;
-    border: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--color-text, #e2e8f0);
+    border-radius: 8px;
+    font-weight: 600;
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(212, 175, 55, 0.08);
+    border-color: var(--color-gold);
+    color: var(--color-gold);
     transform: translateY(-1px);
+}
+
+[data-theme='light'] .btn-add-funds,
+[data-theme='light'] .btn-new-trade {
+    background: linear-gradient(135deg, #d4af37 0%, #b8972e 100%) !important;
+    color: #0b0e14 !important;
+    border: 1px solid rgba(184, 150, 40, 0.5) !important;
+    box-shadow: 0 2px 8px rgba(184, 150, 40, 0.25) !important;
+}
+
+[data-theme='light'] .btn-add-funds:hover,
+[data-theme='light'] .btn-new-trade:hover {
+    box-shadow: 0 4px 16px rgba(184, 150, 40, 0.4) !important;
+    transform: translateY(-1px) !important;
+    filter: brightness(1.06) !important;
+}
+
+[data-theme='light'] .btn-secondary {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: var(--color-gold);
+    color: var(--color-gold-dark, #9b6e0f);
 }
 
 /* ── Summary KPI Cards ── */
