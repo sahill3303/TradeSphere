@@ -29,7 +29,7 @@
     font-size: 1.75rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     display: flex;
     align-items: center;
     gap: 0.65rem;
@@ -131,7 +131,7 @@
 .kpi-value {
     font-size: 1.45rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     letter-spacing: -0.01em;
     margin-bottom: 0.35rem;
     line-height: 1.2;
@@ -185,7 +185,7 @@
 .benchmark-card__title {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     display: flex;
     align-items: center;
     gap: 0.65rem;
@@ -593,7 +593,7 @@
 .holding-card__symbol {
     font-size: 1.05rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     letter-spacing: -0.01em;
 }
 
@@ -654,7 +654,7 @@
 .holding-metric-val {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
 }
 
 .holding-card__footer {
@@ -725,7 +725,7 @@
 .portfolio-empty__title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     margin: 0 0 0.5rem 0;
 }
 
@@ -793,7 +793,7 @@
 .benchmark-unallocated-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     margin: 0 0 0.6rem 0;
 }
 
@@ -991,6 +991,208 @@
     color: #f8fafc;
     border-color: rgba(255, 255, 255, 0.25);
     transform: translateY(-1px);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Light Theme System Overrides for Portfolio
+────────────────────────────────────────────────────────── */
+[data-theme='light'] .portfolio-kpi-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .portfolio-kpi-card .kpi-value {
+    color: #0f172a;
+}
+
+[data-theme='light'] .benchmark-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .benchmark-card__title {
+    color: #0f172a;
+}
+
+[data-theme='light'] .benchmark-legend {
+    color: #0f172a;
+}
+
+[data-theme='light'] .timeframe-pill-group {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .timeframe-pill {
+    color: #64748b;
+}
+
+[data-theme='light'] .timeframe-pill:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+[data-theme='light'] .timeframe-pill--active {
+    background: var(--color-gold);
+    color: #0b0e14;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .allocation-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .allocation-bar {
+    background: #e2e8f0;
+}
+
+[data-theme='light'] .allocation-chip {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #0f172a;
+}
+
+[data-theme='light'] .portfolio-concentration-banner {
+    background: rgba(194, 138, 19, 0.08);
+    border-color: rgba(194, 138, 19, 0.25);
+    color: #0f172a;
+}
+
+[data-theme='light'] .portfolio-search-box {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+[data-theme='light'] .portfolio-search-input {
+    color: #0f172a;
+}
+
+[data-theme='light'] .portfolio-search-input::placeholder {
+    color: #94a3b8;
+}
+
+[data-theme='light'] .holding-tax-tag--stcg {
+    background: rgba(100, 116, 139, 0.1);
+    color: #475569;
+}
+
+[data-theme='light'] .benchmark-unallocated-box {
+    background: #ffffff;
+    border: 1.5px dashed rgba(194, 138, 19, 0.35);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .benchmark-unallocated-title {
+    color: #0f172a;
+}
+
+[data-theme='light'] .benchmark-unallocated-desc {
+    color: #475569;
+}
+
+[data-theme='light'] .benchmark-meta-badge {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #334155;
+}
+
+[data-theme='light'] .portfolio-tabs {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .portfolio-tab-btn {
+    color: #64748b;
+}
+
+[data-theme='light'] .portfolio-tab-btn:hover {
+    color: #0f172a;
+}
+
+[data-theme='light'] .portfolio-tab-btn--active {
+    background: #ffffff;
+    color: var(--color-gold-dark, #9b6e0f);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .holding-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .holding-card:hover {
+    border-color: rgba(194, 138, 19, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .holding-card__symbol {
+    color: #0f172a;
+}
+
+[data-theme='light'] .holding-card__metrics {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .holding-metric-label {
+    color: #64748b;
+}
+
+[data-theme='light'] .holding-metric-val {
+    color: #0f172a;
+}
+
+[data-theme='light'] .holding-card__footer {
+    border-top-color: #e2e8f0;
+}
+
+[data-theme='light'] .holding-card__notes-box {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+
+[data-theme='light'] .btn-portfolio-modal-close {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+[data-theme='light'] .btn-portfolio-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+[data-theme='light'] .holding-card .trade-dropdown-menu {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(194, 138, 19, 0.2);
+}
+
+[data-theme='light'] .chart-tooltip {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+[data-theme='light'] .tooltip-date {
+    color: #64748b;
+    border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .chart-grid-line {
+    stroke: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .chart-crosshair-line {
+    stroke: rgba(0, 0, 0, 0.25);
 }
 
 

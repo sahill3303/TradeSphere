@@ -586,11 +586,11 @@ export default function PaperTrade() {
                                                         {t.status === 'OPEN' && <span style={{ fontSize: '0.8rem', opacity: 0.8 }} title="Click to Switch Category">⇄</span>}
                                                     </div>
                                                 </td>
-                                                <td data-label="Entry Price" style={{ fontWeight: 600, color: '#f8fafc' }}>
+                                                <td data-label="Entry Price" style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                                                     ₹{Number(t.entry_price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                 </td>
                                                 <td data-label="Qty & Cost">
-                                                    <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{t.quantity} qty</div>
+                                                    <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.quantity} qty</div>
                                                     <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{formatCurrency(cost)}</div>
                                                 </td>
 
@@ -636,7 +636,7 @@ export default function PaperTrade() {
                                                             <div style={{ fontSize: '0.82rem', color: '#f87171' }}>SL: {t.stop_loss ? `₹${Number(t.stop_loss).toFixed(2)}` : '—'}</div>
                                                         </td>
                                                         <td data-label="Strategy / Conviction">
-                                                            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }}>{t.strategy || 'Conviction'}</div>
+                                                            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-text)' }}>{t.strategy || 'Conviction'}</div>
                                                             <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>{t.conviction_level || 'Normal'} Conviction</div>
                                                         </td>
                                                     </>
@@ -763,7 +763,7 @@ export default function PaperTrade() {
                             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
                                     <span style={{ color: '#94a3b8' }}>Entry Price & Qty:</span>
-                                    <span style={{ fontWeight: 700, color: '#f8fafc' }}>₹{Number(exitTradeModal.entry_price).toFixed(2)} x {exitTradeModal.quantity}</span>
+                                    <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>₹{Number(exitTradeModal.entry_price).toFixed(2)} x {exitTradeModal.quantity}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                                     <span style={{ color: '#94a3b8' }}>Live Quote / CMP:</span>

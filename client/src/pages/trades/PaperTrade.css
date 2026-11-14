@@ -506,7 +506,7 @@
 
 .symbol-ticker {
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
     font-size: 1.05rem;
     letter-spacing: 0.02em;
 }
@@ -638,7 +638,7 @@
 .metric-item-val {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--color-text, #f8fafc);
 }
 
 /* ── Modals & Dialogs ── */
@@ -828,4 +828,124 @@
     .symbol-type-tag {
         align-items: flex-end;
     }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Light Theme System Support for Trades & Paper Trading
+────────────────────────────────────────────────────────── */
+[data-theme='light'] .kpi-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .tab-group {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .paper-tab-btn {
+    color: #64748b;
+}
+
+[data-theme='light'] .paper-tab-btn:hover {
+    color: #0f172a;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .paper-tab-btn.active,
+[data-theme='light'] .paper-tab-btn.active-green {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .view-mode-toggle {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .view-mode-btn {
+    color: #64748b;
+}
+
+[data-theme='light'] .view-mode-btn:hover {
+    color: #0f172a;
+}
+
+[data-theme='light'] .view-mode-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .portfolio-asset-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .portfolio-asset-card:hover {
+    border-color: rgba(194, 138, 19, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .asset-metrics {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .metric-item-label {
+    color: #64748b;
+}
+
+[data-theme='light'] .symbol-ticker {
+    color: #0f172a;
+}
+
+[data-theme='light'] .metric-item-val {
+    color: #0f172a;
+}
+
+[data-theme='light'] .workspace-section {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .order-form-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .order-form-header h3 {
+    color: #0f172a;
+}
+
+[data-theme='light'] .paper-modal-box {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .modal-header h3 {
+    color: #0f172a;
+}
+
+[data-theme='light'] .table-responsive-container {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .paper-table th {
+    background: #f8fafc;
+    color: #64748b;
+    border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .paper-table td {
+    color: #1e293b;
+    border-bottom-color: #f1f5f9;
+}
+
+[data-theme='light'] .paper-table tr:hover {
+    background: #f8fafc;
 }

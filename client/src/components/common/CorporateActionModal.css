@@ -314,3 +314,78 @@
     50% { opacity: 1; filter: brightness(1.15); }
 }
 
+/* ── Light Mode Support ── */
+[data-theme='light'] .corp-modal-box {
+    background: #ffffff;
+    border-color: rgba(194, 138, 19, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 0 20px rgba(194, 138, 19, 0.08);
+    color: #0f172a;
+}
+
+[data-theme='light'] .corp-header {
+    border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .corp-header__title {
+    color: #0f172a;
+}
+
+[data-theme='light'] .corp-action-btn {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+[data-theme='light'] .corp-action-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+[data-theme='light'] .corp-action-btn--active {
+    background: rgba(194, 138, 19, 0.12) !important;
+    border-color: var(--color-gold) !important;
+    color: var(--color-gold-dark, #9b6e0f) !important;
+}
+
+[data-theme='light'] .corp-preset-chip {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #334155;
+}
+
+[data-theme='light'] .corp-preset-chip:hover {
+    background: rgba(194, 138, 19, 0.1);
+    border-color: var(--color-gold);
+    color: var(--color-gold-dark, #9b6e0f);
+}
+
+[data-theme='light'] .corp-preset-chip--active {
+    background: var(--color-gold) !important;
+    border-color: var(--color-gold) !important;
+    color: #0b0e14 !important;
+}
+
+[data-theme='light'] .corp-compare-box {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .corp-compare-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .corp-compare-card--projected {
+    background: #ffffff;
+    border-color: rgba(194, 138, 19, 0.4);
+}
+
+[data-theme='light'] .corp-compare-row:last-child {
+    border-top-color: #e2e8f0;
+}
+
+[data-theme='light'] .corp-checkbox-row {
+    color: #334155;
+}
+

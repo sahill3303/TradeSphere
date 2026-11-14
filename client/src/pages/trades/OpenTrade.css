@@ -92,6 +92,64 @@ input[type="number"] {
     }
 }
 
+@media (max-width: 768px) {
+    .open-trade-container {
+        padding: 0.5rem 0.5rem var(--space-xl);
+    }
+
+    .open-trade-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+        margin-bottom: var(--space-md);
+    }
+
+    .open-trade-header__left {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .open-trade-header__title {
+        font-size: 1.25rem;
+    }
+
+    .open-trade-header__subtitle {
+        font-size: 0.78rem;
+    }
+
+    .open-trade-header__badge {
+        align-self: flex-start;
+    }
+
+    .open-trade-container .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-md);
+    }
+
+    .segmented-control {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .segmented-btn {
+        padding: 0.65rem 0.5rem;
+        font-size: 0.78rem;
+        white-space: normal;
+    }
+
+    .trade-card-header {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .trade-ticket {
+        position: static;
+        margin-top: var(--space-md);
+    }
+}
+
 .open-trade-sections {
     display: flex;
     flex-direction: column;

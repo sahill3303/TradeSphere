@@ -130,8 +130,18 @@ export default function ProtectedRoute() {
                         font-size: 1.35rem;
                         font-weight: 800;
                         letter-spacing: -0.02em;
-                        color: #FFF;
+                        color: var(--color-text, #FFF);
                         margin-bottom: 0.35rem;
+                    }
+                    [data-theme='light'] .auth-loader-brand {
+                        color: #0b0e14 !important;
+                    }
+                    [data-theme='light'] .auth-loader-logo-box {
+                        background: #ffffff;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                    }
+                    [data-theme='light'] .auth-loader-bar-track {
+                        background: rgba(0, 0, 0, 0.08);
                     }
                     .auth-loader-brand-gold {
                         color: var(--color-gold, #D4AF37);

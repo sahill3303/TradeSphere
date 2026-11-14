@@ -343,3 +343,52 @@
     flex-shrink: 0;
 }
 
+/* ──────────────────────────────────────────────────────────
+   Light Theme System Overrides for Skeletons & Loaders
+────────────────────────────────────────────────────────── */
+[data-theme='light'] .ts-skeleton {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .ts-skeleton::after {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.04) 40%,
+        rgba(194, 138, 19, 0.12) 50%,
+        rgba(0, 0, 0, 0.04) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+}
+
+[data-theme='light'] .ts-skeleton-kpi-card,
+[data-theme='light'] .ts-skeleton-card,
+[data-theme='light'] .ts-skeleton-table-wrap,
+[data-theme='light'] .ts-chart-skeleton-wrap {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .ts-loading-banner {
+    background: rgba(194, 138, 19, 0.08);
+    border-color: rgba(194, 138, 19, 0.25);
+}
+
+[data-theme='light'] .ts-loading-banner__caption,
+[data-theme='light'] .ts-loading-state__caption {
+    color: #0f172a;
+}
+
+[data-theme='light'] .ts-loading-state {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .ts-chart-skeleton__overlay {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(194, 138, 19, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+

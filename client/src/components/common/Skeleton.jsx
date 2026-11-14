@@ -264,7 +264,7 @@ export function ChartSkeleton({
 
                 <div className="ts-chart-skeleton__overlay">
                     <div className="ts-loading-spinner-ring" style={{ width: 16, height: 16 }} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f8fafc' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text, #f8fafc)' }}>
                         {caption}
                     </span>
                 </div>

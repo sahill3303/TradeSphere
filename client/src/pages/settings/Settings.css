@@ -24,6 +24,12 @@
   align-items: start;
 }
 
+.settings-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
 @media (max-width: 900px) {
   .settings-grid {
     grid-template-columns: 1fr;
@@ -46,6 +52,8 @@
   color: var(--color-text);
   font-size: 1.1rem;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .settings-card-header p {
@@ -71,6 +79,9 @@
   font-size: 0.95rem;
   font-weight: 500;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .settings-item-info p {
@@ -168,7 +179,8 @@
   width: 18px;
   left: 2px;
   bottom: 2px;
-  background-color: var(--color-text-dim);
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   transition: .3s;
   border-radius: 50%;
 }
@@ -179,8 +191,60 @@ input:checked + .settings-slider {
 }
 
 input:checked + .settings-slider:before {
-  background-color: #000;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   transform: translateX(20px);
+}
+
+/* Light Theme Overrides for Settings */
+[data-theme='light'] .settings-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .settings-slider {
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+[data-theme='light'] .settings-slider:before {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='light'] input:checked + .settings-slider {
+  background-color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+[data-theme='light'] .settings-color-btn {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme='light'] .settings-color-btn:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+[data-theme='light'] .settings-color-btn.active {
+  border-color: var(--color-gold);
+  background: rgba(194, 138, 19, 0.1);
+  box-shadow: 0 0 0 1px var(--color-gold);
+}
+
+[data-theme='light'] .settings-toggle-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme='light'] .settings-toggle-btn:hover {
+  background: #e2e8f0;
+  border-color: var(--color-gold);
+  color: var(--color-gold-dark, #9b6e0f);
 }
 
 /* Dashboard Indices Styles */

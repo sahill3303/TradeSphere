@@ -1230,10 +1230,10 @@ export default function PortfolioList() {
             {allocationData.length > 0 && (
                 <div className="allocation-card">
                     <div className="allocation-card__header">
-                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             Asset & Stock Allocation Weighting
                         </span>
-                        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim, #94a3b8)' }}>
                             {portfolioMetrics.activeCount} holding(s) active
                         </span>
                     </div>
@@ -1255,7 +1255,7 @@ export default function PortfolioList() {
                                 <span className="allocation-chip-dot" style={{ backgroundColor: item.color }} />
                                 <span>{item.symbol}</span>
                                 <span className="allocation-chip-pct">{item.weight.toFixed(1)}%</span>
-                                <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>({formatCurrency(item.value)})</span>
+                                <span style={{ color: 'var(--color-text-dim, #94a3b8)', fontSize: '0.72rem' }}>({formatCurrency(item.value)})</span>
                             </div>
                         ))}
                     </div>
@@ -1265,14 +1265,14 @@ export default function PortfolioList() {
                         <div className="portfolio-concentration-banner">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <AlertCircle size={16} color="var(--color-gold, #d4af37)" />
-                                <span style={{ fontWeight: 700, color: '#f8fafc' }}>
+                                <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>
                                     Portfolio Allocation Notice:
                                 </span>
-                                <span style={{ color: '#cbd5e1' }}>
+                                <span style={{ color: 'var(--color-text-muted)' }}>
                                     <strong>{allocationData[0].symbol}</strong> accounts for <strong>{allocationData[0].weight.toFixed(1)}%</strong> of your total deployed capital.
                                 </span>
                             </div>
-                            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-dim, #94a3b8)' }}>
                                 In institutional portfolio management, keeping single-asset exposure &lt; 20-25% mitigates company-specific idiosyncratic risk.
                             </span>
                         </div>
@@ -1763,7 +1763,7 @@ export default function PortfolioList() {
                                                 </div>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                        <strong style={{ color: '#f8fafc', fontSize: '0.92rem' }}>{t.stock_name}</strong>
+                                                        <strong style={{ color: 'var(--color-text)', fontSize: '0.92rem' }}>{t.stock_name}</strong>
                                                         {detectedSplit && (
                                                             <button
                                                                 type="button"
@@ -1787,7 +1787,7 @@ export default function PortfolioList() {
                                         <td>{formatCurrency(entry)}</td>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <strong style={{ color: '#f8fafc' }}>
+                                                <strong style={{ color: 'var(--color-text)' }}>
                                                     {formatCurrency(activeTab === 'EXITED' ? t.exit_price : cmp)}
                                                 </strong>
                                                 {activeTab === 'ACTIVE' && (
@@ -1981,7 +1981,7 @@ export default function PortfolioList() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <TrendingUp size={20} color="#34d399" />
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', fontWeight: 800 }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text)', fontWeight: 800 }}>
                                     Exit Holding — {exitModalTrade.stock_name}
                                 </h3>
                             </div>
@@ -2028,7 +2028,7 @@ export default function PortfolioList() {
                                 }}>
                                     <strong>⚡ Partial Booking Detected:</strong> Booking <strong>{exitForm.quantity}</strong> of <strong>{exitModalTrade.quantity} shares</strong>.
                                     The remaining <strong>{exitModalTrade.quantity - Number(exitForm.quantity)} shares</strong> will remain in your portfolio.
-                                    <div style={{ marginTop: '2px', color: '#cbd5e1', fontSize: '0.78rem' }}>
+                                    <div style={{ marginTop: '2px', color: 'var(--color-text-dim)', fontSize: '0.78rem' }}>
                                         * Please provide the partial booking reason and thesis below.
                                     </div>
                                 </div>
@@ -2134,7 +2134,7 @@ export default function PortfolioList() {
                         <div className="clean-details-header">
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                                    <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
                                         {viewTradeModal.stock_name}
                                     </h2>
                                     <span style={{
@@ -2374,7 +2374,7 @@ export default function PortfolioList() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Tag size={18} color="var(--color-gold, #d4af37)" />
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', fontWeight: 700 }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text)', fontWeight: 700 }}>
                                     Assign to Investment List
                                 </h3>
                             </div>
@@ -2410,7 +2410,7 @@ export default function PortfolioList() {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, textAlign: 'left' }}>
                                                 <span className="trade-list-color-dot" style={{ background: list.color || 'var(--color-primary)' }} />
                                                 <div>
-                                                    <div style={{ fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                         {list.name}
                                                         {isCurrent && (
                                                             <span style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 600, background: 'rgba(212,175,55,0.12)', padding: '1px 5px', borderRadius: '4px' }}>
@@ -2458,7 +2458,7 @@ export default function PortfolioList() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Plus size={18} color="var(--color-gold, #d4af37)" />
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', fontWeight: 700 }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text)', fontWeight: 700 }}>
                                     Create New Portfolio List
                                 </h3>
                             </div>

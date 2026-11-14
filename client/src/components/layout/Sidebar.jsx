@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap, X, PieChart, ScrollText, Microscope } from 'lucide-react';
+import { TrendingUp, Briefcase, FileText, Shield, Settings, Zap, X, PieChart, ScrollText, Microscope, LayoutDashboard, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -9,7 +9,7 @@ const navGroups = [
     {
         title: 'MARKET',
         items: [
-            { to: '/dashboard',    label: 'Dashboard',    icon: '⊞',  key: 'dashboard' },
+            { to: '/dashboard',    label: 'Dashboard',    icon: <LayoutDashboard size={18} />,  key: 'dashboard' },
             { to: '/watchlist',    label: 'Watchlist',    icon: <TrendingUp size={18} />, key: 'watchlist' },
             { to: '/intelligence', label: 'Intelligence', icon: <Zap size={18} />, key: 'intelligence', alwaysShow: true },
         ]
@@ -32,7 +32,7 @@ const navGroups = [
     {
         title: 'MANAGEMENT',
         items: [
-            { to: '/clients',      label: 'Clients',      icon: '◎',  key: 'clients' },
+            { to: '/clients',      label: 'Clients',      icon: <Users size={18} />,  key: 'clients' },
         ]
     }
 ];

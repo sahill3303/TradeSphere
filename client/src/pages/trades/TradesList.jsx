@@ -1890,11 +1890,11 @@ export default function TradesList() {
                                                     {t.status === 'OPEN' && <span style={{ fontSize: '0.75rem', opacity: 0.8 }} title="Click to Switch Category">⇄</span>}
                                                 </div>
                                             </td>
-                                            <td data-label="Entry Price" style={{ fontWeight: 600, color: '#f8fafc' }}>
+                                            <td data-label="Entry Price" style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                                                 ₹{Number(t.entry_price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </td>
                                             <td data-label="Qty & Capital">
-                                                <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{t.quantity} qty</div>
+                                                <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>{t.quantity} qty</div>
                                                 <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{fmtLakhs(cost)}</div>
                                             </td>
 
@@ -2265,7 +2265,7 @@ export default function TradesList() {
                             <div className="exit-summary-strip">
                                 <div>
                                     <span style={{ color: '#94a3b8' }}>Entry: </span>
-                                    <strong style={{ color: '#f8fafc' }}>₹{Number(exitTradeModal.entry_price).toFixed(2)}</strong> × {exitTradeModal.quantity} qty
+                                    <strong style={{ color: 'var(--color-text)' }}>₹{Number(exitTradeModal.entry_price).toFixed(2)}</strong> × {exitTradeModal.quantity} qty
                                 </div>
                                 <div>
                                     <span style={{ color: '#94a3b8' }}>CMP: </span>
@@ -2292,7 +2292,7 @@ export default function TradesList() {
                                         You are booking <strong>{exitForm.quantity} qty</strong> of <strong>{exitTradeModal.quantity} qty</strong>.
                                         The remaining <strong>{exitTradeModal.quantity - Number(exitForm.quantity)} qty</strong> will remain active in your open trades.
                                     </div>
-                                    <div style={{ marginTop: '3px', color: '#cbd5e1', fontSize: '0.78rem' }}>
+                                    <div style={{ marginTop: '3px', color: 'var(--color-text-dim)', fontSize: '0.78rem' }}>
                                         * A journal note & reason is required below so this partial profit/loss booking is recorded in your history.
                                     </div>
                                 </div>
@@ -2408,7 +2408,7 @@ export default function TradesList() {
                         <div className="clean-details-header">
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                                    <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
                                         {viewTradeModal.stock_name}
                                     </h2>
                                     <span style={{
@@ -2475,7 +2475,7 @@ export default function TradesList() {
                         <div className="clean-section-box">
                             <div className="clean-section-title">Strategy & Psychology</div>
                             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.6rem', fontSize: '0.84rem' }}>
-                                <div><span style={{ color: '#94a3b8' }}>Setup: </span><strong style={{ color: '#f8fafc' }}>{viewTradeModal.strategy_tag || 'Discretionary'}</strong></div>
+                                <div><span style={{ color: '#94a3b8' }}>Setup: </span><strong style={{ color: 'var(--color-text)' }}>{viewTradeModal.strategy_tag || 'Discretionary'}</strong></div>
                                 <div><span style={{ color: '#94a3b8' }}>Conviction: </span><strong style={{ color: 'var(--color-primary)' }}>{viewTradeModal.conviction_score || 5}/10</strong></div>
                                 <div><span style={{ color: '#94a3b8' }}>Market Mood: </span><strong style={{ color: '#38bdf8' }}>{viewTradeModal.market_mood || 'NEUTRAL'}</strong></div>
                             </div>

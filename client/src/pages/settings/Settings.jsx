@@ -112,7 +112,7 @@ export default function Settings() {
 
     const features = [
         { id: 'watchlist', label: 'Watchlist', icon: <LineChart size={18} />, desc: 'Track your customized stock lists and prices.' },
-        { id: 'clients', label: 'Clients', icon: '◎', desc: 'Manage client portfolios and onboarding.' },
+        { id: 'clients', label: 'Clients', icon: <Users size={18} />, desc: 'Manage client portfolios and onboarding.' },
         { id: 'trades', label: 'Trades', icon: <ScrollText size={18} />, desc: 'Log and monitor active or past trades.' },
         { id: 'paperTrade', label: 'Paper Trading', icon: <Briefcase size={18} />, desc: 'Simulated trading journal & long-term conviction portfolio.' },
         { id: 'analysis', label: 'Research', icon: <Microscope size={18} />, desc: 'Perform AI-driven stock research and analysis.' },
@@ -127,94 +127,100 @@ export default function Settings() {
             </header>
 
             <div className="settings-grid">
-                {/* Appearance Section */}
-                <section className="settings-card">
-                    <div className="settings-card-header">
-                        <h3><Palette size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Appearance</h3>
-                        <p>Customize the look and feel of TradeSphere.</p>
-                    </div>
-
-                    <div className="settings-item">
-                        <div className="settings-item-info">
-                            <h4>Theme Mode</h4>
-                            <p>Switch between Light and Dark interface.</p>
+                {/* Column 1: Appearance & Workspace Options */}
+                <div className="settings-column">
+                    {/* Appearance Section */}
+                    <section className="settings-card">
+                        <div className="settings-card-header">
+                            <h3><Palette size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Appearance</h3>
+                            <p>Customize the look and feel of TradeSphere.</p>
                         </div>
-                        <button className="settings-toggle-btn" onClick={toggleTheme}>
-                            {isDarkMode ? <><Moon size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Dark Mode</> : <><Sun size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Light Mode</>}
-                        </button>
-                    </div>
 
-                    <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
-                        <div className="settings-item-info">
-                            <h4>Accent Color</h4>
-                            <p>Choose your primary highlight color.</p>
+                        <div className="settings-item">
+                            <div className="settings-item-info">
+                                <h4>Theme Mode</h4>
+                                <p>Switch between Light and Dark interface.</p>
+                            </div>
+                            <button className="settings-toggle-btn" onClick={toggleTheme} type="button">
+                                {isDarkMode ? <><Moon size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Dark Mode</> : <><Sun size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Light Mode</>}
+                            </button>
                         </div>
-                        <div className="settings-colors-grid">
-                            {colors.map(c => (
-                                <button
-                                    key={c.id}
-                                    className={`settings-color-btn ${accentColor === c.id ? 'active' : ''}`}
-                                    onClick={() => setAccentColor(c.id)}
-                                >
-                                    <span className="color-swatch" style={{ background: c.hex }} />
-                                    {c.label}
-                                </button>
-                            ))}
+
+                        <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
+                            <div className="settings-item-info">
+                                <h4>Accent Color</h4>
+                                <p>Choose your primary highlight color.</p>
+                            </div>
+                            <div className="settings-colors-grid">
+                                {colors.map(c => (
+                                    <button
+                                        key={c.id}
+                                        type="button"
+                                        className={`settings-color-btn ${accentColor === c.id ? 'active' : ''}`}
+                                        onClick={() => setAccentColor(c.id)}
+                                    >
+                                        <span className="color-swatch" style={{ background: c.hex }} />
+                                        {c.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                {/* Navigation Section */}
-                <section className="settings-card">
-                    <div className="settings-card-header">
-                        <h3><Compass size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Sidebar Navigation</h3>
-                        <p>Toggle modules on or off to keep your workspace clean.</p>
-                    </div>
+                    {/* Optional Features Section */}
+                    <section className="settings-card">
+                        <div className="settings-card-header">
+                            <h3><Sparkles size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Optional Features</h3>
+                            <p>Toggle additional dashboard widgets and intelligence features.</p>
+                        </div>
 
-                    <div className="settings-features-list">
-                        {features.map(f => (
-                            <div key={f.id} className="settings-item">
+                        <div className="settings-features-list">
+                            <div className="settings-item">
                                 <div className="settings-item-info">
-                                    <h4>{f.icon} {f.label}</h4>
-                                    <p>{f.desc}</p>
+                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Flame size={16} /> Market Intelligence</h4>
+                                    <p>Show live market news and sentiment on the dashboard.</p>
                                 </div>
                                 <label className="settings-switch">
                                     <input 
                                         type="checkbox" 
-                                        checked={sidebarFeatures[f.id]} 
-                                        onChange={() => toggleFeature(f.id)} 
+                                        checked={optionalFeatures?.marketIntelligence ?? true} 
+                                        onChange={() => toggleOptionalFeature('marketIntelligence')} 
                                     />
                                     <span className="settings-slider"></span>
                                 </label>
                             </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* Optional Features Section */}
-                <section className="settings-card">
-                    <div className="settings-card-header">
-                        <h3><Sparkles size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Optional Features</h3>
-                        <p>Toggle additional dashboard widgets and intelligence features.</p>
-                    </div>
-
-                    <div className="settings-features-list">
-                        <div className="settings-item">
-                            <div className="settings-item-info">
-                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Flame size={16} /> Market Intelligence</h4>
-                                <p>Show live market news and sentiment on the dashboard.</p>
-                            </div>
-                            <label className="settings-switch">
-                                <input 
-                                    type="checkbox" 
-                                    checked={optionalFeatures?.marketIntelligence ?? true} 
-                                    onChange={() => toggleOptionalFeature('marketIntelligence')} 
-                                />
-                                <span className="settings-slider"></span>
-                            </label>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </div>
+
+                {/* Column 2: Navigation & Security Credentials */}
+                <div className="settings-column">
+                    {/* Navigation Section */}
+                    <section className="settings-card">
+                        <div className="settings-card-header">
+                            <h3><Compass size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Sidebar Navigation</h3>
+                            <p>Toggle modules on or off to keep your workspace clean.</p>
+                        </div>
+
+                        <div className="settings-features-list">
+                            {features.map(f => (
+                                <div key={f.id} className="settings-item">
+                                    <div className="settings-item-info">
+                                        <h4>{f.icon} {f.label}</h4>
+                                        <p>{f.desc}</p>
+                                    </div>
+                                    <label className="settings-switch">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={sidebarFeatures[f.id]} 
+                                            onChange={() => toggleFeature(f.id)} 
+                                        />
+                                        <span className="settings-slider"></span>
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
 
                 {/* Change Password / Security Section */}
                 <section className="settings-card">
@@ -305,7 +311,7 @@ export default function Settings() {
                         </Button>
                     </form>
                 </section>
-
+                </div>
             </div>
         </div>
     );

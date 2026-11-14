@@ -105,6 +105,30 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle, is
         });
     };
 
+    const handleMenuToggle = () => {
+        // Robust mobile detection: media query, window width, viewport clientWidth, or sidebar computed transform
+        const mqMatches = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        const isSmallWidth = typeof window !== 'undefined' && (window.innerWidth <= 768 || (document.documentElement && document.documentElement.clientWidth <= 768));
+        
+        let isMobileSidebar = false;
+        if (typeof document !== 'undefined') {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const cs = window.getComputedStyle(sidebar);
+                if (cs.position === 'fixed' && (cs.transform.includes('-') || cs.zIndex === '3000' || cs.top === '0px')) {
+                    isMobileSidebar = true;
+                }
+            }
+        }
+
+        if (mqMatches || isSmallWidth || isMobileSidebar) {
+            setDropdownOpen(false);
+            onMenuToggle();
+        } else {
+            onCollapseToggle();
+        }
+    };
+
     // Current page configuration
     const currentConfig = Object.entries(PAGE_CONFIG)
         .find(([path]) => pathname === path || (path !== '/' && pathname.startsWith(path + '/')))?.[1]
@@ -117,14 +141,7 @@ export default function Navbar({ onMenuToggle, isCollapsed, onCollapseToggle, is
                 {!pathname.startsWith('/super-admin') && (
                     <button
                         className="navbar__menu-btn"
-                        onClick={() => {
-                            if (window.innerWidth > 768) {
-                                onCollapseToggle();
-                            } else {
-                                setDropdownOpen(false);
-                                onMenuToggle();
-                            }
-                        }}
+                        onClick={handleMenuToggle}
                         aria-label="Toggle sidebar"
                         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                     >
