@@ -161,6 +161,25 @@ export const runMigrations = async () => {
         `);
         console.log('✅ Trade lists and list items tables verified.');
 
+        // 6. Verify Reference Note Logs Table & updated_at column
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS reference_note_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                note_id INT NOT NULL,
+                admin_id INT NOT NULL,
+                previous_title VARCHAR(255) DEFAULT NULL,
+                new_title VARCHAR(255) DEFAULT NULL,
+                previous_content LONGTEXT DEFAULT NULL,
+                new_content LONGTEXT DEFAULT NULL,
+                diff_summary JSON DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (note_id),
+                INDEX (admin_id),
+                FOREIGN KEY (note_id) REFERENCES reference_notes(note_id) ON DELETE CASCADE
+            )
+        `);
+        console.log('✅ Reference note logs table verified.');
+
         console.log('✅ Database migrations and seed completed.');
     } catch (err) {
         console.error('❌ Migration failed:', err);

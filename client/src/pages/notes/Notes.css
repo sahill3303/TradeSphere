@@ -1,0 +1,426 @@
+/* ──────────────────────────────────────────────────────────
+   Notes.css — TradeSphere Notepad with Edit & Audit Diff Logs
+────────────────────────────────────────────────────────── */
+
+/* ── Active Editing Indicator on Form Card ── */
+.notes-form-card--editing {
+    border: 1px solid var(--color-gold) !important;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15) !important;
+}
+
+.notes-editing-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm, 6px);
+    margin-bottom: var(--space-md, 1rem);
+    font-size: 0.82rem;
+    color: var(--color-gold);
+}
+
+.notes-editing-cancel-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0;
+    transition: color 0.15s;
+}
+
+.notes-editing-cancel-btn:hover {
+    color: var(--color-text);
+}
+
+/* ── Note Card Header Actions ── */
+.note-card {
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.note-card--being-edited {
+    border-color: var(--color-gold) !important;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2) !important;
+}
+
+.note-card__actions {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 5;
+}
+
+.note-card-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.note-card-action-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-text);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.note-card-action-btn--edit:hover {
+    color: var(--color-gold);
+    border-color: var(--color-gold);
+    background: rgba(212, 175, 55, 0.12);
+}
+
+.note-card-action-btn--history:hover,
+.note-card-action-btn--history.active {
+    color: #38bdf8;
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+}
+
+.note-card-action-btn--delete:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+/* ── Timestamp & Metadata Bar ── */
+.note-card__meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.76rem;
+    color: var(--color-text-dim);
+    margin-bottom: var(--space-md, 1rem);
+}
+
+.note-edited-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    color: var(--color-gold);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.72rem;
+}
+
+.note-history-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.note-history-pill:hover,
+.note-history-pill.active {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #bae6fd;
+}
+
+/* ── Revision History & Audit Logs Section ── */
+.note-history-panel {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.note-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.note-history-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.note-history-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.note-history-entry {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.85rem;
+    position: relative;
+    font-size: 0.82rem;
+}
+
+.note-history-entry__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.note-history-rev-tag {
+    font-weight: 700;
+    color: var(--color-gold);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.note-history-date {
+    color: var(--color-text-dim);
+    font-size: 0.75rem;
+}
+
+/* ── Stats Badges ── */
+.diff-stats-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.diff-badge {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.diff-badge--added {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.diff-badge--removed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.diff-badge--title {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--color-gold);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* ── Title Difference Box ── */
+.diff-title-box {
+    margin-bottom: 0.65rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--color-border);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* ── Content Line Diff Box ── */
+.diff-box {
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.diff-line {
+    display: flex;
+    padding: 2px 8px;
+    word-break: break-word;
+    white-space: pre-wrap;
+    border-left: 3px solid transparent;
+}
+
+.diff-line--added {
+    background: rgba(16, 185, 129, 0.12);
+    color: #a7f3d0;
+    border-left-color: #10b981;
+}
+
+.diff-line--removed {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    border-left-color: #ef4444;
+    text-decoration: line-through;
+    opacity: 0.85;
+}
+
+.diff-line--unchanged {
+    color: var(--color-text-dim);
+    opacity: 0.7;
+}
+
+.diff-gutter {
+    width: 18px;
+    flex-shrink: 0;
+    user-select: none;
+    font-weight: 700;
+}
+
+.diff-line--added .diff-gutter { color: #10b981; }
+.diff-line--removed .diff-gutter { color: #ef4444; }
+
+/* ── Restore Revision Button ── */
+.btn-restore-version {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.btn-restore-version:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Light Mode Overrides for Notes
+────────────────────────────────────────────────────────── */
+[data-theme='light'] .notes-editing-banner {
+    background: rgba(194, 138, 19, 0.08);
+    border-color: rgba(194, 138, 19, 0.25);
+    color: var(--color-gold-dark, #9b6e0f);
+}
+
+[data-theme='light'] .note-card-action-btn {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+[data-theme='light'] .note-card-action-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+[data-theme='light'] .note-card-action-btn--edit:hover {
+    color: var(--color-gold-dark, #9b6e0f);
+    border-color: var(--color-gold);
+    background: rgba(194, 138, 19, 0.12);
+}
+
+[data-theme='light'] .note-card-action-btn--history:hover,
+[data-theme='light'] .note-card-action-btn--history.active {
+    color: #0284c7;
+    border-color: #0284c7;
+    background: rgba(2, 132, 199, 0.12);
+}
+
+[data-theme='light'] .note-card-action-btn--delete:hover {
+    color: #dc2626;
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.12);
+}
+
+[data-theme='light'] .note-edited-tag {
+    background: rgba(194, 138, 19, 0.08);
+    border-color: rgba(194, 138, 19, 0.25);
+    color: var(--color-gold-dark, #9b6e0f);
+}
+
+[data-theme='light'] .note-history-pill {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+    color: #0284c7;
+}
+
+[data-theme='light'] .note-history-pill:hover,
+[data-theme='light'] .note-history-pill.active {
+    background: #e0f2fe;
+    border-color: #0284c7;
+    color: #0369a1;
+}
+
+[data-theme='light'] .note-history-entry {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .diff-title-box {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .diff-box {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme='light'] .diff-line--added {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+}
+
+[data-theme='light'] .diff-line--removed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+}
+
+[data-theme='light'] .diff-line--unchanged {
+    color: #64748b;
+}
+
+[data-theme='light'] .btn-restore-version {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+[data-theme='light'] .btn-restore-version:hover {
+    background: #f8fafc;
+    border-color: var(--color-gold);
+    color: var(--color-gold-dark, #9b6e0f);
+}
+
